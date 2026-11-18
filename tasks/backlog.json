@@ -1,0 +1,63 @@
+{
+  "repository": "latent-decision-models",
+  "package": "latent_decision_models",
+  "cli": "ldm",
+  "tickets": [
+    {
+      "id": "LDM-000",
+      "title": "Scaffold package and synthetic CPU smoke tests",
+      "status": "done",
+      "deliverable": "README, pyproject, source, tests, CI"
+    },
+    {
+      "id": "LDM-001",
+      "title": "Audit ds002158 metadata and confidence trial semantics",
+      "status": "done",
+      "deliverable": "docs/ds002158-audit.md; reports/ds002158-audit.json; validated adapter contract",
+      "notes": "GO behavior; conditional GO EEG/fMRI; see docs/ds002158-audit.md"
+    },
+    {
+      "id": "LDM-002",
+      "title": "Dataset-specific behavioral confidence baseline",
+      "status": "in_progress",
+      "deliverable": "real behavioral pipeline and held-out subject metrics",
+      "notes": "Adapter + continuous-target ridge baselines + type-2 AUROC done; remaining: ordinal/beta alternatives, calibration, mixed-effects metacognition model, run-held-out evaluation"
+    },
+    {
+      "id": "LDM-003",
+      "title": "EEG subset alignment, QC and classical decoding",
+      "status": "blocked:approval(raw EEG download ~4.2 GB for sub-02, sub-04)",
+      "deliverable": "event matching report; neural baseline"
+    },
+    {
+      "id": "LDM-004",
+      "title": "fMRI derivatives audit and trial-level ROI/GLM baseline",
+      "status": "blocked:LDM-002",
+      "deliverable": "documented feature extraction and tests"
+    },
+    {
+      "id": "LDM-005",
+      "title": "Multimodal baseline and small PyTorch fusion",
+      "status": "blocked:LDM-003,LDM-004",
+      "deliverable": "ablation, CI, participant-disjoint metrics"
+    },
+    {
+      "id": "LDM-006",
+      "title": "Audit ds007474 behavioral task and OSF mapping",
+      "status": "ready",
+      "deliverable": "document verified events, participant matching, permissions"
+    },
+    {
+      "id": "LDM-007",
+      "title": "Belief updating RL benchmark",
+      "status": "blocked:LDM-006",
+      "deliverable": "model comparison, parameter recovery and predictive checking"
+    },
+    {
+      "id": "LDM-008",
+      "title": "Research report and reproducible tagged release",
+      "status": "blocked:LDM-005,LDM-007",
+      "deliverable": "release and evidence-based methods report"
+    }
+  ]
+}

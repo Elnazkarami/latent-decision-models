@@ -1,0 +1,8 @@
+input: examples/synthetic_trials.csv
+output: reports/synthetic_benchmark.json
+n_splits: 4
+random_state: 23
+features:
+  - evidence
+  - reaction_time_seconds
+  - accuracy

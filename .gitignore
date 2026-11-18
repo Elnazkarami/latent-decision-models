@@ -1,0 +1,26 @@
+__pycache__/
+.pytest_cache/
+.ruff_cache/
+*.egg-info/
+.venv/
+.env
+.DS_Store
+build/
+dist/
+data/
+reports/*.json
+reports/*.csv
+examples/synthetic_trials.csv
+models/
+outputs/
+*.nii
+*.nii.gz
+*.fif
+*.vhdr
+*.vmrk
+*.eeg
+# small CC0 metadata fixtures (no signal data) are allowed
+!tests/fixtures/**/*.vhdr
+!tests/fixtures/**/*.vmrk
+# reviewed audit reports are versioned
+!reports/*-audit.json

@@ -1,0 +1,12 @@
+# LDM-002: behavioral confidence baseline on ds002158 (real data; behavior only).
+# Produce the input with:
+#   ldm ds002158 fetch-metadata --dest data/ds002158
+#   ldm ds002158 trials --bids-root data/ds002158 --out data/ds002158_trials.csv
+input: data/ds002158_trials.csv
+output: reports/ds002158_confidence_baseline_excl_sub-20.json
+data_kind: real_behavioral_openneuro_ds002158_v1.0.2
+n_splits: 5
+ridge_alpha: 1.0   # fixed a priori; not tuned
+n_boot: 2000
+seed: 0
+exclude_subjects: [sub-20]   # sensitivity analysis; see docs/ds002158-audit.md

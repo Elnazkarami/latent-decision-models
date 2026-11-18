@@ -1,0 +1,30 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "latent-decision-models"
+version = "0.0.1"
+description = "Reproducible tools for computational decision-neuroscience modeling"
+readme = "README.md"
+requires-python = ">=3.10"
+license = {file = "LICENSE"}
+dependencies = ["numpy>=1.23", "pandas>=1.5", "scipy>=1.9", "scikit-learn>=1.2", "PyYAML>=6"]
+
+[project.optional-dependencies]
+dev = ["pytest>=7", "ruff>=0.6"]
+eeg = ["mne>=1.5", "mne-bids>=0.14"]
+fmri = ["nilearn>=0.10", "nibabel>=5", "pybids>=0.16"]
+deep = ["torch>=2.1"]
+
+[project.scripts]
+ldm = "latent_decision_models.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 100

@@ -1,0 +1,746 @@
+{
+ "dataset_id": "ds002158",
+ "source_uri": "https://openneuro.org/datasets/ds002158/versions/1.0.2",
+ "git_mirror": "https://github.com/OpenNeuroDatasets/ds002158/tree/1.0.2",
+ "snapshot_version": "1.0.2",
+ "snapshot_created": "2020-04-25T11:20:01Z",
+ "doi": "10.18112/openneuro.ds002158.v1.0.2",
+ "license": "CC0",
+ "license_verified": true,
+ "license_source": "dataset_description.json at tag 1.0.2 and OpenNeuro GraphQL snapshot.description.License",
+ "citation": "Pereira M, Faivre N, Iturrate I, Wirthlin M, Serafini L, Martin S, Desvachez A, Blanke O, Van De Ville D, Millan JdR (2020). Disentangling the origins of confidence in speeded perceptual judgments through multimodal imaging. PNAS 117(15):8382-8390. doi:10.1073/pnas.1918335117",
+ "paper_source_actually_read": "bioRxiv v1 preprint Methods (https://www.biorxiv.org/content/10.1101/496877v1.full); PNAS version not accessible (HTTP 403)",
+ "audit_date": "2026-11-18",
+ "subjects_total": 20,
+ "subject_ids": [
+  "sub-02",
+  "sub-04",
+  "sub-07",
+  "sub-08",
+  "sub-09",
+  "sub-10",
+  "sub-11",
+  "sub-12",
+  "sub-13",
+  "sub-14",
+  "sub-15",
+  "sub-16",
+  "sub-17",
+  "sub-18",
+  "sub-19",
+  "sub-20",
+  "sub-21",
+  "sub-22",
+  "sub-24",
+  "sub-26"
+ ],
+ "subject_ids_note": "Non-contiguous labels (sub-02..sub-26); paper: 25 recruited, 5 excluded (3 technical, 2 too slow)",
+ "subjects_with_events": 20,
+ "sessions": [
+  "ses-001"
+ ],
+ "tasks": [
+  "main",
+  "rest"
+ ],
+ "conditions": {
+  "active": "own/committed decision (trial_type act, act-bad)",
+  "observed": "observed virtual-hand decision; replay of participant's own preceding active block, shuffled (trial_type obs, obs-bad)"
+ },
+ "events_files_bids_valid": 118,
+ "events_rows_total": 5654,
+ "runs_per_subject": {
+  "sub-02": 6,
+  "sub-04": 6,
+  "sub-07": 4,
+  "sub-08": 6,
+  "sub-09": 6,
+  "sub-10": 6,
+  "sub-11": 6,
+  "sub-12": 6,
+  "sub-13": 6,
+  "sub-14": 5,
+  "sub-15": 6,
+  "sub-16": 6,
+  "sub-17": 6,
+  "sub-18": 6,
+  "sub-19": 6,
+  "sub-20": 7,
+  "sub-21": 6,
+  "sub-22": 6,
+  "sub-24": 6,
+  "sub-26": 6
+ },
+ "per_condition_trial_counts": {
+  "all_rows": {
+   "active": 2833,
+   "observed": 2821
+  },
+  "valid": {
+   "active": 2437,
+   "observed": 2423
+  },
+  "valid_per_subject": {
+   "sub-02": {
+    "active": 113,
+    "observed": 114
+   },
+   "sub-04": {
+    "active": 127,
+    "observed": 128
+   },
+   "sub-07": {
+    "active": 74,
+    "observed": 71
+   },
+   "sub-08": {
+    "active": 138,
+    "observed": 138
+   },
+   "sub-09": {
+    "active": 127,
+    "observed": 128
+   },
+   "sub-10": {
+    "active": 132,
+    "observed": 133
+   },
+   "sub-11": {
+    "active": 121,
+    "observed": 121
+   },
+   "sub-12": {
+    "active": 130,
+    "observed": 129
+   },
+   "sub-13": {
+    "active": 126,
+    "observed": 125
+   },
+   "sub-14": {
+    "active": 104,
+    "observed": 97
+   },
+   "sub-15": {
+    "active": 132,
+    "observed": 131
+   },
+   "sub-16": {
+    "active": 118,
+    "observed": 117
+   },
+   "sub-17": {
+    "active": 126,
+    "observed": 125
+   },
+   "sub-18": {
+    "active": 113,
+    "observed": 113
+   },
+   "sub-19": {
+    "active": 103,
+    "observed": 99
+   },
+   "sub-20": {
+    "active": 138,
+    "observed": 139
+   },
+   "sub-21": {
+    "active": 136,
+    "observed": 135
+   },
+   "sub-22": {
+    "active": 111,
+    "observed": 112
+   },
+   "sub-24": {
+    "active": 132,
+    "observed": 132
+   },
+   "sub-26": {
+    "active": 136,
+    "observed": 136
+   }
+  },
+  "valid_per_subject_range": {
+   "active": [
+    74,
+    138
+   ],
+   "observed": [
+    71,
+    139
+   ]
+  }
+ },
+ "available_columns": {
+  "onset": "float s, relative to first fMRI volume trigger (VERIFIED-MARKERS)",
+  "duration": "always 0",
+  "trial_type": [
+   "act",
+   "act-bad",
+   "obs",
+   "obs-bad"
+  ],
+  "response_time": "float s, 20 ms grid; active: button-press latency; observed: replayed virtual-hand latency; -0.02/0.0 = no response; NOT in events.json",
+  "dots_difference": "int dots, 0-32 (staircase-controlled evidence)",
+  "stim_side": [
+   "left",
+   "right"
+  ],
+  "choice_accuracy": [
+   "cor",
+   "err"
+  ],
+  "confidence": "float 0..1 (2 dp), 0=sure error, 1=sure correct; -1 = missing",
+  "response_time2": "float s, time to confirm rating; sidecar says little utility; -0.02 = missing"
+ },
+ "derived_fields": {
+  "choice_side": "stim_side if cor else opposite (INFERRED; verified against EEG response markers in sampled runs)"
+ },
+ "target_candidate": {
+  "name": "confidence",
+  "scale": "continuous visual analogue 0-1",
+  "treatment_chosen": "continuous regression target (LDM-002)",
+  "evidence": "sidecar + preprint Methods + observed values"
+ },
+ "known_missingness": {
+  "confidence_missing_rows": 45,
+  "no_first_order_response_rows": 35,
+  "author_excluded_rows": 794,
+  "author_exclusion_reasons": {
+   "rt_above_500ms": 706,
+   "no_confidence_response": 45,
+   "no_first_order_response": 35,
+   "author_flag_reason_not_in_events": 24,
+   "rt_below_200ms": 8
+  },
+  "unexplained_author_exclusions_by_subject": {
+   "sub-20": 21,
+   "sub-12": 3
+  },
+  "truncated_runs": {
+   "sub-19/run-001": 38
+  }
+ },
+ "observed_replay_check": {
+  "observed_blocks": 235,
+  "identical_multiset_to_preceding_active_block": 209,
+  "keys": "(response_time, dots_difference, choice_accuracy, stim_side)"
+ },
+ "EEG_files": {
+  "format": "BrainVision",
+  "sfreq_hz": 5000,
+  "n_channels_vhdr": 64,
+  "raw_runs_bids_valid": 117,
+  "marker_codes_verified": {
+   "R128": "fMRI volume trigger",
+   "S11": "stimulus, more dots left",
+   "S12": "stimulus, more dots right",
+   "S7": "active press, chose left",
+   "S8": "active press, chose right",
+   "S17": "virtual hand, chose left",
+   "S18": "virtual hand, chose right"
+  },
+  "marker_codes_unverified": [
+   "S128",
+   "S27",
+   "S38",
+   "S40",
+   "S41",
+   "S43",
+   "S44",
+   "S171",
+   "S37"
+  ],
+  "alignment_sample": [
+   {
+    "eeg_file": "sub-02/ses-001/eeg/sub-02_ses-001_task-main_run-002_eeg.vmrk",
+    "eeg_file_sha256": "f1f46e31d5d84170954cc4b091cb207f7d4a8cd9c82f4680cf54f7fda8ab45bb",
+    "eeg_filename_run": "run-002",
+    "matched_events_run": "run-002",
+    "subject": "sub-02",
+    "n_trials": 48,
+    "n_timing_matched": 48,
+    "n_volume_markers": 375,
+    "max_abs_onset_residual_ms": 0.0,
+    "n_stimulus_side_mismatch": 0,
+    "n_response_marker_found": 48,
+    "n_response_side_mismatch": 0,
+    "status": "verified"
+   },
+   {
+    "eeg_file": "sub-04/ses-001/eeg/sub-04_ses-001_task-main_run-002_eeg.vmrk",
+    "eeg_file_sha256": "b8dd27ae72c95bf9f8fc9054484ce6a47ff3161efcbfa59ec36da143b329b526",
+    "eeg_filename_run": "run-002",
+    "matched_events_run": "run-002",
+    "subject": "sub-04",
+    "n_trials": 48,
+    "n_timing_matched": 48,
+    "n_volume_markers": 373,
+    "max_abs_onset_residual_ms": 0.0,
+    "n_stimulus_side_mismatch": 0,
+    "n_response_marker_found": 47,
+    "n_response_side_mismatch": 0,
+    "status": "verified"
+   },
+   {
+    "eeg_file": "sub-07/ses-001/eeg/sub-07_ses-001_task-main_run-002_eeg.vmrk",
+    "eeg_file_sha256": "798aa68e3feb86e389ec8a3951d36689fb6bf42f0981670aa7829621997dc4ce",
+    "eeg_filename_run": "run-002",
+    "matched_events_run": "run-002",
+    "subject": "sub-07",
+    "n_trials": 48,
+    "n_timing_matched": 48,
+    "n_volume_markers": 373,
+    "max_abs_onset_residual_ms": 0.0,
+    "n_stimulus_side_mismatch": 0,
+    "n_response_marker_found": 48,
+    "n_response_side_mismatch": 0,
+    "status": "verified"
+   },
+   {
+    "eeg_file": "sub-08/ses-001/eeg/sub-08_ses-001_task-main_run-002_eeg.vmrk",
+    "eeg_file_sha256": "60d16a400ec4165a5e1077ec761a8cc9ae6faf8687cc71e19f98e5e4bf22b194",
+    "eeg_filename_run": "run-002",
+    "matched_events_run": "run-002",
+    "subject": "sub-08",
+    "n_trials": 48,
+    "n_timing_matched": 48,
+    "n_volume_markers": 373,
+    "max_abs_onset_residual_ms": 0.0,
+    "n_stimulus_side_mismatch": 0,
+    "n_response_marker_found": 48,
+    "n_response_side_mismatch": 0,
+    "status": "verified"
+   },
+   {
+    "eeg_file": "sub-09/ses-001/eeg/sub-09_ses-001_task-main_run-002_eeg.vmrk",
+    "eeg_file_sha256": "f9b475aa239f0d8fa5a5f949b5afca29290cd90f9e2ad1c4b648f599a5d141ad",
+    "eeg_filename_run": "run-002",
+    "matched_events_run": "run-002",
+    "subject": "sub-09",
+    "n_trials": 48,
+    "n_timing_matched": 48,
+    "n_volume_markers": 373,
+    "max_abs_onset_residual_ms": 0.0,
+    "n_stimulus_side_mismatch": 0,
+    "n_response_marker_found": 48,
+    "n_response_side_mismatch": 0,
+    "status": "verified"
+   },
+   {
+    "eeg_file": "sub-10/ses-001/eeg/sub-10_ses-001_task-main_run-002_eeg.vmrk",
+    "eeg_file_sha256": "f228fffe219b2e0c746e2ab4ddd8ed7d0dde7aef842c88436bb1a0b40c4ec213",
+    "eeg_filename_run": "run-002",
+    "matched_events_run": "run-002",
+    "subject": "sub-10",
+    "n_trials": 48,
+    "n_timing_matched": 48,
+    "n_volume_markers": 373,
+    "max_abs_onset_residual_ms": 0.0,
+    "n_stimulus_side_mismatch": 0,
+    "n_response_marker_found": 48,
+    "n_response_side_mismatch": 0,
+    "status": "verified"
+   },
+   {
+    "eeg_file": "sub-11/ses-001/eeg/sub-11_ses-001_task-main_run-002_eeg.vmrk",
+    "eeg_file_sha256": "66f2bbd203eebc78e1b1ce3a9b2bd00bbaec408c6d330e56cbe2be03db9a8bdb",
+    "eeg_filename_run": "run-002",
+    "matched_events_run": "run-002",
+    "subject": "sub-11",
+    "n_trials": 48,
+    "n_timing_matched": 48,
+    "n_volume_markers": 373,
+    "max_abs_onset_residual_ms": 0.0,
+    "n_stimulus_side_mismatch": 0,
+    "n_response_marker_found": 47,
+    "n_response_side_mismatch": 0,
+    "status": "verified"
+   },
+   {
+    "eeg_file": "sub-12/ses-001/eeg/sub-12_ses-001_task-main_run-002_eeg.vmrk",
+    "eeg_file_sha256": "7edc6e43a4ba9503d8a5636847d12d65b78d7a3975e16e93a5a391e2559b96d6",
+    "eeg_filename_run": "run-002",
+    "matched_events_run": "run-002",
+    "subject": "sub-12",
+    "n_trials": 48,
+    "n_timing_matched": 48,
+    "n_volume_markers": 373,
+    "max_abs_onset_residual_ms": 0.0,
+    "n_stimulus_side_mismatch": 0,
+    "n_response_marker_found": 48,
+    "n_response_side_mismatch": 0,
+    "status": "verified"
+   },
+   {
+    "eeg_file": "sub-12/ses-001/eeg/sub-12_ses-001_task-main_run-005_eeg.vmrk",
+    "eeg_file_sha256": "c96831f6455e5588d38f388aabd0e5ec91bfb17b02a261e67d96c7785a51417c",
+    "eeg_filename_run": "run-005",
+    "matched_events_run": "run-006",
+    "subject": "sub-12",
+    "n_trials": 48,
+    "n_timing_matched": 48,
+    "n_volume_markers": 373,
+    "max_abs_onset_residual_ms": 0.0,
+    "n_stimulus_side_mismatch": 0,
+    "n_response_marker_found": 48,
+    "n_response_side_mismatch": 0,
+    "status": "verified"
+   },
+   {
+    "eeg_file": "sub-12/ses-001/eeg/sub-12_ses-001_task-main_run-00_eeg.vmrk",
+    "eeg_file_sha256": "dcc682c41aa5d50c59469a40721c66735db9e0a787457d8dd2ba03a26ddfed13",
+    "eeg_filename_run": "run-00",
+    "matched_events_run": "run-005",
+    "subject": "sub-12",
+    "n_trials": 48,
+    "n_timing_matched": 48,
+    "n_volume_markers": 373,
+    "max_abs_onset_residual_ms": 0.0,
+    "n_stimulus_side_mismatch": 0,
+    "n_response_marker_found": 48,
+    "n_response_side_mismatch": 0,
+    "status": "verified"
+   },
+   {
+    "eeg_file": "sub-13/ses-001/eeg/sub-13_ses-001_task-main_run-002_eeg.vmrk",
+    "eeg_file_sha256": "7f0b95f71fe97d11003fb40bfbe9dbf49e94b2ec4e67403dd5dd9fc0064a80a1",
+    "eeg_filename_run": "run-002",
+    "matched_events_run": "run-002",
+    "subject": "sub-13",
+    "n_trials": 48,
+    "n_timing_matched": 48,
+    "n_volume_markers": 373,
+    "max_abs_onset_residual_ms": 0.0,
+    "n_stimulus_side_mismatch": 0,
+    "n_response_marker_found": 48,
+    "n_response_side_mismatch": 0,
+    "status": "verified"
+   },
+   {
+    "eeg_file": "sub-14/ses-001/eeg/sub-14_ses-001_task-main_run-002_eeg.vmrk",
+    "eeg_file_sha256": "6442870180fe4c597dd6b9abf62d97485c1ed89711354f36e739de7df88e7422",
+    "eeg_filename_run": "run-002",
+    "matched_events_run": "run-002",
+    "subject": "sub-14",
+    "n_trials": 48,
+    "n_timing_matched": 48,
+    "n_volume_markers": 373,
+    "max_abs_onset_residual_ms": 0.0,
+    "n_stimulus_side_mismatch": 0,
+    "n_response_marker_found": 47,
+    "n_response_side_mismatch": 0,
+    "status": "verified"
+   },
+   {
+    "eeg_file": "sub-15/ses-001/eeg/sub-15_ses-001_task-main_run-002_eeg.vmrk",
+    "eeg_file_sha256": "21936d4270b3ee122d67f1c8105fc4561163b17dd61f61e64dd6781c64a122ea",
+    "eeg_filename_run": "run-002",
+    "matched_events_run": "run-002",
+    "subject": "sub-15",
+    "n_trials": 48,
+    "n_timing_matched": 48,
+    "n_volume_markers": 373,
+    "max_abs_onset_residual_ms": 0.0,
+    "n_stimulus_side_mismatch": 0,
+    "n_response_marker_found": 48,
+    "n_response_side_mismatch": 0,
+    "status": "verified"
+   },
+   {
+    "eeg_file": "sub-16/ses-001/eeg/sub-16_ses-001_task-main_run-002_eeg.vmrk",
+    "eeg_file_sha256": "78cdf836cb5eded54c8315eb0c279c53e6c49962c40d0527f4a3c3805bb8c167",
+    "eeg_filename_run": "run-002",
+    "matched_events_run": "run-002",
+    "subject": "sub-16",
+    "n_trials": 48,
+    "n_timing_matched": 48,
+    "n_volume_markers": 373,
+    "max_abs_onset_residual_ms": 0.0,
+    "n_stimulus_side_mismatch": 0,
+    "n_response_marker_found": 47,
+    "n_response_side_mismatch": 0,
+    "status": "verified"
+   },
+   {
+    "eeg_file": "sub-17/ses-001/eeg/sub-17_ses-001_task-main_run-002_eeg.vmrk",
+    "eeg_file_sha256": "ba776dbeb3fbf6a940ad4109206a4e2948c40c5a2bf6ed2e5b01554208eed351",
+    "eeg_filename_run": "run-002",
+    "matched_events_run": "run-002",
+    "subject": "sub-17",
+    "n_trials": 48,
+    "n_timing_matched": 48,
+    "n_volume_markers": 373,
+    "max_abs_onset_residual_ms": 0.0,
+    "n_stimulus_side_mismatch": 0,
+    "n_response_marker_found": 48,
+    "n_response_side_mismatch": 0,
+    "status": "verified"
+   },
+   {
+    "eeg_file": "sub-18/ses-001/eeg/sub-18_ses-001_task-main_run-002_eeg.vmrk",
+    "eeg_file_sha256": "d6e44ecf2b410cd48f566e0723b295b6ab05b16c83b2ac52020d36a616664f99",
+    "eeg_filename_run": "run-002",
+    "matched_events_run": "run-002",
+    "subject": "sub-18",
+    "n_trials": 48,
+    "n_timing_matched": 48,
+    "n_volume_markers": 373,
+    "max_abs_onset_residual_ms": 0.0,
+    "n_stimulus_side_mismatch": 0,
+    "n_response_marker_found": 48,
+    "n_response_side_mismatch": 0,
+    "status": "verified"
+   },
+   {
+    "eeg_file": "sub-19/ses-001/eeg/sub-19_ses-001_task-main_run-001_eeg.vmrk",
+    "eeg_file_sha256": "10511f286d4466c3d92997db4f9cb449ce1487701680e4a15cb5e3519940df1d",
+    "eeg_filename_run": "run-001",
+    "matched_events_run": "run-001",
+    "subject": "sub-19",
+    "n_trials": 38,
+    "n_timing_matched": 38,
+    "n_volume_markers": 285,
+    "max_abs_onset_residual_ms": 0.0,
+    "n_stimulus_side_mismatch": 1,
+    "n_response_marker_found": 32,
+    "n_response_side_mismatch": 0,
+    "status": "timing_only"
+   },
+   {
+    "eeg_file": "sub-19/ses-001/eeg/sub-19_ses-001_task-main_run-002_eeg.vmrk",
+    "eeg_file_sha256": "3ecee2c40ea58f8ca0323ff9804b86eaf4fa4c020288b7ec51b845c5da0113ed",
+    "eeg_filename_run": "run-002",
+    "matched_events_run": "run-002",
+    "subject": "sub-19",
+    "n_trials": 48,
+    "n_timing_matched": 48,
+    "n_volume_markers": 373,
+    "max_abs_onset_residual_ms": 0.0,
+    "n_stimulus_side_mismatch": 0,
+    "n_response_marker_found": 48,
+    "n_response_side_mismatch": 0,
+    "status": "verified"
+   },
+   {
+    "eeg_file": "sub-19/ses-001/eeg/sub-19_ses-001_task-main_run-006_eeg.vmrk",
+    "eeg_file_sha256": "dfc102f00ea21cad9d3152cd931bb1534d5fc12b9c1233ceb77f82d262e9c0ac",
+    "eeg_filename_run": "run-006",
+    "matched_events_run": "run-006",
+    "subject": "sub-19",
+    "n_trials": 48,
+    "n_timing_matched": 48,
+    "n_volume_markers": 373,
+    "max_abs_onset_residual_ms": 0.0,
+    "n_stimulus_side_mismatch": 0,
+    "n_response_marker_found": 48,
+    "n_response_side_mismatch": 0,
+    "status": "verified"
+   },
+   {
+    "eeg_file": "sub-20/ses-001/eeg/sub-20_ses-001_task-main_run-002_eeg.vmrk",
+    "eeg_file_sha256": "fe4a993cc27f049d4b427a88bc4929db429d6368869965d4e471b7cb1e323f3e",
+    "eeg_filename_run": "run-002",
+    "matched_events_run": "run-002",
+    "subject": "sub-20",
+    "n_trials": 48,
+    "n_timing_matched": 48,
+    "n_volume_markers": 373,
+    "max_abs_onset_residual_ms": 0.0,
+    "n_stimulus_side_mismatch": 20,
+    "n_response_marker_found": 48,
+    "n_response_side_mismatch": 22,
+    "status": "timing_only"
+   },
+   {
+    "eeg_file": "sub-20/ses-001/eeg/sub-20_ses-001_task-main_run-006_eeg.vmrk",
+    "eeg_file_sha256": "7e6071d0fede743eee9e7937c717193f1db85e4a2c4863ab4f56b0e922bc6ffc",
+    "eeg_filename_run": "run-006",
+    "matched_events_run": "run-006",
+    "subject": "sub-20",
+    "n_trials": 48,
+    "n_timing_matched": 48,
+    "n_volume_markers": 373,
+    "max_abs_onset_residual_ms": 0.0,
+    "n_stimulus_side_mismatch": 24,
+    "n_response_marker_found": 48,
+    "n_response_side_mismatch": 22,
+    "status": "timing_only"
+   },
+   {
+    "eeg_file": "sub-21/ses-001/eeg/sub-21_ses-001_task-main_run-002_eeg.vmrk",
+    "eeg_file_sha256": "d79f6748ac5146a98eb4dce63fef374bdb02e3c6ae58e61c5c79fcdb073302c5",
+    "eeg_filename_run": "run-002",
+    "matched_events_run": "run-002",
+    "subject": "sub-21",
+    "n_trials": 48,
+    "n_timing_matched": 48,
+    "n_volume_markers": 373,
+    "max_abs_onset_residual_ms": 0.0,
+    "n_stimulus_side_mismatch": 0,
+    "n_response_marker_found": 48,
+    "n_response_side_mismatch": 0,
+    "status": "verified"
+   },
+   {
+    "eeg_file": "sub-22/ses-001/eeg/sub-22_ses-001_task-main_run-002_eeg.vmrk",
+    "eeg_file_sha256": "4d20f864a65a6a5e93f1a5cb18b71a314e3a4eb8617676806822596f07e19a09",
+    "eeg_filename_run": "run-002",
+    "matched_events_run": "run-002",
+    "subject": "sub-22",
+    "n_trials": 48,
+    "n_timing_matched": 48,
+    "n_volume_markers": 373,
+    "max_abs_onset_residual_ms": 0.0,
+    "n_stimulus_side_mismatch": 0,
+    "n_response_marker_found": 47,
+    "n_response_side_mismatch": 0,
+    "status": "verified"
+   },
+   {
+    "eeg_file": "sub-24/ses-001/eeg/sub-24_ses-001_task-main_run-002_eeg.vmrk",
+    "eeg_file_sha256": "9fa8863d306e92b403dc1c2cd1045679a6407ec05c466fcc63f54e006498253b",
+    "eeg_filename_run": "run-002",
+    "matched_events_run": "run-002",
+    "subject": "sub-24",
+    "n_trials": 48,
+    "n_timing_matched": 48,
+    "n_volume_markers": 373,
+    "max_abs_onset_residual_ms": 0.0,
+    "n_stimulus_side_mismatch": 0,
+    "n_response_marker_found": 48,
+    "n_response_side_mismatch": 0,
+    "status": "verified"
+   },
+   {
+    "eeg_file": "sub-26/ses-001/eeg/sub-26_ses-001_task-main_run-002_eeg.vmrk",
+    "eeg_file_sha256": "578d2cf7eb8acdd2c9dad0a8a9e202af1c138aa7db919db9689b132861337303",
+    "eeg_filename_run": "run-002",
+    "matched_events_run": "run-002",
+    "subject": "sub-26",
+    "n_trials": 48,
+    "n_timing_matched": 48,
+    "n_volume_markers": 373,
+    "max_abs_onset_residual_ms": 0.0,
+    "n_stimulus_side_mismatch": 0,
+    "n_response_marker_found": 48,
+    "n_response_side_mismatch": 0,
+    "status": "verified"
+   }
+  ],
+  "alignment_sample_status_counts": {
+   "verified": 22,
+   "timing_only": 3
+  }
+ },
+ "fMRI_files": {
+  "TR_s": 1.28,
+  "raw_dims": "108x108x64",
+  "raw_runs_bids_valid": 117,
+  "n_volumes_counts": {
+   "373": 108,
+   "375": 6,
+   "371": 4
+  },
+  "raw_vs_derivative_nvol_equal": 117,
+  "R128_count_equals_raw_nvol_in_checked_runs": true
+ },
+ "derivatives": {
+  "eegprep": {
+   "files_per_subject": "one concatenated EEGLAB .set/.fdt (not per run)",
+   "content_per_README": "1-10 Hz, epoched -0.2..0.6 s around response, CAR, ICA-cleaned",
+   "trial_mapping": null,
+   "note": "epoch-to-trial mapping not verified; .set header ~109 MB not downloaded"
+  },
+  "fmriprep": {
+   "naming": "non-standard (_preproc.nii, _headmove.txt); not fMRIPrep output naming",
+   "dims": "121x145x121 (template-space resampling suspected; space not documented)",
+   "nvol_equal_raw": true,
+   "space": null,
+   "smoothing": null,
+   "note": "preprint: SPM12, DARTEL, 5 mm smoothing \u2014 whether derivatives are smoothed is unverified"
+  }
+ },
+ "run_level_availability_anomalies": [
+  {
+   "subject": "sub-12",
+   "issue": "EEG filenames shifted: EEG 'run-00' contains events run-005; EEG 'run-005' contains events run-006; no EEG file named run-006",
+   "evidence": "0.0 ms onset match 48/48 for each"
+  },
+  {
+   "subject": "sub-14",
+   "run": "run-005",
+   "issue": "entire run in rejected/ (BIDS-ignored)"
+  },
+  {
+   "subject": "sub-19",
+   "run": "run-001",
+   "issue": "38 trials; no derivative BOLD; EEG has 285 volume triggers vs 373 BOLD volumes; 38/38 timing-matched, 1 stimulus-side label mismatch"
+  },
+  {
+   "subject": "sub-19",
+   "run": "run-006",
+   "issue": "raw BOLD missing; derivative BOLD present"
+  },
+  {
+   "subject": "sub-20",
+   "run": "run-007",
+   "issue": "EEG in rejected/"
+  },
+  {
+   "subject": "sub-20",
+   "runs": [
+    "run-002",
+    "run-006"
+   ],
+   "issue": "timing matches 48/48 but stimulus-side and response-side labels disagree between events.tsv and EEG markers in ~40-50% of trials; unresolved which source is correct"
+  }
+ ],
+ "trial_alignment_status": {
+  "behavior_to_fmri": "verified (onset reference = first volume trigger; nvol consistent)",
+  "behavior_to_eeg": "partial: 22/25 sampled runs verified (incl. 2 sub-12 runs after relabeling); sub-20 label conflict (2 runs); sub-19 run-001 1 label mismatch + short EEG",
+  "eeg_derivative_to_trials": "unverified",
+  "eeg_to_fmri": "verified clock relation via R128 in sampled runs"
+ },
+ "storage_estimate": {
+  "snapshot_total_bytes_incl_derivatives": 460190030945,
+  "openneuro_summary_size_bytes_excl_derivatives": 82185122527,
+  "raw_eeg_bytes": 38720652800,
+  "raw_bold_bytes": 43122891697,
+  "deriv_eegprep_bytes": 3234480824,
+  "deriv_fmriprep_preproc_bytes": 373791213576,
+  "events_and_sidecars_fetched_bytes": 277947,
+  "starter_one_subject_sub-02_bytes": {
+   "raw_eeg_6_runs": 2082850149,
+   "deriv_eegprep": 179988416,
+   "raw_bold_6_runs": 2015661941,
+   "deriv_fmriprep_preproc_6_runs": 19106507112,
+   "anat_T1w": 14015348
+  }
+ },
+ "provenance_fetched_files_sha256": {
+  ".bidsignore": "4fea2d5cc3a7f81e6654f336c72c5c0710765b27d4cd9e5b44a4bc43bc2d01b3",
+  "CHANGES": "7844935538522b05feb8783024854e75ef70ad90d49c9640d2ac71d5010f4f4f",
+  "README": "f2bdaeaf9a818741c68b444b467c749562d4ba5667f25985d4c849a3c61957d6",
+  "dataset_description.json": "f8a5b6219b877829ed7322b040d74ec6bdcc54c1d6e00f40f68964830773e886",
+  "participants.json": "8349ed36c455f9252726bc491e9c5d4c06b77f91fef35973cb37926367318e91",
+  "participants.tsv": "d68312f59a70d2afc5ac9134ce9141c37741d79039b60f78875c33b262743434",
+  "task-main_bold.json": "919a795fba2d8e0adff1514e86e0106c9f2ff51f3e5ab51b6e83097927189504",
+  "task-main_events.json": "ecbbcda81b9b906d73b472d393f8b23a315c8668a8def371e4bed23d01cb46c3"
+ },
+ "fetch_manifest": "data/ds002158/fetch_manifest.json (generated by ldm ds002158 fetch-metadata; git-ignored)",
+ "blockers": [
+  "sub-20 events-vs-EEG label conflict (exclude from EEG work until resolved; behavioral sensitivity analysis provided)",
+  "eegprep derivative epoch-to-trial mapping unknown (would require downloading ~180 MB per subject)",
+  "derivative fMRI space/smoothing undocumented",
+  "24 author exclusions without a reason recoverable from events.tsv (sub-12: 3, sub-20: 21)",
+  "staircase update rule not reproducible from events (simple 1-up/2-down agreement ~0.4)"
+ ],
+ "go_no_go": {
+  "behavioral_confidence_modeling": "GO",
+  "eeg_trial_level": "CONDITIONAL GO (raw EEG + marker-based alignment; exclude sub-20; never pair by filename)",
+  "fmri_trial_level": "CONDITIONAL GO (raw or derivative BOLD; onsets verified; space/preprocessing of derivatives to be audited)"
+ }
+}
