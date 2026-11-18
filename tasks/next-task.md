@@ -3,10 +3,9 @@
 **LDM-001 is done** (see `docs/ds002158-audit.md`). **LDM-002 is in progress** (first pass in `docs/ds002158-behavioral-baseline.md`).
 
 ## Option A: finish LDM-002 (no approvals needed)
-1. Add a hierarchical logistic metacognition model (accuracy ~ confidence × condition, with random effects by subject), mirroring the paper's primary analysis. Use `statsmodels` or `bambi` as an optional extra.
-2. Add ordinal/beta-regression alternatives and calibration plots for the confidence target.
-3. Add run-held-out (within-subject) evaluation, reported separately from subject-held-out results.
-4. Add a computational confidence model (e.g. evidence accumulation with post-decision evidence) with a parameter-recovery test on synthetic data before fitting real data.
+Done so far: calibration, run-held-out evaluation, GEE metacognition (see `docs/ds002158-behavioral-baseline.md`).
+1. **Next:** a computational confidence model (e.g. signal detection or evidence accumulation with post-decision evidence; committed vs observed variants). Test parameter recovery on synthetic data before any real-data fit, and compare models on held-out subjects.
+2. Optional: a mixed-effects random-slope metacognition model (optional extra), a within-subject-centered confidence variant, and ordinal/beta-regression alternatives.
 
 ## Option B: start LDM-003 (needs explicit approval)
 - Download the raw EEG `.eeg/.vhdr/.vmrk` for **sub-02 and sub-04** (about 4.2 GB) to `data/ds002158/`.

@@ -79,3 +79,45 @@ def test_type2_auroc_nan_without_errors():
     df = _synthetic(True)
     df["accuracy"] = 1
     assert type2_auroc(df)["auroc2"].isna().all()
+
+
+# ---------------------------------------------------------------- calibration / within-subject
+from latent_decision_models.confidence_baseline import calibration, run_within_subject
+
+
+def test_calibration_known_values():
+    pred = np.linspace(0, 1, 50)
+    assert calibration(2 * pred + 0.1, pred) == pytest.approx({"slope": 2.0, "intercept": 0.1})
+    assert calibration(pred, np.full(50, 0.5)) == {"slope": None, "intercept": None}
+
+
+def _with_runs(df, n_runs=4):
+    df = df.copy()
+    df["run"] = "run-" + (df.groupby("subject").cumcount() % n_runs).astype(str)
+    return df
+
+
+def test_within_subject_recovers_signal_and_needs_runs():
+    df = prepare(_with_runs(_synthetic(True)))
+    ws = run_within_subject(df, n_boot=100)
+    assert ws["n_subjects"] == 10 and not ws["skipped_subjects_single_run"]
+    assert ws["models"]["behavior"]["mae_improvement_vs_null_ci95"][0] > 0.05
+    with pytest.raises(ValueError, match="run"):
+        run_within_subject(prepare(_synthetic(True)))
+
+
+def test_within_subject_skips_single_run_subjects():
+    df = _with_runs(_synthetic(True))
+    df.loc[df["subject"] == "sub-00", "run"] = "run-0"
+    ws = run_within_subject(prepare(df), n_boot=50)
+    assert ws["skipped_subjects_single_run"] == ["sub-00"]
+    df["run"] = "run-0"
+    none = run_within_subject(prepare(df), n_boot=50)
+    assert none["n_subjects"] == 0 and none["models"] == {} and "not estimable" in none["note"]
+
+
+def test_baseline_reports_within_subject_when_runs_present():
+    r = run_confidence_baseline(_with_runs(_synthetic(True)), n_boot=50)
+    gain = r["within_subject_run_held_out"]["models"]["behavior"]
+    assert "personalization_gain_vs_subject_held_out" in gain
+    assert "calibration_pooled_oof" in r["models"]["behavior"]

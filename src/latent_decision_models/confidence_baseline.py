@@ -18,7 +18,7 @@ from scipy.stats import spearmanr
 from sklearn.dummy import DummyRegressor
 from sklearn.linear_model import Ridge
 from sklearn.metrics import mean_absolute_error, roc_auc_score
-from sklearn.model_selection import GroupKFold
+from sklearn.model_selection import GroupKFold, LeaveOneGroupOut
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import StandardScaler
 
@@ -86,6 +86,74 @@ def _boot_ci(values: np.ndarray, n_boot: int, rng: np.random.Generator) -> list[
     return [float(np.quantile(means, 0.025)), float(np.quantile(means, 0.975))]
 
 
+def calibration(y: np.ndarray, pred: np.ndarray) -> dict:
+    """Calibration of continuous predictions: OLS ``y = intercept + slope * pred``.
+
+    Perfect calibration is slope 1 and intercept 0. A slope below 1 means overconfident
+    (too-spread) predictions; above 1 means predictions shrunk toward the mean.
+    """
+    pred = np.asarray(pred, float)
+    if np.ptp(pred) == 0:
+        return {"slope": None, "intercept": None}
+    slope, intercept = np.polyfit(pred, np.asarray(y, float), 1)
+    return {"slope": float(slope), "intercept": float(intercept)}
+
+
+def run_within_subject(
+    df: pd.DataFrame,
+    feature_sets: dict[str, list[str]] | None = None,
+    alpha: float = 1.0,
+    n_boot: int = 2000,
+    seed: int = 0,
+) -> dict:
+    """Leave-one-run-out *within each subject* (a separate estimand from subject-held-out).
+
+    Each subject gets their own models, trained only on that subject's other runs, so this
+    measures how well behavior explains confidence once a person's idiosyncratic scale use
+    has been learned. ``df`` must come from :func:`prepare` and include ``run``.
+    """
+    feature_sets = feature_sets or FEATURE_SETS
+    if "run" not in df.columns:
+        raise ValueError("run-held-out evaluation needs a 'run' column")
+    names = list(feature_sets)
+    rows, skipped = [], []
+    for subj, g in df.groupby("subject"):
+        runs = g["run"].to_numpy()
+        if len(np.unique(runs)) < 2:
+            skipped.append(subj)
+            continue
+        y = g[TARGET].to_numpy(float)
+        pred = {n: np.full(len(g), np.nan) for n in names}
+        for tr, te in LeaveOneGroupOut().split(g, y, runs):
+            if set(runs[tr]) & set(runs[te]):
+                raise RuntimeError("Run leakage within subject")
+            for n, feats in feature_sets.items():
+                x = g[feats].to_numpy(float) if feats else np.zeros((len(g), 1))
+                pred[n][te] = _model(feats, alpha).fit(x[tr], y[tr]).predict(x[te])
+        rows.append({"subject": subj, "n_runs": len(np.unique(runs)),
+                     **{n: float(np.mean(np.abs(y - pred[n]))) for n in names}})
+    out = {"validation": "LeaveOneGroupOut over runs within each subject; per-subject models",
+           "n_subjects": len(rows), "skipped_subjects_single_run": skipped, "models": {},
+           "per_subject_mae": []}
+    if not rows:
+        out["note"] = "not estimable: no subject has more than one run"
+        return out
+    per = pd.DataFrame(rows).set_index("subject")
+    rng = np.random.default_rng(seed)
+    null = names[0]
+    for n in names:
+        e = {"mae_mean_of_subjects": float(per[n].mean()),
+             "mae_mean_of_subjects_ci95": _boot_ci(per[n].to_numpy(), n_boot, rng)}
+        if n != null:
+            diff = (per[null] - per[n]).to_numpy()
+            e.update(mae_improvement_vs_null=float(diff.mean()),
+                     mae_improvement_vs_null_ci95=_boot_ci(diff, n_boot, rng),
+                     n_subjects_improved=int((diff > 0).sum()))
+        out["models"][n] = e
+    out["per_subject_mae"] = per.reset_index().to_dict(orient="records")
+    return out
+
+
 def run_confidence_baseline(
     trials: pd.DataFrame,
     n_splits: int = 5,
@@ -95,6 +163,7 @@ def run_confidence_baseline(
     exclude_subjects: tuple[str, ...] = (),
     feature_sets: dict[str, list[str]] | None = None,
     return_predictions: bool = False,
+    within_subject: bool = True,
 ) -> dict:
     """Subject-disjoint cross-validated comparison of nested confidence models.
 
@@ -141,6 +210,7 @@ def run_confidence_baseline(
                                  for c, g in per_subject.groupby("condition")},
         }
         if name != null:
+            entry["calibration_pooled_oof"] = calibration(y, oof[name])
             diff = (subj_mae[null] - subj_mae[name]).to_numpy()
             entry["mae_improvement_vs_null"] = float(diff.mean())
             entry["mae_improvement_vs_null_ci95"] = _boot_ci(diff, n_boot, rng)
@@ -183,6 +253,19 @@ def run_confidence_baseline(
         "folds": folds,
         "bootstrap": {"unit": "subject", "n_boot": n_boot, "seed": seed},
     }
+    if within_subject and "run" in df.columns:
+        ws = run_within_subject(df, feature_sets, alpha, n_boot, seed)
+        between = subj_mae.loc[[r["subject"] for r in ws["per_subject_mae"]]]
+        for n in feature_sets if ws["per_subject_mae"] else []:
+            if n == null:
+                continue
+            gain = (between[n].to_numpy()
+                    - np.array([r[n] for r in ws["per_subject_mae"]]))
+            ws["models"][n]["personalization_gain_vs_subject_held_out"] = {
+                "mean_mae_reduction": float(gain.mean()),
+                "ci95": _boot_ci(gain, n_boot, rng),
+                "n_subjects_better_within": int((gain > 0).sum())}
+        result["within_subject_run_held_out"] = ws
     if return_predictions:
         result["oof_predictions"] = df[["subject", "condition", TARGET]].assign(
             **{f"pred_{n}": p for n, p in oof.items()})

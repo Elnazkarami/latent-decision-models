@@ -21,7 +21,7 @@
       "title": "Dataset-specific behavioral confidence baseline",
       "status": "in_progress",
       "deliverable": "real behavioral pipeline and held-out subject metrics",
-      "notes": "Adapter + continuous-target ridge baselines + type-2 AUROC done; remaining: ordinal/beta alternatives, calibration, mixed-effects metacognition model, run-held-out evaluation"
+      "notes": "Done: adapter, continuous-target ridge baselines, calibration, run-held-out CV, type-2 AUROC, GEE metacognition. Next: computational confidence model with parameter recovery; optional mixed-effects/ordinal variants"
     },
     {
       "id": "LDM-003",

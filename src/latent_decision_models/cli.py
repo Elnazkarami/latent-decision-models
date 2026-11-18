@@ -72,7 +72,8 @@ def _ds002158_align(args):
 
 
 def _confidence_baseline(args):
-    from .confidence_baseline import run_confidence_baseline
+    from .confidence_baseline import prepare, run_confidence_baseline
+    from .metacognition import metacognition_gee
 
     cfg = yaml.safe_load(Path(args.config).read_text())
     trials = pd.read_csv(cfg["input"])
@@ -80,6 +81,8 @@ def _confidence_baseline(args):
         trials, n_splits=cfg.get("n_splits", 5), alpha=cfg.get("ridge_alpha", 1.0),
         n_boot=cfg.get("n_boot", 2000), seed=cfg.get("seed", 0),
         exclude_subjects=tuple(cfg.get("exclude_subjects", []) or []))
+    excl = tuple(cfg.get("exclude_subjects", []) or [])
+    result["metacognition_gee"] = metacognition_gee(prepare(trials, excl))
     result = {"config": cfg, "data_kind": cfg.get("data_kind", "unspecified"), **result}
     _write_json(result, cfg.get("output"))
 

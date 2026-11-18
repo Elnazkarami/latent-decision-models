@@ -51,6 +51,46 @@ Standardized ridge coefficients, `behavior` model fit on all data (descriptive o
   - The staircase makes evidence depend on recent accuracy.
   - The bootstrap CIs are descriptive and not corrected for the several comparisons shown.
 
+## Additional analyses (LDM-002, second pass)
+
+### Calibration of held-out-subject predictions
+OLS of observed on predicted confidence, pooled out-of-fold (ideal: slope 1, intercept 0).
+
+| Model | Slope (all 20) | Intercept (all 20) | Slope (excl. sub-20) | Intercept (excl. sub-20) |
+|---|---|---|---|---|
+| `task` | 0.755 | 0.153 | 0.817 | 0.113 |
+| `behavior` | 0.991 | 0.005 | 0.987 | 0.006 |
+
+### Within-subject, run-held-out evaluation (separate estimand)
+These are per-subject models trained on that subject's other runs (leave-one-run-out). They measure how well behavior explains confidence *once a person's own scale use is learned*. Don't compare them with the held-out-subject numbers as if they were the same claim.
+
+| Model | MAE, mean over subjects [95% CI] | Improvement vs within-subject null [95% CI] | Gain over held-out-subject model [95% CI] | Subjects better within |
+|---|---|---|---|---|
+| `null_train_mean` | 0.222 [0.203, 0.240] | — | — | — |
+| `task` | 0.213 [0.196, 0.229] | 0.009 [0.006, 0.014] | 0.004 [-0.001, 0.008] | 13/20 |
+| `behavior` | 0.127 [0.113, 0.141] | 0.095 [0.078, 0.112] | 0.010 [0.005, 0.015] | 14/20 |
+
+### Group metacognitive sensitivity (GEE)
+`accuracy ~ confidence × observed`, logistic GEE clustered on subject, exchangeable working correlation, robust SEs. Confidence is on its native 0–1 scale.
+
+| Term | All 20: estimate [95% CI], p | Excl. sub-20: estimate [95% CI], p |
+|---|---|---|
+| `Intercept` | -5.97 [-7.16, -4.79], p = 4.59e-23 | -6.04 [-7.31, -4.76], p = 1.51e-20 |
+| `confidence` | 12.62 [10.46, 14.78], p = 2.07e-30 | 12.84 [10.51, 15.16], p = 2.5e-27 |
+| `observed` | 1.04 [0.32, 1.76], p = 0.00448 | 1.16 [0.43, 1.90], p = 0.00195 |
+| `confidence:observed` | -1.73 [-2.95, -0.51], p = 0.0056 | -1.92 [-3.21, -0.63], p = 0.00349 |
+
+Confidence slope: active 12.62, observed 10.89 (SE 0.87). Working correlation 0.012. n = 4860 trials, 20 subjects.
+
+### Interpretation of the second pass
+- **Calibration:** the `behavior` model is well calibrated in new participants (slope ≈ 0.99, intercept ≈ 0.005). The `task` model's slope of about 0.76–0.82 shows its weak predictions are slightly too spread.
+- **Personalization:** learning a person's own mapping gives only a small extra gain (MAE about 0.010 lower). Most of what behavior explains about confidence generalizes across participants.
+- **Metacognition:** confidence discriminates accuracy less steeply for observed than for committed decisions. The negative `confidence:observed` interaction excludes 0, and it holds without sub-20. This matches the direction reported by Pereira et al. (2020), and it is consistent with the type-2 AUROC result above. Caveats:
+  1. GEE slopes are population-averaged; the paper used a mixed model with random slopes, so the magnitudes are not comparable.
+  2. A pooled slope mixes within-person sensitivity with between-person differences in confidence bias.
+  3. Observed trials replay the active stimuli and outcomes, which makes this a paired design, not independent samples.
+  4. This analysis was specified after the earlier results were seen. It is confirmatory in direction only, not a preregistered test.
+
 ## Reproduce
 ```bash
 ldm ds002158 fetch-metadata --dest data/ds002158
@@ -61,7 +101,6 @@ ldm confidence-baseline --config configs/ds002158_confidence_baseline_excl_sub-2
 Outputs are written to `reports/ds002158_confidence_baseline*.json` (git-ignored, regenerated deterministically with seed 0).
 
 ## Not yet done (remaining LDM-002 scope)
-- Ordinal and beta-regression alternatives, and calibration plots.
-- A hierarchical (mixed-effects) logistic metacognition model like the paper's primary analysis.
-- Within-subject (run-held-out) evaluation, kept separate from the subject-held-out results.
-- A computational confidence model (e.g. evidence accumulation with post-decision evidence) with parameter recovery.
+- A mixed-effects (random-slope) logistic model for a closer match to the paper, e.g. via an optional `bambi`/`pymer4` extra. Also a within-subject-centered confidence variant.
+- Ordinal/beta-regression alternatives for the bounded confidence target.
+- A computational confidence model (evidence accumulation with post-decision evidence), with a parameter-recovery test on synthetic data before fitting real data. **This is the next ticket.**
