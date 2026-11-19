@@ -71,6 +71,39 @@ def _ds002158_align(args):
     _write_json({"events": args.events, "vmrk": args.vmrk, **summary})
 
 
+def _ds007474_fetch(args):
+    from .datasets import ds007474 as d
+    from .io import osf
+
+    meta = osf.project_metadata(d.OSF_NODE, d.OSF_VIEW_ONLY)
+    files = osf.list_files(d.OSF_NODE, d.OSF_VIEW_ONLY)
+    manifest = osf.fetch_files(files, args.dest, d.OSF_SUFFIXES, d.OSF_VIEW_ONLY)
+    out = {"source": f"osf.io/{d.OSF_NODE}", "project": meta, "n_files": len(manifest),
+           "total_bytes": sum(m["bytes"] for m in manifest), "files": manifest}
+    Path(args.dest, "fetch_manifest.json").write_text(json.dumps(out, indent=1) + "\n")
+    _write_json({k: v for k, v in out.items() if k != "files"})
+
+
+def _ds007474_trials(args):
+    from .datasets import ds007474 as d
+
+    trials, issues = d.load_trials(args.osf_root, timing=args.timing, strict=not args.lenient)
+    out = Path(args.out)
+    out.parent.mkdir(parents=True, exist_ok=True)
+    trials.to_csv(out, index=False)
+    iss = d.issues_frame(issues)
+    if args.issues:
+        iss.to_csv(args.issues, index=False)
+    _write_json({
+        "path": str(out), "n_trials": len(trials), "n_subjects": trials["subject"].nunique(),
+        "trials_by_session": trials["session_type"].value_counts().to_dict(),
+        "valid_fraction": float(trials["valid_trial"].mean()), "timing": args.timing,
+        "issues": {f"{lv}:{code}": int(n) for (lv, code), n
+                   in iss.groupby(["level", "code"]).size().items()},
+        "schema": validate_trials(trials),
+    })
+
+
 def _confidence_baseline(args):
     from .confidence_baseline import prepare, run_confidence_baseline
     from .metacognition import metacognition_gee
@@ -182,6 +215,19 @@ def main():
     al.add_argument("--vhdr")
     al.add_argument("--out")
 
+    d7 = sub.add_parser("ds007474", help="OpenNeuro ds007474 two-step task (experimental)")
+    d7sub = d7.add_subparsers(dest="d7_cmd", required=True)
+    f7 = d7sub.add_parser("fetch-behavior",
+                          help="Download OSF behavior CSV + timing .mat (~13 MB; no MRI)")
+    f7.add_argument("--dest", required=True)
+    t7 = d7sub.add_parser("trials", help="Parse OSF behavior into a validated trial table")
+    t7.add_argument("--osf-root", required=True)
+    t7.add_argument("--out", required=True)
+    t7.add_argument("--timing", action="store_true",
+                    help="Merge event timing from .mat files (needs the [ds007474] extra)")
+    t7.add_argument("--issues")
+    t7.add_argument("--lenient", action="store_true", help="Report errors instead of raising")
+
     args = p.parse_args()
     if args.cmd == "simulate":
         out = Path(args.out)
@@ -204,6 +250,8 @@ def main():
     elif args.cmd == "confidence-model":
         {"recovery": _confidence_model_recovery,
          "compare": _confidence_model_compare}[args.cm_cmd](args)
+    elif args.cmd == "ds007474":
+        {"fetch-behavior": _ds007474_fetch, "trials": _ds007474_trials}[args.d7_cmd](args)
     elif args.cmd == "ds002158":
         {"fetch-metadata": _ds002158_fetch, "trials": _ds002158_trials,
          "align-eeg": _ds002158_align}[args.ds_cmd](args)

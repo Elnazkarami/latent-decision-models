@@ -43,6 +43,13 @@ Exploratory: compare patterns across tasks only when the target construct and an
 - Author analysis code: https://github.com/Gentu-Ding/2-step-task-MBMF-fMRI-code
 - Reported 189 healthy adult participants. Dataset notes identify special reward conditions for five IDs and missing run-1 fieldmaps for one ID; document exclusions/stratification.
 - **Unverified until audit:** behavioral file completeness, exact subject ID mapping, response/reward and transition encoding, preprocessing status and permission/terms of external material.
+- **Audit corrections (2026-11-19, see `docs/ds007474-audit.md`):**
+  - The BIDS events files are empty. Behavior and timing come from OSF.
+  - Subject IDs map one-to-one (189/189).
+  - Each subject has 259 trials, 105 of them from a structural-scanner session without BOLD.
+  - Derivatives are group T maps only.
+  - The OSF project and the authors' code have no license.
+  - Five subjects had state-contingent reward only; one run (MBMF025002 run-1) is truncated.
 
 ## Product boundary
 IN v0.1: typed trial schema, BIDS discovery and provenance, dataset-specific behavior adapters, synthetic generator, behavioral confidence baseline, group-aware evaluation, report and tests.

@@ -16,6 +16,7 @@ dev = ["pytest>=7", "ruff>=0.6"]
 eeg = ["mne>=1.5", "mne-bids>=0.14"]
 fmri = ["nilearn>=0.10", "nibabel>=5", "pybids>=0.16"]
 deep = ["torch>=2.1"]
+ds007474 = ["mat-io>=1.0.2"]  # reads MATLAB table objects in the OSF timing files (BSD-3)
 
 [project.scripts]
 ldm = "latent_decision_models.cli:main"

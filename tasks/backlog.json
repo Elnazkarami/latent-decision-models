@@ -44,14 +44,16 @@
     {
       "id": "LDM-006",
       "title": "Audit ds007474 behavioral task and OSF mapping",
-      "status": "ready",
-      "deliverable": "document verified events, participant matching, permissions"
+      "status": "done",
+      "deliverable": "document verified events, participant matching, permissions",
+      "notes": "docs/ds007474-audit.md; reports/ds007474-audit.json. GO behavior; conditional GO trial timing (BIDS events empty, OSF timing verified); derivatives group-level only; OSF/code have no license"
     },
     {
       "id": "LDM-007",
       "title": "Belief updating RL benchmark",
-      "status": "blocked:LDM-006",
-      "deliverable": "model comparison, parameter recovery and predictive checking"
+      "status": "ready",
+      "deliverable": "model comparison, parameter recovery and predictive checking",
+      "notes": "Start behavior-only (no subject-level fMRI derivatives). Needs: meaning of condState/condReward/isPost_* from Cockburn et al.; RT/trial exclusion decision"
     },
     {
       "id": "LDM-008",

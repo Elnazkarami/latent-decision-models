@@ -1,0 +1,157 @@
+{
+ "dataset_id": "ds007474",
+ "snapshot": "1.0.5",
+ "license_openneuro": "CC0",
+ "audit_date": "2026-11-19",
+ "verdict": {
+  "behavioral_rl_modeling": "GO",
+  "trial_level_fmri_timing": "CONDITIONAL_GO",
+  "published_derivatives": "NOT_USABLE_TRIAL_LEVEL (group T maps only)",
+  "licensing": "OSF project and author code declare no license"
+ },
+ "bids": {
+  "n_subjects": 189,
+  "runs_per_subject": 2,
+  "events_tsv": {
+   "n": 378,
+   "rows": 0,
+   "header": [
+    "onset",
+    "duration",
+    "trial_type",
+    "response_time"
+   ]
+  },
+  "bold": {
+   "tr_seconds": 1.12,
+   "multiband": 4,
+   "dims": [
+    96,
+    96,
+    72
+   ],
+   "volumes": {
+    "650": 377,
+    "381": 1
+   },
+   "truncated": {
+    "MBMF025002 run-1": 381
+   },
+   "median_gb_per_run": 0.685,
+   "total_gb": 258.7
+  },
+  "fieldmap_exception": [
+   "MBMF025002 run-1"
+  ],
+  "participants_tsv": false,
+  "derivatives": {
+   "n_files": 66,
+   "kind": "second-level spmT maps",
+   "subject_level": false
+  }
+ },
+ "osf": {
+  "node": "ctfzd",
+  "license": null,
+  "n_files": 378,
+  "total_bytes": 13443659,
+  "sha256_verified": 378,
+  "behavior_csv": {
+   "n": 189,
+   "header_variants": 1,
+   "n_columns": 34,
+   "trials": 259,
+   "structural": 105,
+   "functional": 154,
+   "name_suffix_meaning": "session order: s2f3 (95) structural first, s3f2 (94) functional first"
+  },
+  "timing_mat": {
+   "n": 189,
+   "format": "MATLAB table (MCOS); needs mat-io",
+   "table": "task_MBMF_fMRI.trials",
+   "placeholder_table": "trialEvents (all NaN)",
+   "reference": "tRunStart = first scanner-pulse keypress",
+   "agreement_with_csv": "condition, transition, choice, RT, reward magnitude: 189/189 subjects",
+   "rt_identity": "tResp1 - tStim1On == RT1 (max abs error 0)",
+   "first_onset_after_run_start_s": [
+    0.76,
+    1.92
+   ],
+   "median_iti_s": 9.28,
+   "scan_end_minus_last_event_s": {
+    "min_excl_truncated": 5.0,
+    "median": 16.2,
+    "max": 22.0
+   }
+  },
+  "subject_mapping": {
+   "mat_to_bids": "189/189 exact (subID_xxxx_sesID_k -> MBMFxxxx0k)",
+   "osf_run_to_bids_run": "inferred: functional run k = run-k (supported by MBMF025002)"
+  }
+ },
+ "codes": {
+  "Resp1": {
+   "1": "left",
+   "2": "right"
+  },
+  "condContingent": {
+   "1": "stimulus",
+   "2": "state"
+  },
+  "condState": {
+   "1": "high",
+   "2": "low",
+   "note": "meaning not interpreted"
+  },
+  "condReward": {
+   "1": "high",
+   "2": "low",
+   "note": "meaning not interpreted"
+  },
+  "outcome1": "planet = ceil(outcome2/2); placeholder 1 on all 897 no-response trials",
+  "rare_rate_observed": 0.282,
+  "pTransRare_task": 0.3,
+  "second_stage_choice": false
+ },
+ "special_subjects": {
+  "state_contingent_only": [
+   "MBMF021501",
+   "MBMF021601",
+   "MBMF021701",
+   "MBMF021801",
+   "MBMF021901"
+  ]
+ },
+ "quality": {
+  "no_response_functional": 594,
+  "no_response_fraction": 0.0204,
+  "subjects_over_15_missed": {
+   "MBMF005701": 39,
+   "MBMF008801": 32,
+   "MBMF025002": 30,
+   "MBMF007201": 22,
+   "MBMF008901": 20,
+   "MBMF011802": 19,
+   "MBMF024402": 17,
+   "MBMF027001": 17
+  },
+  "rt_below_150ms_functional": 658,
+  "rt_median_s": 0.422
+ },
+ "sanity_stay_probability": {
+  "note": "descriptive group means over 189 subjects; reproduces known pattern",
+  "rewarded_common": 0.818,
+  "rewarded_rare": 0.618,
+  "unrewarded_common": 0.385,
+  "unrewarded_rare": 0.643,
+  "reward_x_transition_mean": 0.229,
+  "reward_main_mean": 0.204
+ },
+ "unknowns": [
+  "dummy scans vs first pulse",
+  "OSF run k = BIDS run-k (inferred)",
+  "meaning of condState/condReward/isPost_*",
+  "authors' trial and subject exclusions",
+  "use of structural-session trials"
+ ]
+}
