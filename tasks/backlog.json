@@ -26,8 +26,9 @@
     {
       "id": "LDM-003",
       "title": "EEG subset alignment, QC and classical decoding",
-      "status": "blocked:approval(raw EEG download ~4.2 GB for sub-02, sub-04)",
-      "deliverable": "event matching report; neural baseline"
+      "status": "done",
+      "deliverable": "event matching report; neural baseline",
+      "notes": "2 subjects (sub-02, sub-04), docs/ds002158-eeg.md. 12/12 runs verified by timing; gradient + BCG template subtraction, causal 1-10 Hz; positive control (response side) passes within and across subjects; no confidence result survives the pre-specified Holm correction. Scaling to the other 17 subjects (33 GB) needs approval; pre-specify a run-mean-free metric first."
     },
     {
       "id": "LDM-004",
@@ -39,7 +40,7 @@
     {
       "id": "LDM-005",
       "title": "Multimodal baseline and small PyTorch fusion",
-      "status": "blocked:LDM-003,LDM-004",
+      "status": "blocked:LDM-004",
       "deliverable": "ablation, CI, participant-disjoint metrics"
     },
     {

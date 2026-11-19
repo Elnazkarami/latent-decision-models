@@ -1,0 +1,726 @@
+{
+ "band_hz": [
+  1.0,
+  10.0
+ ],
+ "subjects": [
+  {
+   "subject": "sub-02",
+   "n_eeg_runs": 6,
+   "n_runs_used": 6,
+   "n_epochs": 288,
+   "n_rejected": 1,
+   "runs": [
+    {
+     "eeg_run": "run-001",
+     "events_run": "run-001",
+     "status": "verified",
+     "used": true,
+     "n_volumes": 375,
+     "n_volumes_incomplete_dropped": 0,
+     "first_volume_raw_sample": 124342,
+     "n_volume_triggers_snapped_to_grid": 1,
+     "power_before_gradient_correction": {
+      "5.0": 20.674907684326172,
+      "10.0": 11.427008628845215,
+      "12.5": 176.10317993164062,
+      "25.0": 472.92901611328125
+     },
+     "power_after_gradient_correction": {
+      "5.0": 20.91191864013672,
+      "10.0": 10.066082000732422,
+      "12.5": 7.348417282104492,
+      "25.0": 0.40643584728240967
+     },
+     "bcg_evoked_rms_uv_before": 9.682607650756836,
+     "heartbeat": {
+      "n_beats": 588,
+      "heart_rate_bpm": 73.5,
+      "median_rr_s": 0.872,
+      "fraction_rr_implausible": 0.11584327086882454,
+      "channel": "TP10",
+      "n_corrected": 587
+     },
+     "bcg_evoked_rms_uv_after": 1.9122365713119507,
+     "bad_channels": [],
+     "band": [
+      1.0,
+      10.0
+     ],
+     "sfreq": 250.0,
+     "filter": "causal Butterworth (one-pass)",
+     "median_channel_sd_uv": 12.257058143615723,
+     "n_trials": 48,
+     "n_rejected": 1,
+     "n_valid_kept": 32
+    },
+    {
+     "eeg_run": "run-002",
+     "events_run": "run-002",
+     "status": "verified",
+     "used": true,
+     "n_volumes": 375,
+     "n_volumes_incomplete_dropped": 0,
+     "first_volume_raw_sample": 485182,
+     "n_volume_triggers_snapped_to_grid": 0,
+     "power_before_gradient_correction": {
+      "5.0": 32.08001708984375,
+      "10.0": 13.446557998657227,
+      "12.5": 193.88970947265625,
+      "25.0": 504.70770263671875
+     },
+     "power_after_gradient_correction": {
+      "5.0": 32.1146354675293,
+      "10.0": 12.004554748535156,
+      "12.5": 5.674496650695801,
+      "25.0": 0.5253325700759888
+     },
+     "bcg_evoked_rms_uv_before": 7.564596652984619,
+     "heartbeat": {
+      "n_beats": 567,
+      "heart_rate_bpm": 70.875,
+      "median_rr_s": 0.884,
+      "fraction_rr_implausible": 0.11837455830388692,
+      "channel": "TP10",
+      "n_corrected": 566
+     },
+     "bcg_evoked_rms_uv_after": 1.7746999263763428,
+     "bad_channels": [],
+     "band": [
+      1.0,
+      10.0
+     ],
+     "sfreq": 250.0,
+     "filter": "causal Butterworth (one-pass)",
+     "median_channel_sd_uv": 12.097771644592285,
+     "n_trials": 48,
+     "n_rejected": 0,
+     "n_valid_kept": 44
+    },
+    {
+     "eeg_run": "run-003",
+     "events_run": "run-003",
+     "status": "verified",
+     "used": true,
+     "n_volumes": 375,
+     "n_volumes_incomplete_dropped": 0,
+     "first_volume_raw_sample": 259861,
+     "n_volume_triggers_snapped_to_grid": 0,
+     "power_before_gradient_correction": {
+      "5.0": 24.136293411254883,
+      "10.0": 15.53287124633789,
+      "12.5": 259.70843505859375,
+      "25.0": 543.9462890625
+     },
+     "power_after_gradient_correction": {
+      "5.0": 23.833873748779297,
+      "10.0": 11.864839553833008,
+      "12.5": 6.263103485107422,
+      "25.0": 0.2692112922668457
+     },
+     "bcg_evoked_rms_uv_before": 8.610429763793945,
+     "heartbeat": {
+      "n_beats": 590,
+      "heart_rate_bpm": 73.75,
+      "median_rr_s": 0.892,
+      "fraction_rr_implausible": 0.11884550084889643,
+      "channel": "TP10",
+      "n_corrected": 589
+     },
+     "bcg_evoked_rms_uv_after": 1.6585568189620972,
+     "bad_channels": [],
+     "band": [
+      1.0,
+      10.0
+     ],
+     "sfreq": 250.0,
+     "filter": "causal Butterworth (one-pass)",
+     "median_channel_sd_uv": 10.469954490661621,
+     "n_trials": 48,
+     "n_rejected": 0,
+     "n_valid_kept": 40
+    },
+    {
+     "eeg_run": "run-004",
+     "events_run": "run-004",
+     "status": "verified",
+     "used": true,
+     "n_volumes": 374,
+     "n_volumes_incomplete_dropped": 1,
+     "first_volume_raw_sample": 124791,
+     "n_volume_triggers_snapped_to_grid": 2,
+     "power_before_gradient_correction": {
+      "5.0": 27.57979965209961,
+      "10.0": 18.612377166748047,
+      "12.5": 258.8771667480469,
+      "25.0": 494.9239501953125
+     },
+     "power_after_gradient_correction": {
+      "5.0": 27.364437103271484,
+      "10.0": 16.387969970703125,
+      "12.5": 6.530983924865723,
+      "25.0": 0.26844871044158936
+     },
+     "bcg_evoked_rms_uv_before": 8.217639923095703,
+     "heartbeat": {
+      "n_beats": 582,
+      "heart_rate_bpm": 72.94451871657753,
+      "median_rr_s": 0.888,
+      "fraction_rr_implausible": 0.12564543889845095,
+      "channel": "TP10",
+      "n_corrected": 582
+     },
+     "bcg_evoked_rms_uv_after": 1.6578125953674316,
+     "bad_channels": [],
+     "band": [
+      1.0,
+      10.0
+     ],
+     "sfreq": 250.0,
+     "filter": "causal Butterworth (one-pass)",
+     "median_channel_sd_uv": 10.788175582885742,
+     "n_trials": 48,
+     "n_rejected": 0,
+     "n_valid_kept": 38
+    },
+    {
+     "eeg_run": "run-005",
+     "events_run": "run-005",
+     "status": "verified",
+     "used": true,
+     "n_volumes": 375,
+     "n_volumes_incomplete_dropped": 0,
+     "first_volume_raw_sample": 264412,
+     "n_volume_triggers_snapped_to_grid": 1,
+     "power_before_gradient_correction": {
+      "5.0": 26.730501174926758,
+      "10.0": 14.077801704406738,
+      "12.5": 244.3536376953125,
+      "25.0": 486.79815673828125
+     },
+     "power_after_gradient_correction": {
+      "5.0": 25.96843719482422,
+      "10.0": 13.237929344177246,
+      "12.5": 6.689639091491699,
+      "25.0": 0.2572380006313324
+     },
+     "bcg_evoked_rms_uv_before": 5.968350410461426,
+     "heartbeat": {
+      "n_beats": 587,
+      "heart_rate_bpm": 73.375,
+      "median_rr_s": 0.84,
+      "fraction_rr_implausible": 0.1348122866894198,
+      "channel": "TP10",
+      "n_corrected": 587
+     },
+     "bcg_evoked_rms_uv_after": 1.6037646532058716,
+     "bad_channels": [],
+     "band": [
+      1.0,
+      10.0
+     ],
+     "sfreq": 250.0,
+     "filter": "causal Butterworth (one-pass)",
+     "median_channel_sd_uv": 10.804198265075684,
+     "n_trials": 48,
+     "n_rejected": 0,
+     "n_valid_kept": 36
+    },
+    {
+     "eeg_run": "run-006",
+     "events_run": "run-006",
+     "status": "verified",
+     "used": true,
+     "n_volumes": 375,
+     "n_volumes_incomplete_dropped": 0,
+     "first_volume_raw_sample": 155733,
+     "n_volume_triggers_snapped_to_grid": 2,
+     "power_before_gradient_correction": {
+      "5.0": 24.262805938720703,
+      "10.0": 13.952852249145508,
+      "12.5": 257.7645568847656,
+      "25.0": 483.0675354003906
+     },
+     "power_after_gradient_correction": {
+      "5.0": 24.365482330322266,
+      "10.0": 12.669881820678711,
+      "12.5": 6.419291019439697,
+      "25.0": 0.2827076315879822
+     },
+     "bcg_evoked_rms_uv_before": 7.219243049621582,
+     "heartbeat": {
+      "n_beats": 643,
+      "heart_rate_bpm": 80.375,
+      "median_rr_s": 0.788,
+      "fraction_rr_implausible": 0.13707165109034267,
+      "channel": "ECG",
+      "n_corrected": 642
+     },
+     "bcg_evoked_rms_uv_after": 1.5280742645263672,
+     "bad_channels": [],
+     "band": [
+      1.0,
+      10.0
+     ],
+     "sfreq": 250.0,
+     "filter": "causal Butterworth (one-pass)",
+     "median_channel_sd_uv": 11.965896606445312,
+     "n_trials": 48,
+     "n_rejected": 0,
+     "n_valid_kept": 36
+    }
+   ],
+   "pairing": [
+    {
+     "eeg_run": "run-001",
+     "events_run": "run-001",
+     "same_name": true,
+     "subject": "sub-02",
+     "run": "run-001",
+     "n_trials": 48,
+     "n_timing_matched": 48,
+     "n_volume_markers": 375,
+     "max_abs_onset_residual_ms": 0.0,
+     "n_stimulus_side_mismatch": 0,
+     "n_response_marker_found": 48,
+     "n_response_side_mismatch": 0,
+     "status": "verified"
+    },
+    {
+     "eeg_run": "run-002",
+     "events_run": "run-002",
+     "same_name": true,
+     "subject": "sub-02",
+     "run": "run-002",
+     "n_trials": 48,
+     "n_timing_matched": 48,
+     "n_volume_markers": 375,
+     "max_abs_onset_residual_ms": 0.0,
+     "n_stimulus_side_mismatch": 0,
+     "n_response_marker_found": 48,
+     "n_response_side_mismatch": 0,
+     "status": "verified"
+    },
+    {
+     "eeg_run": "run-003",
+     "events_run": "run-003",
+     "same_name": true,
+     "subject": "sub-02",
+     "run": "run-003",
+     "n_trials": 48,
+     "n_timing_matched": 48,
+     "n_volume_markers": 375,
+     "max_abs_onset_residual_ms": 0.0,
+     "n_stimulus_side_mismatch": 0,
+     "n_response_marker_found": 48,
+     "n_response_side_mismatch": 0,
+     "status": "verified"
+    },
+    {
+     "eeg_run": "run-004",
+     "events_run": "run-004",
+     "same_name": true,
+     "subject": "sub-02",
+     "run": "run-004",
+     "n_trials": 48,
+     "n_timing_matched": 48,
+     "n_volume_markers": 375,
+     "max_abs_onset_residual_ms": 0.0,
+     "n_stimulus_side_mismatch": 0,
+     "n_response_marker_found": 46,
+     "n_response_side_mismatch": 0,
+     "status": "verified"
+    },
+    {
+     "eeg_run": "run-005",
+     "events_run": "run-005",
+     "same_name": true,
+     "subject": "sub-02",
+     "run": "run-005",
+     "n_trials": 48,
+     "n_timing_matched": 48,
+     "n_volume_markers": 375,
+     "max_abs_onset_residual_ms": 0.0,
+     "n_stimulus_side_mismatch": 0,
+     "n_response_marker_found": 47,
+     "n_response_side_mismatch": 0,
+     "status": "verified"
+    },
+    {
+     "eeg_run": "run-006",
+     "events_run": "run-006",
+     "same_name": true,
+     "subject": "sub-02",
+     "run": "run-006",
+     "n_trials": 48,
+     "n_timing_matched": 48,
+     "n_volume_markers": 375,
+     "max_abs_onset_residual_ms": 0.0,
+     "n_stimulus_side_mismatch": 0,
+     "n_response_marker_found": 47,
+     "n_response_side_mismatch": 0,
+     "status": "verified"
+    }
+   ]
+  },
+  {
+   "subject": "sub-04",
+   "n_eeg_runs": 6,
+   "n_runs_used": 6,
+   "n_epochs": 288,
+   "n_rejected": 0,
+   "runs": [
+    {
+     "eeg_run": "run-001",
+     "events_run": "run-001",
+     "status": "verified",
+     "used": true,
+     "n_volumes": 373,
+     "n_volumes_incomplete_dropped": 0,
+     "first_volume_raw_sample": 615416,
+     "n_volume_triggers_snapped_to_grid": 0,
+     "power_before_gradient_correction": {
+      "5.0": 16.433101654052734,
+      "10.0": 19.07674789428711,
+      "12.5": 3286.98974609375,
+      "25.0": 1110.467041015625
+     },
+     "power_after_gradient_correction": {
+      "5.0": 16.835540771484375,
+      "10.0": 8.753129959106445,
+      "12.5": 3.3931884765625,
+      "25.0": 0.9762810468673706
+     },
+     "bcg_evoked_rms_uv_before": 13.511061668395996,
+     "heartbeat": {
+      "n_beats": 502,
+      "heart_rate_bpm": 63.08646112600536,
+      "median_rr_s": 0.964,
+      "fraction_rr_implausible": 0.04790419161676647,
+      "channel": "ECG",
+      "n_corrected": 502
+     },
+     "bcg_evoked_rms_uv_after": 0.824789822101593,
+     "bad_channels": [],
+     "band": [
+      1.0,
+      10.0
+     ],
+     "sfreq": 250.0,
+     "filter": "causal Butterworth (one-pass)",
+     "median_channel_sd_uv": 10.50203800201416,
+     "n_trials": 48,
+     "n_rejected": 0,
+     "n_valid_kept": 36
+    },
+    {
+     "eeg_run": "run-002",
+     "events_run": "run-002",
+     "status": "verified",
+     "used": true,
+     "n_volumes": 373,
+     "n_volumes_incomplete_dropped": 0,
+     "first_volume_raw_sample": 53775,
+     "n_volume_triggers_snapped_to_grid": 0,
+     "power_before_gradient_correction": {
+      "5.0": 14.220928192138672,
+      "10.0": 13.384449005126953,
+      "12.5": 779.7576904296875,
+      "25.0": 360.39892578125
+     },
+     "power_after_gradient_correction": {
+      "5.0": 13.883210182189941,
+      "10.0": 9.16343879699707,
+      "12.5": 3.188351631164551,
+      "25.0": 0.4678097069263458
+     },
+     "bcg_evoked_rms_uv_before": 14.463003158569336,
+     "heartbeat": {
+      "n_beats": 486,
+      "heart_rate_bpm": 61.07573726541555,
+      "median_rr_s": 0.964,
+      "fraction_rr_implausible": 0.05154639175257732,
+      "channel": "ECG",
+      "n_corrected": 486
+     },
+     "bcg_evoked_rms_uv_after": 0.6826298236846924,
+     "bad_channels": [],
+     "band": [
+      1.0,
+      10.0
+     ],
+     "sfreq": 250.0,
+     "filter": "causal Butterworth (one-pass)",
+     "median_channel_sd_uv": 10.361590385437012,
+     "n_trials": 48,
+     "n_rejected": 0,
+     "n_valid_kept": 40
+    },
+    {
+     "eeg_run": "run-003",
+     "events_run": "run-003",
+     "status": "verified",
+     "used": true,
+     "n_volumes": 371,
+     "n_volumes_incomplete_dropped": 0,
+     "first_volume_raw_sample": 75759,
+     "n_volume_triggers_snapped_to_grid": 0,
+     "power_before_gradient_correction": {
+      "5.0": 12.715505599975586,
+      "10.0": 8.273713111877441,
+      "12.5": 104.98399353027344,
+      "25.0": 241.78073120117188
+     },
+     "power_after_gradient_correction": {
+      "5.0": 12.529865264892578,
+      "10.0": 8.097233772277832,
+      "12.5": 1.8613804578781128,
+      "25.0": 0.20645423233509064
+     },
+     "bcg_evoked_rms_uv_before": 15.0272855758667,
+     "heartbeat": {
+      "n_beats": 470,
+      "heart_rate_bpm": 59.38342318059299,
+      "median_rr_s": 0.964,
+      "fraction_rr_implausible": 0.031982942430703626,
+      "channel": "ECG",
+      "n_corrected": 470
+     },
+     "bcg_evoked_rms_uv_after": 0.553831160068512,
+     "bad_channels": [],
+     "band": [
+      1.0,
+      10.0
+     ],
+     "sfreq": 250.0,
+     "filter": "causal Butterworth (one-pass)",
+     "median_channel_sd_uv": 10.303024291992188,
+     "n_trials": 48,
+     "n_rejected": 0,
+     "n_valid_kept": 45
+    },
+    {
+     "eeg_run": "run-004",
+     "events_run": "run-004",
+     "status": "verified",
+     "used": true,
+     "n_volumes": 371,
+     "n_volumes_incomplete_dropped": 0,
+     "first_volume_raw_sample": 107382,
+     "n_volume_triggers_snapped_to_grid": 1,
+     "power_before_gradient_correction": {
+      "5.0": 9.891764640808105,
+      "10.0": 6.373726844787598,
+      "12.5": 132.91195678710938,
+      "25.0": 238.48687744140625
+     },
+     "power_after_gradient_correction": {
+      "5.0": 10.047908782958984,
+      "10.0": 5.80665397644043,
+      "12.5": 2.2843313217163086,
+      "25.0": 0.18752171099185944
+     },
+     "bcg_evoked_rms_uv_before": 14.787070274353027,
+     "heartbeat": {
+      "n_beats": 462,
+      "heart_rate_bpm": 58.37264150943396,
+      "median_rr_s": 0.968,
+      "fraction_rr_implausible": 0.06290672451193059,
+      "channel": "ECG",
+      "n_corrected": 462
+     },
+     "bcg_evoked_rms_uv_after": 0.5393357872962952,
+     "bad_channels": [],
+     "band": [
+      1.0,
+      10.0
+     ],
+     "sfreq": 250.0,
+     "filter": "causal Butterworth (one-pass)",
+     "median_channel_sd_uv": 9.865615844726562,
+     "n_trials": 48,
+     "n_rejected": 0,
+     "n_valid_kept": 44
+    },
+    {
+     "eeg_run": "run-005",
+     "events_run": "run-005",
+     "status": "verified",
+     "used": true,
+     "n_volumes": 371,
+     "n_volumes_incomplete_dropped": 0,
+     "first_volume_raw_sample": 236774,
+     "n_volume_triggers_snapped_to_grid": 0,
+     "power_before_gradient_correction": {
+      "5.0": 11.744569778442383,
+      "10.0": 9.895147323608398,
+      "12.5": 137.40377807617188,
+      "25.0": 258.5462341308594
+     },
+     "power_after_gradient_correction": {
+      "5.0": 11.343090057373047,
+      "10.0": 9.375043869018555,
+      "12.5": 2.4810547828674316,
+      "25.0": 0.1852329820394516
+     },
+     "bcg_evoked_rms_uv_before": 15.891605377197266,
+     "heartbeat": {
+      "n_beats": 452,
+      "heart_rate_bpm": 57.10916442048518,
+      "median_rr_s": 0.968,
+      "fraction_rr_implausible": 0.0598669623059867,
+      "channel": "ECG",
+      "n_corrected": 451
+     },
+     "bcg_evoked_rms_uv_after": 0.5369802117347717,
+     "bad_channels": [],
+     "band": [
+      1.0,
+      10.0
+     ],
+     "sfreq": 250.0,
+     "filter": "causal Butterworth (one-pass)",
+     "median_channel_sd_uv": 9.13434886932373,
+     "n_trials": 48,
+     "n_rejected": 0,
+     "n_valid_kept": 46
+    },
+    {
+     "eeg_run": "run-006",
+     "events_run": "run-006",
+     "status": "verified",
+     "used": true,
+     "n_volumes": 371,
+     "n_volumes_incomplete_dropped": 0,
+     "first_volume_raw_sample": 83943,
+     "n_volume_triggers_snapped_to_grid": 0,
+     "power_before_gradient_correction": {
+      "5.0": 11.046957015991211,
+      "10.0": 7.65760612487793,
+      "12.5": 145.4395751953125,
+      "25.0": 269.79498291015625
+     },
+     "power_after_gradient_correction": {
+      "5.0": 11.356677055358887,
+      "10.0": 6.974948883056641,
+      "12.5": 2.288449764251709,
+      "25.0": 0.1736888438463211
+     },
+     "bcg_evoked_rms_uv_before": 14.587349891662598,
+     "heartbeat": {
+      "n_beats": 464,
+      "heart_rate_bpm": 58.62533692722372,
+      "median_rr_s": 0.964,
+      "fraction_rr_implausible": 0.038876889848812095,
+      "channel": "ECG",
+      "n_corrected": 464
+     },
+     "bcg_evoked_rms_uv_after": 0.5529429316520691,
+     "bad_channels": [],
+     "band": [
+      1.0,
+      10.0
+     ],
+     "sfreq": 250.0,
+     "filter": "causal Butterworth (one-pass)",
+     "median_channel_sd_uv": 10.011770248413086,
+     "n_trials": 48,
+     "n_rejected": 0,
+     "n_valid_kept": 44
+    }
+   ],
+   "pairing": [
+    {
+     "eeg_run": "run-001",
+     "events_run": "run-001",
+     "same_name": true,
+     "subject": "sub-04",
+     "run": "run-001",
+     "n_trials": 48,
+     "n_timing_matched": 48,
+     "n_volume_markers": 373,
+     "max_abs_onset_residual_ms": 0.0,
+     "n_stimulus_side_mismatch": 0,
+     "n_response_marker_found": 48,
+     "n_response_side_mismatch": 0,
+     "status": "verified"
+    },
+    {
+     "eeg_run": "run-002",
+     "events_run": "run-002",
+     "same_name": true,
+     "subject": "sub-04",
+     "run": "run-002",
+     "n_trials": 48,
+     "n_timing_matched": 48,
+     "n_volume_markers": 373,
+     "max_abs_onset_residual_ms": 0.0,
+     "n_stimulus_side_mismatch": 0,
+     "n_response_marker_found": 47,
+     "n_response_side_mismatch": 0,
+     "status": "verified"
+    },
+    {
+     "eeg_run": "run-003",
+     "events_run": "run-003",
+     "same_name": true,
+     "subject": "sub-04",
+     "run": "run-003",
+     "n_trials": 48,
+     "n_timing_matched": 48,
+     "n_volume_markers": 371,
+     "max_abs_onset_residual_ms": 0.0,
+     "n_stimulus_side_mismatch": 0,
+     "n_response_marker_found": 48,
+     "n_response_side_mismatch": 0,
+     "status": "verified"
+    },
+    {
+     "eeg_run": "run-004",
+     "events_run": "run-004",
+     "same_name": true,
+     "subject": "sub-04",
+     "run": "run-004",
+     "n_trials": 48,
+     "n_timing_matched": 48,
+     "n_volume_markers": 371,
+     "max_abs_onset_residual_ms": 0.0,
+     "n_stimulus_side_mismatch": 0,
+     "n_response_marker_found": 48,
+     "n_response_side_mismatch": 0,
+     "status": "verified"
+    },
+    {
+     "eeg_run": "run-005",
+     "events_run": "run-005",
+     "same_name": true,
+     "subject": "sub-04",
+     "run": "run-005",
+     "n_trials": 48,
+     "n_timing_matched": 48,
+     "n_volume_markers": 371,
+     "max_abs_onset_residual_ms": 0.0,
+     "n_stimulus_side_mismatch": 0,
+     "n_response_marker_found": 48,
+     "n_response_side_mismatch": 0,
+     "status": "verified"
+    },
+    {
+     "eeg_run": "run-006",
+     "events_run": "run-006",
+     "same_name": true,
+     "subject": "sub-04",
+     "run": "run-006",
+     "n_trials": 48,
+     "n_timing_matched": 48,
+     "n_volume_markers": 371,
+     "max_abs_onset_residual_ms": 0.0,
+     "n_stimulus_side_mismatch": 0,
+     "n_response_marker_found": 48,
+     "n_response_side_mismatch": 0,
+     "status": "verified"
+    }
+   ]
+  }
+ ]
+}

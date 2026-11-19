@@ -7,7 +7,7 @@
 | Use | Decision | Condition |
 | --- | --- | --- |
 | Behavioral confidence modeling | **GO** | Trial identity, confidence scale, condition and exclusions verified across all 118 runs |
-| Trial-level EEG | **CONDITIONAL GO** | Use raw BrainVision data and **marker-based** alignment (`ldm ds002158 align-eeg`). Exclude sub-20 until its label conflict is resolved. Never pair runs by filename (sub-12 is mislabeled). |
+| Trial-level EEG | **GO (verified on 2 subjects)** | Use raw BrainVision data and **marker-based** alignment. Exclude sub-20 until its label conflict is resolved. Never pair runs by filename (sub-12 is mislabeled). Gradient and BCG artifacts must be removed first: see [ds002158-eeg.md](ds002158-eeg.md). |
 | Trial-level fMRI | **GO for whole-trial estimates** | Onsets verified against the scanner clock. The derivative is SPM DARTEL/MNI, 1.5 mm, 5 mm FWHM (from its headers). Pre-decision and response-locked BOLD cannot be separated. See [`ds002158-fmri-audit.md`](ds002158-fmri-audit.md). |
 | Published `eegprep` derivative | **NOT YET** | One concatenated file per subject; the epoch-to-trial mapping is unknown. |
 
@@ -92,7 +92,7 @@ The sidecar's confidence unit string ("%, 0 is sure error, 1 is sure correct") i
 | Raw EEG / raw BOLD / eegprep / fMRI derivatives | 38.7 / 43.1 / 3.2 / 373.8 GB |
 | One subject (sub-02): raw EEG 6 runs / eegprep / raw BOLD 6 runs / derivative BOLD / T1w | 2.08 / 0.18 / 2.02 / 19.1 / 0.014 GB |
 
-**Recommended starter subset for LDM-003:** raw EEG (`.eeg/.vhdr/.vmrk`) for 2 subjects with clean alignment (e.g. sub-02, sub-04), about 4.2 GB. **This needs your approval before download.**
+**Starter subset for LDM-003:** raw EEG (`.eeg/.vhdr/.vmrk`) for sub-02 and sub-04, 4.13 GB. **Downloaded with approval on 2026-11-19;** results in [ds002158-eeg.md](ds002158-eeg.md). All 12 runs pair by timing and verify. The raw headers name the original lab files, and the raw signal still contains MR gradient and BCG artifacts.
 
 ## Hypotheses and unknowns (not verified)
 1. The 24 unexplained exclusions are observation-period button presses.

@@ -24,3 +24,13 @@ jobs:
           python-version: '3.11'
       - run: python -m pip install -e '.[dev,fmri]'
       - run: pytest -q tests/test_ds002158_fmri.py
+  test-eeg-extra:
+    # optional EEG dependency (MNE): BrainVision reading with stale header file names
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install -e '.[dev,eeg]'
+      - run: pytest -q tests/test_eeg.py

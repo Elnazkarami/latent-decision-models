@@ -25,5 +25,7 @@ outputs/
 # reviewed audit reports are versioned
 !reports/*-audit.json
 !reports/ds002158-fmri-design.json
+!reports/ds002158-eeg-preprocess.json
+!reports/ds002158-eeg-decoding.json
 !reports/confidence_model_recovery*.json
 !reports/two_step_recovery*.json

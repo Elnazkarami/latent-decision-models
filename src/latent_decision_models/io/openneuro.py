@@ -1,8 +1,12 @@
-"""Metadata-only access to pinned OpenNeuro snapshots.
+"""Access to pinned OpenNeuro snapshots.
 
 Enforces the project rule "no raw MRI/EEG download without approval" in code:
-only small text sidecars / marker files can be fetched, each file is size-capped,
-and every download is checked against the snapshot's reported size.
+
+* :func:`fetch_files` fetches only small text sidecars / marker files, each size-capped;
+* :func:`fetch_range` reads at most 64 KB of a file (headers) and writes nothing;
+* :func:`fetch_signal_files` is the only path for signal data. It needs an explicit total
+  byte budget (the approved amount), refuses the whole request if the selection exceeds
+  it, streams to disk and checks size and sha256.
 """
 
 from __future__ import annotations
@@ -96,3 +100,39 @@ def fetch_range(entry: dict, n_bytes: int, timeout: float = 60) -> bytes:
     if len(data) > n_bytes:
         raise OSError(f"server returned more than {n_bytes} B for {entry['filename']}")
     return data
+
+
+def fetch_signal_files(files: list[dict], dest: str | Path, approved_bytes: int,
+                       timeout: float = 120, chunk: int = 1 << 20) -> list[dict]:
+    """Download signal files (e.g. raw EEG) within an explicitly approved byte budget.
+
+    The whole selection is checked against ``approved_bytes`` before anything is fetched.
+    Files already on disk with the reported size are kept (resumable). Each file is
+    streamed to a ``.part`` file and renamed only after its size matches.
+    """
+    if any(f["size"] is None for f in files):
+        raise PermissionError("signal files need a reported size to check the budget")
+    total = sum(f["size"] for f in files)
+    if total > approved_bytes:
+        raise PermissionError(f"selection is {total} B > approved budget {approved_bytes} B")
+    dest = Path(dest)
+    manifest = []
+    for f in files:
+        out = dest / f["filename"]
+        url = f["urls"][0]
+        if not (out.exists() and out.stat().st_size == f["size"]):
+            out.parent.mkdir(parents=True, exist_ok=True)
+            part = out.with_name(out.name + ".part")
+            n = 0
+            with urllib.request.urlopen(url, timeout=timeout) as resp, part.open("wb") as fh:
+                while block := resp.read(chunk):
+                    n += len(block)
+                    if n > f["size"]:
+                        raise OSError(f"{f['filename']} exceeded its reported size")
+                    fh.write(block)
+            if n != f["size"]:
+                raise OSError(f"Size mismatch for {f['filename']}: {n} != {f['size']}")
+            part.rename(out)
+        manifest.append({"path": f["filename"], "bytes": f["size"],
+                         "sha256": sha256_file(out), "url": url.split("?")[0]})
+    return manifest

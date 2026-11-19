@@ -38,6 +38,80 @@ def _ds002158_fetch(args):
     _write_json({k: v for k, v in out.items() if k != "files"})
 
 
+def _ds002158_fetch_eeg(args):
+    """Raw BrainVision EEG for named subjects: signal data, needs an approved budget."""
+    from .datasets import ds002158 as d
+    from .io import openneuro
+
+    files = openneuro.snapshot_files(d.DATASET_ID, args.tag)
+    subjects = set(args.subjects)
+    sel = [f for f in files
+           if re.fullmatch(r"(sub-\d+)/ses-001/eeg/\1_ses-001_task-main_run-\d+_eeg\."
+                           r"(eeg|vhdr|vmrk)", f["filename"])
+           and f["filename"].split("/")[0] in subjects]
+    found = {f["filename"].split("/")[0] for f in sel}
+    if found != subjects:
+        raise SystemExit(f"no EEG files for {sorted(subjects - found)}")
+    total = sum(f["size"] for f in sel)
+    if args.dry_run:
+        _write_json({"subjects": sorted(subjects), "n_files": len(sel), "total_bytes": total})
+        return
+    manifest = openneuro.fetch_signal_files(sel, args.dest, int(args.approved_gb * 1e9))
+    out = {"dataset_id": d.DATASET_ID, "snapshot": args.tag, "subjects": sorted(subjects),
+           "n_files": len(manifest), "total_bytes": total, "files": manifest}
+    Path(args.dest, "eeg_fetch_manifest.json").write_text(json.dumps(out, indent=1) + "\n")
+    _write_json({k: v for k, v in out.items() if k != "files"})
+
+
+def _ds002158_eeg_preprocess(args):
+    from .datasets import ds002158_eeg as e
+
+    trials = pd.read_csv(args.trials)
+    report = {"band_hz": [args.l_freq, args.h_freq], "subjects": []}
+    for s in args.subjects:
+        report["subjects"].append(e.preprocess_subject(args.bids_root, s, trials, args.out_dir,
+                                                       l_freq=args.l_freq, h_freq=args.h_freq))
+    if args.report:
+        Path(args.report).parent.mkdir(parents=True, exist_ok=True)
+        Path(args.report).write_text(json.dumps(report, indent=1, default=_json_default) + "\n")
+    _write_json({"subjects": [{k: r[k] for k in ("subject", "n_eeg_runs", "n_runs_used",
+                                                  "n_epochs", "n_rejected")}
+                              for r in report["subjects"]]})
+
+
+def _ds002158_eeg_decode(args):
+    from .datasets import ds002158_eeg as e
+
+    cfg = yaml.safe_load(Path(args.config).read_text())
+    res = e.run_decoding(cfg)
+    out = {"config": args.config, "channels_used": res["channels_used"],
+           "excluded_channels": res["excluded_channels"], "windows": res["windows"],
+           "within_subject": _records(res["within_subject"]),
+           "cross_subject": _records(res["cross_subject"])}
+    if args.out:
+        Path(args.out).parent.mkdir(parents=True, exist_ok=True)
+        Path(args.out).write_text(json.dumps(out, indent=1, default=_json_default) + "\n")
+    w = res["within_subject"]
+    cols = ["subject", "target", "condition", "window", "score", "null_95", "p_value",
+            "p_holm_primary", "n_trials"]
+    print(w[cols].round(3).to_string(index=False))
+
+
+def _records(df):
+    """DataFrame rows as dicts with NaN -> None (valid JSON)."""
+    return df.astype(object).where(df.notna(), None).to_dict(orient="records")
+
+
+def _json_default(o):
+    import numpy as np
+
+    if isinstance(o, np.generic):
+        return o.item()
+    if isinstance(o, np.ndarray):
+        return o.tolist()
+    raise TypeError(type(o))
+
+
 def _ds002158_trials(args):
     from .datasets import ds002158 as d
 
@@ -377,6 +451,27 @@ def main():
                         help="Download sidecars + events.tsv only (~0.3 MB; no signal data)")
     f.add_argument("--dest", required=True)
     f.add_argument("--tag", default="1.0.2")
+    fe = dsub.add_parser("fetch-eeg", help="Download raw BrainVision EEG for named subjects "
+                         "(signal data: needs an approved size budget)")
+    fe.add_argument("--subjects", nargs="+", required=True)
+    fe.add_argument("--dest", required=True)
+    fe.add_argument("--tag", default="1.0.2")
+    fe.add_argument("--approved-gb", type=float, required=True,
+                    help="approved download budget in GB; the request fails if it is exceeded")
+    fe.add_argument("--dry-run", action="store_true", help="only report what would be fetched")
+    ep = dsub.add_parser("eeg-preprocess", help="Clean raw in-scanner EEG (gradient + BCG "
+                         "subtraction, causal filter) and cut trial epochs")
+    ep.add_argument("--bids-root", required=True)
+    ep.add_argument("--trials", required=True, help="trial table from `ldm ds002158 trials`")
+    ep.add_argument("--subjects", nargs="+", required=True)
+    ep.add_argument("--out-dir", required=True)
+    ep.add_argument("--report", help="JSON QC report")
+    ep.add_argument("--l-freq", type=float, default=1.0)
+    ep.add_argument("--h-freq", type=float, default=10.0)
+    ed = dsub.add_parser("eeg-decode", help="Within- and cross-subject decoding from "
+                         "preprocessed epochs (config-driven)")
+    ed.add_argument("--config", required=True)
+    ed.add_argument("--out")
     t = dsub.add_parser("trials", help="Parse events into a validated trial table")
     t.add_argument("--bids-root", required=True)
     t.add_argument("--out", required=True)
@@ -447,7 +542,8 @@ def main():
         {"fetch-behavior": _ds007474_fetch, "trials": _ds007474_trials}[args.d7_cmd](args)
     elif args.cmd == "ds002158":
         {"fetch-metadata": _ds002158_fetch, "trials": _ds002158_trials,
-         "align-eeg": _ds002158_align, "fmri-audit": _ds002158_fmri_audit,
+         "align-eeg": _ds002158_align, "fetch-eeg": _ds002158_fetch_eeg,
+         "eeg-preprocess": _ds002158_eeg_preprocess, "eeg-decode": _ds002158_eeg_decode, "fmri-audit": _ds002158_fmri_audit,
          "fmri-design": _ds002158_fmri_design}[args.ds_cmd](args)
 
 

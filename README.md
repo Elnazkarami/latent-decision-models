@@ -15,14 +15,15 @@ Python package `latent_decision_models` · CLI `ldm` · repository `latent-decis
 - **Evaluate confidence models fairly**, with subject-disjoint cross-validation, within-subject held-out runs, calibration, participant-bootstrap CIs and type-2 AUROC.
 - **Fit a computational confidence model** (second-order signal detection; committed vs observed decisions). It includes simulation, parameter and model recovery, and posterior predictive checks.
 - **Fit model-free / model-based / hybrid reinforcement learning** to the two-step task. Agents can be replayed on each participant's real task schedule. Recovery studies, held-out-run and held-out-subject comparison, and posterior predictive stay-probability checks are included.
+- **Clean EEG recorded inside an MRI scanner and decode from it.** Gradient and heartbeat (BCG) artifacts are removed by template subtraction, with causal filters so that pre-decision features never contain later activity. Trial epochs are locked to verified markers, and decoding uses leave-one-run-out or cross-subject evaluation with within-run permutation tests.
 - **Audit fMRI data without downloading images.** It reads NIfTI headers through capped HTTP range requests, builds a raw/derivative run inventory, and summarises head motion. It also computes design diagnostics from event timing alone: single-trial VIF (LSA/LSS) and whether within-trial phases can be separated.
-- **Fetch small files safely.** It downloads text metadata from pinned OpenNeuro snapshots (refusing signal files), and allow-listed, size-capped, SHA-256-checked files from OSF projects.
+- **Fetch files safely.** It downloads text metadata from pinned OpenNeuro snapshots (refusing signal files), and allow-listed, size-capped, SHA-256-checked files from OSF projects. Signal data (raw EEG) is fetched only by a separate command that needs an explicit size budget.
 
 **Limitations:**
-- EEG/fMRI signal processing, neural decoding and deep learning are not implemented yet.
+- EEG work so far covers two ds002158 subjects; fMRI signal processing and deep learning are not implemented yet.
 - Dynamic (RT-based) and hierarchical confidence models are not implemented yet.
 - The two-step RL models use fixed, instructed transitions; trial-wise arbitration models are not implemented yet.
-- No neural findings are claimed.
+- No population-level neural findings are claimed.
 
 ## Install
 
@@ -80,6 +81,17 @@ ldm ds002158 fmri-audit --dest data/ds002158 --out reports/ds002158-fmri-audit.j
 ldm ds002158 fmri-design --trials data/ds002158_trials.csv --audit-table reports/ds002158-fmri-audit.csv
 ```
 
+**ds002158 EEG (raw signal data, about 2 GB per subject).** Pairing, in-scanner cleaning, epochs, then the pre-specified decoding plan:
+
+```bash
+pip install -e '.[eeg]'
+ldm ds002158 fetch-eeg --subjects sub-02 sub-04 --dest data/ds002158 --approved-gb 4.2 --dry-run   # size first
+ldm ds002158 fetch-eeg --subjects sub-02 sub-04 --dest data/ds002158 --approved-gb 4.2
+ldm ds002158 eeg-preprocess --bids-root data/ds002158 --trials data/ds002158_trials.csv \
+    --subjects sub-02 sub-04 --out-dir data/derivatives/ldm-eeg --report reports/ds002158-eeg-preprocess.json
+ldm ds002158 eeg-decode --config configs/ds002158_eeg_decoding.yaml --out reports/ds002158-eeg-decoding.json
+```
+
 **Check one run's EEG/behavior alignment.** It needs only that run's `.vhdr` and `.vmrk` text files:
 
 ```bash
@@ -94,11 +106,14 @@ ldm ds002158 align-eeg --events <..._events.tsv> --vmrk <..._eeg.vmrk>
 | `datasets.ds002158` | Verified codebook and strict events parser for ds002158 (experimental). Aligns EEG markers by **timing**, never by row order or filename. |
 | `datasets.ds007474` | ds007474 adapter: OSF behavior CSV to trial table, OSF-to-BIDS subject mapping, event timing from the `.mat` files cross-checked against the behavior |
 | `datasets.ds002158_fmri` | ds002158 fMRI raw/derivative inventory, header audit and realignment-parameter (FD) summary |
+| `datasets.ds002158_eeg` | ds002158 raw EEG: run pairing by marker timing, in-scanner cleaning pipeline, stimulus- and response-locked epochs, analysis windows, decoding runner |
+| `eeg_clean` | Sliding-window template subtraction (MR gradient, BCG), heartbeat detection (MNE), causal band-pass and decimation |
+| `eeg_decoding` | Binned window features; leave-one-run-out and cross-subject decoding (logistic / ridge, regularisation tuned inside training folds), training-fold-only residualisation on covariates, within-run permutation tests, Holm correction |
 | `fmri_design` | Design diagnostics from event timing (nilearn): single-trial VIF under LSA/LSS, neighbouring-trial correlation, separability of stimulus / response / post-decision regressors |
 | `io.nifti` | NIfTI-1 header summary from a byte prefix (nibabel) |
 | `io.osf` | OSF listing and allow-listed, capped, SHA-256-verified downloads |
-| `io.openneuro` | Metadata-only access to pinned OpenNeuro snapshots. Refuses signal files and caps file size. |
-| `io.brainvision` | Dependency-free `.vhdr`/`.vmrk` marker reader (no signal IO) |
+| `io.openneuro` | Pinned OpenNeuro snapshots: metadata fetch (refuses signal files), header range reads, and budgeted signal downloads (whole request refused above the approved size) |
+| `io.brainvision` | Dependency-free `.vhdr`/`.vmrk` marker reader; `read_raw` opens recordings with MNE even when the header names stale data files |
 | `confidence_baseline` | Nested confidence models with subject-disjoint CV, within-subject run-held-out CV, calibration, participant bootstrap and type-2 AUROC |
 | `confidence_model` | Second-order signal-detection confidence model for committed vs observed decisions. Includes simulation, censored-rating likelihood, parameter and model recovery (per subject and group level), held-out-run comparison and posterior predictive checks |
 | `two_step_model` | Model-free / model-based / hybrid RL for the two-step task. Includes schedule replay of simulated agents, MAP fitting, leave-one-run-out and subject-k-fold held-out comparison, parameter and group-level model recovery, an order-balanced contingency contrast and stay-probability checks |
@@ -116,12 +131,17 @@ No participant data are redistributed apart from a minimal CC0 test fixture (one
 
 ## Findings on ds002158
 
-Details and evidence: [audit](docs/ds002158-audit.md) · [fMRI audit](docs/ds002158-fmri-audit.md) · [behavioral baselines](docs/ds002158-behavioral-baseline.md) · [computational model](docs/ds002158-confidence-model.md).
+Details and evidence: [audit](docs/ds002158-audit.md) · [EEG](docs/ds002158-eeg.md) · [fMRI audit](docs/ds002158-fmri-audit.md) · [behavioral baselines](docs/ds002158-behavioral-baseline.md) · [computational model](docs/ds002158-confidence-model.md).
 
 - **Behavior → fMRI timing:** events `onset` = stimulus marker − first scanner-volume trigger, with 0.0 ms residual. Trigger count equals the BOLD volume count.
 - **Behavior → EEG:** 22/25 sampled runs are fully verified.
   - **sub-12's EEG run filenames are shifted**, so filename pairing would be wrong.
   - **sub-20's events and EEG markers disagree on stimulus and response side.** This is unresolved, so sub-20 is excluded from EEG work.
+- **EEG, two subjects (sub-02, sub-04):**
+  - All 12 runs pair with their events by marker timing and verify. The raw headers name the original lab files, so MNE cannot open them as published; `io.brainvision.read_raw` handles this.
+  - MR gradient and heartbeat artifacts are still in the raw files. Template subtraction removes them (slice-frequency power down 25- to 1000-fold, heartbeat-locked activity down 80–96%).
+  - **Positive control passes:** response side decodes from response-locked and post-response activity (AUC 0.78–0.99 within subject, 0.67–0.94 across subjects) and is at chance before the decision.
+  - **Confidence:** no pre-specified test survives correction (best: Holm-adjusted p = 0.18). Accuracy decodes after own responses (AUC 0.64–0.68).
 - **fMRI derivative:** it is SPM DARTEL-normalised to MNI-152, 1.5 mm isotropic and 5 mm FWHM smoothed; the image headers say so, although the dataset docs do not.
   - Its headers store TR = 0; use 1.28 s.
   - sub-20 run-007's derivative was moved to a `reject/` folder, but its raw data and behavior were not.
@@ -163,11 +183,17 @@ Details: [audit](docs/ds007474-audit.md) · [JSON](reports/ds007474-audit.json) 
 - Subject-disjoint evaluation by default. Preprocessing is fit only on training folds.
 - No dataset column mapping without verification against the actual files. Facts in docs are labelled as verified or hypothesis.
 - Pre-decision, response-locked and post-decision neural windows are kept separate. No prospective claims are made from post-response features.
-- Signal data is never downloaded implicitly: the fetcher only accepts text metadata. Neuroimaging dependencies are optional extras.
+- Signal data is never downloaded implicitly: the metadata fetcher refuses signal files, and signal downloads need an explicit size budget. Neuroimaging dependencies are optional extras.
+- Filters applied before a pre-decision window are causal, so no later activity can leak into it.
 
 Contributor rules are in [`AGENTS.md`](AGENTS.md); the research plan is in [`docs/PROJECT_PLAN.md`](docs/PROJECT_PLAN.md).
 
 ## Changelog
+
+- **2026-11-19:** ds002158 EEG (two subjects):
+  - `ldm ds002158 fetch-eeg` (budgeted signal download), `eeg-preprocess` (pairing, gradient and BCG removal, causal filtering, epochs) and `eeg-decode` (pre-specified within- and cross-subject decoding).
+  - New `eeg_clean`, `eeg_decoding` and `datasets.ds002158_eeg` modules; `io.brainvision.read_raw`; `io.openneuro.fetch_signal_files`.
+  - A CI job for the optional `[eeg]` extra.
 
 - **2026-11-19:** ds002158 fMRI metadata audit:
   - `ldm ds002158 fmri-audit` (header range reads, run inventory, motion) and `ldm ds002158 fmri-design` (design diagnostics).

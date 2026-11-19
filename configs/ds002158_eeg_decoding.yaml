@@ -1,0 +1,31 @@
+# ds002158 EEG decoding (LDM-003). Fixed before any decoding result was seen.
+#
+# Data: raw EEG of sub-02 and sub-04 (approved starter subset), cleaned by
+# `ldm ds002158 eeg-preprocess` (gradient + BCG template subtraction, causal 1-10 Hz,
+# common average). Valid trials only (author exclusions applied), alignment-verified runs,
+# epochs over 150 uV peak-to-peak rejected. Active (own decisions) and observed trials
+# are always analysed separately.
+epochs_dir: data/derivatives/ldm-eeg
+subjects: [sub-02, sub-04]
+conditions: [active, observed]
+windows: [pre_decision, response_locked, post_decision]   # see datasets/ds002158_eeg.WINDOWS
+bin_seconds: 0.05
+n_perm: 200            # within-subject, labels permuted within run
+n_perm_transfer: 1000  # cross-subject, test labels permuted
+seed: 0
+n_jobs: 8
+targets:
+  # Positive control: lateralised motor / visual activity. Expected near chance pre-decision,
+  # above chance response-locked. If it fails, the preprocessing is suspect.
+  choice_side: {task: classification}
+  # Secondary: objective accuracy (error-related activity is expected post-decision).
+  accuracy: {task: classification}
+  # PRIMARY family: continuous confidence; Holm correction over windows x conditions,
+  # within each subject.
+  confidence: {task: regression, primary: true}
+  # Confidence beyond behavior: residualised on accuracy, response latency and evidence,
+  # with the residualising model fitted on training folds only.
+  confidence_beyond_behavior:
+    task: regression
+    target: confidence
+    covariates: [accuracy, response_latency_seconds, evidence_dots_difference]

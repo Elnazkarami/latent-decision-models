@@ -53,3 +53,28 @@ def read_vmrk(path: str | Path, sfreq: float) -> pd.DataFrame:
     if not rows:
         raise ValueError(f"No markers parsed from {path}")
     return pd.DataFrame(rows).sort_values("sample", kind="stable").reset_index(drop=True)
+
+
+def read_raw(vhdr: str | Path, preload: bool = True):
+    """Read a BrainVision recording with MNE, tolerating stale ``DataFile``/``MarkerFile``.
+
+    Some OpenNeuro datasets (e.g. ds002158) were renamed to BIDS without updating the
+    header, which still names the original lab files. A corrected copy of the header is
+    written to a temporary directory with absolute paths to the BIDS-named ``.eeg`` and
+    ``.vmrk``; the downloaded files are never modified.
+    """
+    import tempfile
+
+    try:
+        import mne
+    except ImportError as e:  # pragma: no cover - depends on optional extra
+        raise ImportError("read_raw needs MNE: pip install "
+                          "'latent-decision-models[eeg]'") from e
+    vhdr = Path(vhdr).resolve()
+    text = vhdr.read_text(encoding="utf-8", errors="replace")
+    text = re.sub(r"(?m)^DataFile=.*$", f"DataFile={vhdr.with_suffix('.eeg')}", text)
+    text = re.sub(r"(?m)^MarkerFile=.*$", f"MarkerFile={vhdr.with_suffix('.vmrk')}", text)
+    with tempfile.TemporaryDirectory() as tmp:
+        fixed = Path(tmp, vhdr.name)
+        fixed.write_text(text, encoding="utf-8")
+        return mne.io.read_raw_brainvision(fixed, preload=preload, verbose="ERROR")
