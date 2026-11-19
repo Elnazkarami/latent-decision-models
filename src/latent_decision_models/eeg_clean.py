@@ -67,16 +67,21 @@ def template_subtract(x: np.ndarray, onsets: np.ndarray, before: int, after: int
 
 
 def volume_grid(volume_onsets: np.ndarray, tr_samples: int,
-                max_jitter: int = 3) -> tuple[np.ndarray, int]:
-    """Regular volume grid ``first + k * tr_samples`` and the number of triggers off it.
+                max_jitter: int = 10) -> tuple[np.ndarray, int]:
+    """Regular volume grid ``phase + k * tr_samples`` and the number of triggers off it.
 
     With EEG and scanner clocks synchronised, the gradient artifact sits on this grid;
-    an isolated trigger logged a few samples late (seen in ds002158 sub-04 run-004:
-    one trigger +2 samples, artifact verified on the grid) must not move its template.
+    triggers logged a few samples late must not move their template. In ds002158 isolated
+    triggers are logged 1-6 samples late and the next one is back on the grid; for
+    deviations of 2-6 samples the artifact was checked directly and sits on the grid
+    (best-fitting shift 0; see docs/ds002158-eeg.md). The grid phase is the most common
+    trigger phase, so one late *first* trigger does not shift the whole grid.
     Deviations above ``max_jitter`` samples mean the clocks are not synchronised.
     """
     on = np.asarray(volume_onsets, int)
-    grid = on[0] + tr_samples * np.arange(len(on))
+    k = np.arange(len(on))
+    phases, counts = np.unique(on - tr_samples * k, return_counts=True)
+    grid = phases[np.argmax(counts)] + tr_samples * k
     dev = on - grid
     if np.abs(dev).max(initial=0) > max_jitter:
         raise ValueError(f"volume triggers deviate up to {np.abs(dev).max()} samples from a "
@@ -85,7 +90,7 @@ def volume_grid(volume_onsets: np.ndarray, tr_samples: int,
 
 
 def gradient_correct(x: np.ndarray, volume_onsets: np.ndarray, tr_samples: int,
-                     n_template: int = 21, max_jitter: int = 3) -> np.ndarray:
+                     n_template: int = 21, max_jitter: int = 10) -> np.ndarray:
     """MR gradient AAS: one template per volume, on the regular volume grid.
 
     Requires synchronised clocks (see :func:`volume_grid`); otherwise templates would be

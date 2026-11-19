@@ -37,7 +37,7 @@ def test_gradient_template_removes_locked_artifact_keeps_unlocked_signal():
 def test_gradient_correct_refuses_unsynchronised_triggers():
     x = np.zeros((1, 1000))
     with pytest.raises(ValueError, match="synchronised"):
-        eeg_clean.gradient_correct(x, np.array([0, 100, 210]), 100)
+        eeg_clean.gradient_correct(x, np.array([0, 100, 211]), 100)
 
 
 def test_isolated_late_trigger_is_snapped_to_the_grid():
@@ -50,6 +50,17 @@ def test_isolated_late_trigger_is_snapped_to_the_grid():
     grid, n_off = eeg_clean.volume_grid(markers, tr)
     assert n_off == 1 and (grid == np.arange(n_vol) * tr).all()
     assert np.abs(eeg_clean.gradient_correct(x, markers, tr)).max() < 1e-3
+
+
+def test_grid_phase_ignores_a_late_first_trigger():
+    # First marker logged 1 sample late (as in sub-07 run-002); a 6-sample late marker
+    # later on (as in sub-15) is within tolerance.
+    tr, n_vol = 200, 40
+    markers = np.arange(n_vol) * tr
+    markers[0] += 1
+    markers[30] += 6
+    grid, n_off = eeg_clean.volume_grid(markers, tr)
+    assert n_off == 2 and (grid == np.arange(n_vol) * tr).all()
 
 
 def test_template_subtract_overlapping_events_corrected_once():
