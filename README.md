@@ -8,23 +8,18 @@ A reproducible Python library for trial-aligned modeling of decision confidence,
 
 Python package `latent_decision_models` · CLI `ldm` · repository `latent-decision-models`.
 
-## Status
+## What you can do with it
 
-| Ticket | Scope | Status |
-| --- | --- | --- |
-| LDM-000 | Package scaffold, synthetic data, CPU smoke tests, CI | ✅ done |
-| LDM-001 | Audit of OpenNeuro ds002158 (confidence; EEG + fMRI) | ✅ done: [audit](docs/ds002158-audit.md) · [JSON](reports/ds002158-audit.json) |
-| LDM-002 | Behavioral confidence baselines and computational model on ds002158 | ✅ done: [baselines](docs/ds002158-behavioral-baseline.md) · [computational model](docs/ds002158-confidence-model.md) (recovery-checked; model comparison inconclusive) |
-| LDM-003 | EEG alignment, QC, classical decoding | ⏸ waiting for approval to download raw EEG (~4.2 GB) |
-| LDM-004 | fMRI derivative audit, trial-level GLM/ROI | ready (derivative audit is metadata-only; volume download needs approval) |
-| LDM-005 | Multimodal baseline, small fusion model | ⏳ blocked by LDM-003/004 |
-| LDM-006 | Audit of ds007474 (two-step RL) | ready |
-| LDM-007 | Belief-updating RL benchmark | ⏳ blocked by LDM-006 |
-| LDM-008 | Report and tagged release | ⏳ |
+- **Load and validate** trial tables from BIDS events. The ds002158 adapter uses verified column semantics and reports problems at the row level.
+- **Check EEG/behavior alignment** from BrainVision marker files. Matching is by timing, never by filename or row order.
+- **Evaluate confidence models fairly**, with subject-disjoint cross-validation, within-subject held-out runs, calibration, participant-bootstrap CIs and type-2 AUROC.
+- **Fit a computational confidence model** (second-order signal detection; committed vs observed decisions). It includes simulation, parameter and model recovery, and posterior predictive checks.
+- **Fetch dataset metadata only.** The fetcher downloads text sidecars from pinned OpenNeuro snapshots and refuses signal files.
 
-The machine-readable backlog is [`tasks/backlog.json`](tasks/backlog.json), and the current work order is [`tasks/next-task.md`](tasks/next-task.md).
-
-**Not implemented yet:** EEG/fMRI signal processing or decoding, deep learning, dynamic (RT-based) or hierarchical confidence models. No neural findings are claimed.
+**Limitations:**
+- EEG/fMRI signal processing, neural decoding and deep learning are not implemented yet.
+- Dynamic (RT-based) and hierarchical confidence models are not implemented yet.
+- No neural findings are claimed.
 
 ## Install
 
@@ -86,9 +81,9 @@ ldm ds002158 align-eeg --events <..._events.tsv> --vmrk <..._eeg.vmrk>
 
 No participant data are redistributed apart from a minimal CC0 test fixture (one 48-trial events file and marker text; see [`tests/fixtures/ds002158/PROVENANCE.md`](tests/fixtures/ds002158/PROVENANCE.md)). `data/` is git-ignored.
 
-## Key findings so far (ds002158)
+## Findings on ds002158
 
-Details and evidence are in [`docs/ds002158-audit.md`](docs/ds002158-audit.md) and [`docs/ds002158-behavioral-baseline.md`](docs/ds002158-behavioral-baseline.md).
+Details and evidence: [audit](docs/ds002158-audit.md) · [behavioral baselines](docs/ds002158-behavioral-baseline.md) · [computational model](docs/ds002158-confidence-model.md).
 
 - **Behavior → fMRI timing:** events `onset` = stimulus marker − first scanner-volume trigger, with 0.0 ms residual. Trigger count equals the BOLD volume count.
 - **Behavior → EEG:** 22/25 sampled runs are fully verified.
@@ -97,7 +92,6 @@ Details and evidence are in [`docs/ds002158-audit.md`](docs/ds002158-audit.md) a
 - **Observed trials** are shuffled replays of the participant's own preceding active block. Their "RT" is the replayed virtual-hand latency, not a participant RT.
 - **Behavioral baseline (post-decision, held-out subjects):** error vs null 0.136 vs 0.222, almost entirely from objective accuracy. Predictions are well calibrated (slope 0.99). Per-person models add only a little (MAE 0.010 lower).
 - **Metacognition (committed vs observed):** confidence tracks accuracy less steeply for observed decisions. GEE interaction −1.73 [−2.95, −0.51], p = 0.006; robust to excluding sub-20. The direction matches the paper. These are post-hoc, population-averaged estimates, and the design is paired (replayed trials).
-
 - **Computational model (second-order SDT):**
   - Synthetic recovery shows that the decision–confidence correlation ρ is **not identifiable** per subject at about 240 trials.
   - The test of whether observed choices are evaluated as one's own (`agency_blind` vs `normative`) is inconclusive on held-out runs: Δ log-likelihood +19 [−60, +99].
@@ -110,22 +104,22 @@ Details and evidence are in [`docs/ds002158-audit.md`](docs/ds002158-audit.md) a
 - Subject-disjoint evaluation by default. Preprocessing is fit only on training folds.
 - No dataset column mapping without verification against the actual files. Facts in docs are labelled as verified or hypothesis.
 - Pre-decision, response-locked and post-decision neural windows are kept separate. No prospective claims are made from post-response features.
-- Large or raw neuroimaging downloads need explicit approval. Optional dependencies stay optional.
+- Signal data is never downloaded implicitly: the fetcher only accepts text metadata. Neuroimaging dependencies are optional extras.
 
-See [`AGENTS.md`](AGENTS.md) for contributor and agent rules, and [`docs/PROJECT_PLAN.md`](docs/PROJECT_PLAN.md) for the full plan.
+Contributor rules are in [`AGENTS.md`](AGENTS.md); the research plan is in [`docs/PROJECT_PLAN.md`](docs/PROJECT_PLAN.md).
 
 ## Changelog
 
-- **2026-11-19:** LDM-002 computational confidence model, which closes LDM-002:
+- **2026-11-19:** Computational confidence model:
   - Second-order SDT model with four observed-trial readout variants.
   - Tests that the likelihood normalizes and that known parameters are recovered.
   - Parameter and model recovery at a priori and fitted-region ranges, plus group-level model recovery.
   - Real-data held-out-run comparison and posterior predictive checks, with a sub-20 sensitivity run.
   - New `ldm confidence-model recovery|compare` commands.
 
-- **2026-11-18:** LDM-002 second pass: calibration metrics, within-subject run-held-out evaluation, GEE metacognition model (`ldm confidence-baseline` now reports all three); statsmodels added as a core dependency.
-- **2026-11-18:** LDM-001 audit of ds002158; ds002158 adapter, EEG marker alignment, metadata-only OpenNeuro fetcher; first-pass behavioral confidence baselines (LDM-002).
-- **2026-11-18:** LDM-000 scaffold: package, synthetic generator, validator, subject-disjoint benchmark, CI.
+- **2026-11-18:** Confidence baselines, second pass: calibration metrics, within-subject run-held-out evaluation, GEE metacognition model (`ldm confidence-baseline` now reports all three); statsmodels added as a core dependency.
+- **2026-11-18:** Audit of ds002158; ds002158 adapter, EEG marker alignment, metadata-only OpenNeuro fetcher; first-pass behavioral confidence baselines.
+- **2026-11-18:** Initial package: package, synthetic generator, validator, subject-disjoint benchmark, CI.
 
 ## License
 
