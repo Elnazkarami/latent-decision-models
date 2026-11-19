@@ -166,8 +166,61 @@ def test_contingency_contrast_separates_time_from_contingency():
         w_stim, w_state = (w_run1, w_run2) if first == "stimulus" else (w_run2, w_run1)
         rows.append({"subject": f"S{i}", "model": "hybrid_contingency",
                      "w_stimulus": w_stim, "w_state": w_state})
-        trial_rows.append({"subject": f"S{i}", "run": "run-1", "trial_index": 0,
-                           "reward_contingency": first})
+        other = "state" if first == "stimulus" else "stimulus"
+        trial_rows += [{"subject": f"S{i}", "run": "run-1", "trial_index": 0,
+                        "reward_contingency": first},
+                       {"subject": f"S{i}", "run": "run-2", "trial_index": 0,
+                        "reward_contingency": other}]
+    # a subject who only saw one contingency is dropped
+    rows.append({"subject": "X", "model": "hybrid_contingency", "w_stimulus": 0.0,
+                 "w_state": 1.0})
+    trial_rows += [{"subject": "X", "run": r, "trial_index": 0, "reward_contingency": "state"}
+                   for r in ("run-1", "run-2")]
     out = ts.contingency_contrast(pd.DataFrame(rows), pd.DataFrame(trial_rows), n_boot=50)
     assert out["contingency_effect_w_state_minus_w_stimulus"] == pytest.approx(0.0)
     assert out["time_effect_late_minus_early"] == pytest.approx(0.2)
+    assert out["excluded_single_contingency"] == ["X"]
+
+
+def test_extended_models_reduce_to_hybrid():
+    d = ts.simulate(ts.synthetic_schedule(seed=7), "hybrid",
+                    {"alpha": 0.5, "beta": 5, "w": 0.5, "stick": 0.2}, seed=0)
+    base = {"alpha": 0.4, "beta": 3.0, "w": 0.6, "stick": 0.1}
+    ref = ts.loglik(base, "hybrid", d)
+    two = {"alpha_mf": 0.4, "alpha_mb": 0.4, "beta": 3.0, "w": 0.6, "stick": 0.1}
+    assert ts.loglik(two, "hybrid_2lr", d) == pytest.approx(ref)
+    assert ts.loglik({**base, "wsls_mf": 0.0, "wsls_mb": 0.0}, "hybrid_wsls", d) == \
+        pytest.approx(ref)
+    assert ts.loglik({**two, "wsls_mf": 0.0, "wsls_mb": 0.0}, "hybrid_2lr_wsls", d) == \
+        pytest.approx(ref)
+
+
+@pytest.mark.parametrize(("win", "rare", "mb_repeat"),
+                         [(1, 0, True), (1, 1, False), (0, 0, False), (0, 1, True)])
+def test_wsls_directions(win, rare, mb_repeat):
+    """After choosing right: wsls_mf repeats after wins; wsls_mb repeats when the
+    rewarded (or unrewarded-other) planet is the chosen ship's common planet."""
+    params = {"alpha": 0.0, "beta": 1.0, "w": 0.5, "stick": 0.0}
+    agent = ts._Agent({**params, "wsls_mf": 0.0, "wsls_mb": 1.0}, "hybrid_wsls", 1)
+    planet = np.array([0 if rare else 1])
+    agent.update(np.array([1]), planet, np.array([float(win)]), np.array([float(win)]),
+                 np.array([True]))
+    assert (agent.logits(np.array([1]))[0] > 0) == mb_repeat
+    agent.p = {**params, "wsls_mf": 1.0, "wsls_mb": 0.0}
+    assert (agent.logits(np.array([1]))[0] > 0) == bool(win)
+
+
+def test_compare_with_replication_session():
+    trials = _fake_trials(4)
+    extra = trials[trials["run"] == "run-2"].assign(run="structural")
+    res = ts.compare(pd.concat([trials, extra]), models=("mf", "hybrid_contingency"),
+                     reference="mf", n_starts=1, n_folds=2, n_boot=50, n_rep=2,
+                     replication_run="structural")
+    rep = res["replication"]
+    assert rep["n_subjects"] == 4 and set(rep["session_heldout"]) == {"mf", "hybrid_contingency"}
+    # a session with one contingency per subject cannot inform the contrast
+    single = extra.assign(reward_contingency="state")
+    res = ts.compare(pd.concat([trials, single]), models=("mf", "hybrid_contingency"),
+                     reference="mf", n_starts=1, n_folds=2, n_boot=50, n_rep=2,
+                     replication_run="structural")
+    assert res["replication"]["contingency_contrast"]["insufficient_subjects"]

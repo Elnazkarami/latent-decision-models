@@ -20,7 +20,7 @@ Python package `latent_decision_models` · CLI `ldm` · repository `latent-decis
 **Limitations:**
 - EEG/fMRI signal processing, neural decoding and deep learning are not implemented yet.
 - Dynamic (RT-based) and hierarchical confidence models are not implemented yet.
-- The two-step RL models are a reference set (one learning rate, fixed transitions); richer arbitration models are not implemented yet.
+- The two-step RL models use fixed, instructed transitions; trial-wise arbitration models are not implemented yet.
 - No neural findings are claimed.
 
 ## Install
@@ -136,8 +136,11 @@ Details: [audit](docs/ds007474-audit.md) · [JSON](reports/ds007474-audit.json) 
   - On held-out runs, a hybrid of model-free and model-based learning predicts choices better than either alone. Δ log-likelihood vs MF is +1,084 [718, 1,451]; vs MB +1,116 [680, 1,605].
   - The ranking holds on held-out subjects and with no exclusions; learning from points instead of wins leaves the hybrid vs MB difference inconclusive.
   - Recovery over the fitted parameter range shows the group comparison is not biased toward the hybrid.
-- **No contingency effect on the MB weight:** it does not increase when model-based control is the rewarded strategy. Order-balanced Δw = −0.003 [−0.039, 0.031]; a planted effect of 0.15 is recovered.
-- **Model misfit:** all models underpredict the reward × transition stay interaction.
+- **No reliable contingency effect on the MB weight:** it does not reliably increase when model-based control is the rewarded strategy. Order-balanced Δw is −0.012 [−0.047, 0.023] in the scanner session and +0.032 [−0.006, 0.072] in a separate session. A planted effect of 0.15 is recovered in both.
+- **Follow-up (exploratory):** adding one-trial win-stay/lose-shift terms fixes the hybrid's underprediction of the reward × transition stay interaction.
+  - It improves prediction of held-out runs (+400 [61, 721]) and of a **separate behavioral session** scored with parameters fitted on the scanner session (+318 [194, 454]).
+  - Recovery shows this selection makes no false positives.
+  - Separate MF/MB learning rates add nothing.
 
 ## Principles
 
@@ -149,6 +152,11 @@ Details: [audit](docs/ds007474-audit.md) · [JSON](reports/ds007474-audit.json) 
 Contributor rules are in [`AGENTS.md`](AGENTS.md); the research plan is in [`docs/PROJECT_PLAN.md`](docs/PROJECT_PLAN.md).
 
 ## Changelog
+
+- **2026-11-19:** Two-step RL follow-up:
+  - Win-stay/lose-shift and two-learning-rate extensions, with recovery over the fitted range.
+  - Out-of-session replication on the structural-session trials, including a structural-session contingency contrast with a known-answer check.
+  - Fix: the contingency contrast now excludes subjects who saw only one contingency.
 
 - **2026-11-19:** Two-step RL models:
   - MF, MB, hybrid and contingency-specific hybrid models, with replay on real task schedules.

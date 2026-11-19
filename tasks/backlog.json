@@ -53,7 +53,7 @@
       "title": "Belief updating RL benchmark",
       "status": "done",
       "deliverable": "model comparison, parameter recovery and predictive checking",
-      "notes": "Behavior only. docs/ds007474-two-step-model.md. Design semantics verified (condState = pad reliability, condReward = magnitude, isPost_* = previous-trial condition). MF/MB/hybrid/hybrid_contingency with recovery (synthetic, real schedules, fitted range; group-level). Hybrid best on held-out runs and subjects; no contingency effect on w. Follow-ups: separate MF/MB learning rates + MB WSLS (PPC misfit), structural-session replication, trial-wise arbitration."
+      "notes": "Behavior only. docs/ds007474-two-step-model.md. Design semantics verified. Hybrid > MF, MB on held-out runs, subjects and a separate session; follow-up: hybrid + win-stay/lose-shift best (also out of session), no false positives in recovery; separate learning rates not identifiable; no reliable contingency effect on w (both sessions). Possible next: learned pad transitions, trial-wise arbitration (isPost_*), hierarchical fitting."
     },
     {
       "id": "LDM-008",

@@ -16,6 +16,15 @@ Agents (values reset at the start of every run, as in the authors' model):
 
 ``mf`` fixes ``w = 0``, ``mb`` fixes ``w = 1``, ``hybrid`` fits ``w`` and
 ``hybrid_contingency`` fits separate weights for stimulus- and state-contingent trials.
+
+Extensions (motivated by the posterior-predictive misfit of ``hybrid``):
+
+* ``hybrid_2lr``: separate learning rates ``alpha_mf`` and ``alpha_mb``;
+* ``hybrid_wsls``: adds one-trial win-stay/lose-shift terms to the choice rule, as in the
+  authors' model. ``wsls_mf`` favours repeating after a win and switching after a loss.
+  ``wsls_mb`` favours the ship that commonly reaches the planet just rewarded: repeat
+  after a win via a common transition or a loss via a rare one, otherwise switch;
+* ``hybrid_2lr_wsls``: both.
 No-response trials neither update values nor enter the likelihood; the stickiness term
 refers to the last choice actually made. Trials with RT below ``min_rt`` update values
 (their outcome was shown) but are not scored.
@@ -40,11 +49,16 @@ MODELS: dict[str, tuple[str, ...]] = {
     "mb": ("alpha", "beta", "stick"),
     "hybrid": ("alpha", "beta", "w", "stick"),
     "hybrid_contingency": ("alpha", "beta", "w_stimulus", "w_state", "stick"),
+    "hybrid_2lr": ("alpha_mf", "alpha_mb", "beta", "w", "stick"),
+    "hybrid_wsls": ("alpha", "beta", "w", "stick", "wsls_mf", "wsls_mb"),
+    "hybrid_2lr_wsls": ("alpha_mf", "alpha_mb", "beta", "w", "stick", "wsls_mf", "wsls_mb"),
 }
-_UNIT = {"alpha", "w", "w_stimulus", "w_state"}
+_UNIT = {"alpha", "alpha_mf", "alpha_mb", "w", "w_stimulus", "w_state"}
 _POSITIVE = {"beta"}
-RECOVERY_RANGES = {"alpha": (0.1, 0.9), "beta": (1.0, 10.0), "w": (0.0, 1.0),
-                   "w_stimulus": (0.0, 1.0), "w_state": (0.0, 1.0), "stick": (-0.5, 1.5)}
+RECOVERY_RANGES = {"alpha": (0.1, 0.9), "alpha_mf": (0.1, 0.9), "alpha_mb": (0.1, 0.9),
+                   "beta": (1.0, 10.0), "w": (0.0, 1.0), "w_stimulus": (0.0, 1.0),
+                   "w_state": (0.0, 1.0), "stick": (-0.5, 1.5), "wsls_mf": (-1.0, 1.0),
+                   "wsls_mb": (-1.0, 1.0)}
 
 
 # --------------------------------------------------------------------------- parameters
@@ -70,7 +84,7 @@ def _weights(params: dict, model: str, contingency: np.ndarray) -> np.ndarray:
         return np.zeros(contingency.shape)
     if model == "mb":
         return np.ones(contingency.shape)
-    if model == "hybrid":
+    if "w" in params:
         return np.full(contingency.shape, params["w"])
     return np.where(contingency == 1, params["w_state"], params["w_stimulus"])
 
@@ -242,35 +256,53 @@ def outcome(schedule: Schedule, t: int, choice: np.ndarray) -> tuple[np.ndarray,
 
 
 # --------------------------------------------------------------------------- core
-def _step_logits(params: dict, model: str, qmf, v, prev, contingency):
-    qmb = P_COMMON * v + (1 - P_COMMON) * v[:, ::-1]
-    w = _weights(params, model, contingency)
-    q = w[:, None] * qmb + (1 - w[:, None]) * qmf
-    stick = params["stick"] * ((prev == 1).astype(float) - (prev == 0).astype(float))
-    return params["beta"] * (q[:, 1] - q[:, 0]) + stick
+class _Agent:
+    """Values and one-trial memory of ``n`` independent runs of one agent."""
 
+    def __init__(self, params: dict, model: str, n: int):
+        self.p, self.model = params, model
+        self.a_mf = params.get("alpha_mf", params.get("alpha"))
+        self.a_mb = params.get("alpha_mb", params.get("alpha"))
+        self.qmf, self.v = np.zeros((n, 2)), np.zeros((n, 2))
+        self.prev = np.full(n, -1)  # last choice made
+        self.prev_win = np.zeros(n)
+        self.prev_rare = np.zeros(n, bool)
 
-def _update(params, qmf, v, choice, planet, reward, valid):
-    idx = np.flatnonzero(valid)
-    a, s, r = choice[idx], planet[idx], reward[idx]
-    qmf[idx, a] += params["alpha"] * (r - qmf[idx, a])
-    v[idx, s] += params["alpha"] * (r - v[idx, s])
+    def logits(self, contingency: np.ndarray) -> np.ndarray:
+        """log P(right) - log P(left) for the current trial."""
+        p, v = self.p, self.v
+        qmb = P_COMMON * v + (1 - P_COMMON) * v[:, ::-1]
+        w = _weights(p, self.model, contingency)[:, None]
+        q = w * qmb + (1 - w) * self.qmf
+        repeat = (self.prev == 1).astype(float) - (self.prev == 0).astype(float)
+        dv = p["beta"] * (q[:, 1] - q[:, 0]) + p["stick"] * repeat
+        if "wsls_mf" in p:
+            win = np.where(self.prev_win > 0, 1.0, -1.0)
+            mb_repeat = np.where((self.prev_win > 0) != self.prev_rare, 1.0, -1.0)
+            dv = dv + repeat * (p["wsls_mf"] * win + p["wsls_mb"] * mb_repeat)
+        return dv
+
+    def update(self, choice, planet, reward, win, valid) -> None:
+        idx = np.flatnonzero(valid)
+        a, s, r = choice[idx], planet[idx], reward[idx]
+        self.qmf[idx, a] += self.a_mf * (r - self.qmf[idx, a])
+        self.v[idx, s] += self.a_mb * (r - self.v[idx, s])
+        self.prev = np.where(valid, choice, self.prev)
+        self.prev_win = np.where(valid, win, self.prev_win)
+        self.prev_rare = np.where(valid, planet != choice, self.prev_rare)
 
 
 def sequence_loglik(params: dict, model: str, data: TwoStepData) -> np.ndarray:
     """Log-likelihood of each run's scored choices."""
     n, T = data.choice.shape
-    qmf, v = np.zeros((n, 2)), np.zeros((n, 2))
-    prev = np.full(n, -1)
+    agent = _Agent(params, model, n)
     ll = np.zeros(n)
     for t in range(T):
         c = data.choice[:, t]
-        dv = _step_logits(params, model, qmf, v, prev, data.contingency[:, t])
+        dv = agent.logits(data.contingency[:, t])
         lp = np.where(c == 1, log_expit(dv), log_expit(-dv))
         ll += np.where(data.scored[:, t], lp, 0.0)
-        valid = c >= 0
-        _update(params, qmf, v, c, data.planet[:, t], data.reward[:, t], valid)
-        prev = np.where(valid, c, prev)
+        agent.update(c, data.planet[:, t], data.reward[:, t], data.win[:, t], c >= 0)
     return ll
 
 
@@ -283,18 +315,16 @@ def simulate(schedule: Schedule, model: str, params: dict, seed: int = 0,
     """Run an agent on a schedule (no-response trials of a real schedule are kept missing)."""
     rng = np.random.default_rng(seed)
     n, T = schedule.present.shape
-    qmf, v = np.zeros((n, 2)), np.zeros((n, 2))
-    prev = np.full(n, -1)
+    agent = _Agent(params, model, n)
     out = {k: np.zeros((n, T), int) for k in ("choice", "planet", "rare")}
     out.update({k: np.zeros((n, T)) for k in ("reward", "win")})
     for t in range(T):
-        dv = _step_logits(params, model, qmf, v, prev, schedule.contingency[:, t])
+        dv = agent.logits(schedule.contingency[:, t])
         c = (rng.random(n) < expit(dv)).astype(int)
         _, planet, win = outcome(schedule, t, c)
         r = win if reward == "binary" else np.round(win * schedule.magnitude[:, t] * 100) / 100
         valid = schedule.responds[:, t]
-        _update(params, qmf, v, c, planet, r, valid)
-        prev = np.where(valid, c, prev)
+        agent.update(c, planet, r, win, valid)
         out["choice"][:, t] = np.where(valid, c, -1)
         out["planet"][:, t] = np.where(valid, planet, -1)
         out["reward"][:, t] = np.where(valid, r, 0.0)
@@ -476,7 +506,8 @@ def model_recovery(models, schedules: list[Schedule], n_sims: int = 30, seed: in
         delayed(_model_recovery_one)(g, i, seed, schedules, models, n_starts, prior_sd,
                                      ranges, reward)
         for g in models for i in range(n_sims))
-    return pd.DataFrame(rows)
+    return pd.DataFrame(rows, columns=["generating", "sim", "selected"]) if not rows \
+        else pd.DataFrame(rows)
 
 
 def group_model_recovery(conf: pd.DataFrame, models, group_size: int = 10,
@@ -492,7 +523,7 @@ def group_model_recovery(conf: pd.DataFrame, models, group_size: int = 10,
             part = g.iloc[order[k * group_size:(k + 1) * group_size]]
             totals = {m: part[f"heldout_{m}"].sum() for m in models}
             rows.append({"generating": gen, "group": k, "selected": max(totals, key=totals.get)})
-    return pd.DataFrame(rows)
+    return pd.DataFrame(rows, columns=["generating", "group", "selected"])
 
 
 # --------------------------------------------------------------------------- real-data run
@@ -522,7 +553,7 @@ def posterior_predictive(data: TwoStepData, schedule: Schedule, fits: pd.DataFra
 
 
 def contingency_contrast(fits: pd.DataFrame, trials: pd.DataFrame, n_boot: int = 2000,
-                         seed: int = 0) -> dict:
+                         seed: int = 0, first_run: str = "run-1", runs=None) -> dict:
     """Order-balanced estimate of ``w_state - w_stimulus`` (``hybrid_contingency`` fits).
 
     The contingency switches once, at the run boundary, so contingency is confounded with
@@ -531,14 +562,26 @@ def contingency_contrast(fits: pd.DataFrame, trials: pd.DataFrame, n_boot: int =
     ``d = contingency + time`` and state-first subjects ``d = contingency - time``. The
     contingency effect is the mean of the two group means; the time (late minus early)
     effect is half their difference. CIs resample subjects within order groups.
+    Subjects who never experienced both contingencies in the analysed runs (``runs``;
+    default: the functional runs, or ``first_run`` alone) are dropped: one of their
+    weights is set by the prior only.
     """
     from scipy.stats import wilcoxon
 
     f = fits[fits["model"] == "hybrid_contingency"].set_index("subject")
     d = f["w_state"] - f["w_stimulus"]
-    first = (trials[(trials["run"] == "run-1") & (trials["trial_index"] == 0)]
+    first = (trials[(trials["run"] == first_run) & (trials["trial_index"] == 0)]
              .set_index("subject")["reward_contingency"].reindex(d.index))
+    runs = runs or (("run-1", "run-2") if first_run == "run-1" else (first_run,))
+    t = trials[trials["run"].isin(runs)]
+    both = t.groupby("subject")["reward_contingency"].nunique().reindex(d.index) == 2
+    keep = first.notna() & d.notna() & both
+    dropped = sorted(d.index[~keep])
+    d, first = d[keep], first[keep]
     groups = {g: d[first == g].to_numpy() for g in ("stimulus", "state")}
+    if min(len(x) for x in groups.values()) < 2:
+        return {"excluded_single_contingency": dropped, "insufficient_subjects": True,
+                "n_by_first_contingency": {g: len(x) for g, x in groups.items()}}
     rng = np.random.default_rng(seed)
 
     def effects(gs):
@@ -549,6 +592,7 @@ def contingency_contrast(fits: pd.DataFrame, trials: pd.DataFrame, n_boot: int =
                      for _ in range(n_boot)])
     cont, time = effects(groups)
     return {
+        "excluded_single_contingency": dropped,
         "by_first_contingency": {
             g: {"n": len(x), "mean": float(x.mean()), "median": float(np.median(x)),
                 "wilcoxon_p": float(wilcoxon(x).pvalue)} for g, x in groups.items()},
@@ -568,9 +612,12 @@ def _contrast_one(sched, i, effect, seed, n_starts, prior_sd, ranges, reward):
     data = simulate(sched, "hybrid_contingency", p, seed=int(rng.integers(2**31)),
                     reward=reward)
     est = fit(data, "hybrid_contingency", n_starts=n_starts, seed=seed, prior_sd=prior_sd)
-    first = "state" if sched.contingency[0, 0] == 1 else "stimulus"
-    return ({"subject": f"sim{i}", "model": "hybrid_contingency", **est["params"]},
-            {"subject": f"sim{i}", "run": "run-1", "trial_index": 0, "reward_contingency": first})
+    label = {0: "stimulus", 1: "state"}
+    rows = [{"subject": f"sim{i}", "run": sched.run[j], "trial_index": 0 if k == 0 else -1,
+             "reward_contingency": label[int(c)]}
+            for j in range(len(sched.run))
+            for k, c in enumerate(dict.fromkeys(sched.contingency[j][sched.present[j]]))]
+    return ({"subject": f"sim{i}", "model": "hybrid_contingency", **est["params"]}, rows)
 
 
 def contingency_effect_recovery(schedules: list[Schedule], effect: float, seed: int = 0,
@@ -585,17 +632,59 @@ def contingency_effect_recovery(schedules: list[Schedule], effect: float, seed: 
         delayed(_contrast_one)(s, i, effect, seed, n_starts, prior_sd, ranges, reward)
         for i, s in enumerate(schedules))
     fits = pd.DataFrame([a for a, _ in out])
-    trials = pd.DataFrame([b for _, b in out])
+    trials = pd.DataFrame([r for _, rows in out for r in rows])
+    runs = tuple(schedules[0].run)
     return {"true_effect": effect, "n_subjects": len(schedules),
-            **contingency_contrast(fits, trials, n_boot, seed)}
+            **contingency_contrast(fits, trials, n_boot, seed, first_run=runs[0], runs=runs)}
+
+
+def _delta_summary(wide: pd.DataFrame, n: pd.Series, models, reference, n_boot, rng) -> dict:
+    out = {}
+    for m in models:
+        d = (wide[m] - wide[reference]).to_numpy()
+        boot = [d[rng.integers(0, len(d), len(d))].sum() for _ in range(n_boot)]
+        out[m] = {
+            "heldout_loglik_per_trial": float(wide[m].sum() / n.sum()),
+            "delta_vs_reference": float(d.sum()),
+            "delta_ci95": [float(np.percentile(boot, 2.5)), float(np.percentile(boot, 97.5))],
+            "subjects_better_than_reference": int((d > 0).sum()),
+            "subjects_best": int((wide.idxmax(axis=1) == m).sum()),
+        }
+    return out
+
+
+def session_heldout(fits: pd.DataFrame, data: TwoStepData, models) -> pd.DataFrame:
+    """Score another session's trials with each subject's parameters from ``fits``."""
+    rows = []
+    for s, r in _subject_rows(data).items():
+        sub = data.subset(r)
+        for m in models:
+            p = fits[(fits["subject"] == s) & (fits["model"] == m)]
+            if p.empty:
+                continue
+            params = {k: float(p.iloc[0][k]) for k in MODELS[m]}
+            rows.append({"subject": s, "model": m, "heldout_loglik": loglik(params, m, sub),
+                         "heldout_trials": sub.n_scored})
+    return pd.DataFrame(rows)
+
+
+def _fit_contingency_only(data, n_starts, seed, prior_sd):
+    f = fit(data, "hybrid_contingency", n_starts=n_starts, seed=seed, prior_sd=prior_sd)
+    return {"subject": data.subject[0], "model": "hybrid_contingency", **f["params"]}
 
 
 def compare(trials: pd.DataFrame, models=tuple(MODELS), reference: str = "hybrid",
             reward: str = "binary", min_rt: float | None = 0.15,
             max_missed_fraction: float | None = 0.10, exclude_subjects=(),
             n_starts: int = 4, prior_sd: float = 2.5, n_folds: int = 5, n_boot: int = 2000,
-            n_rep: int = 20, seed: int = 0, n_jobs: int = 1) -> dict:
-    """Fit every model per subject; compare by held-out log-likelihood (runs and subjects)."""
+            n_rep: int = 20, seed: int = 0, n_jobs: int = 1,
+            replication_run: str | None = None) -> dict:
+    """Fit every model per subject; compare by held-out log-likelihood (runs and subjects).
+
+    With ``replication_run`` (e.g. ``"structural"``), the parameters fitted on the
+    functional runs also score that separate session, and the contingency contrast is
+    repeated on ``hybrid_contingency`` fits to that session alone.
+    """
     miss = missed_fraction(trials)
     excluded = sorted(set(exclude_subjects)
                       | (set(miss[miss > max_missed_fraction].index)
@@ -609,19 +698,27 @@ def compare(trials: pd.DataFrame, models=tuple(MODELS), reference: str = "hybrid
     rng = np.random.default_rng(seed)
     wide = fits.pivot(index="subject", columns="model", values="heldout_loglik")
     n = fits.groupby("subject")["heldout_trials"].first()
-    summary = {}
-    for m in models:
-        d = (wide[m] - wide[reference]).to_numpy()
-        boot = [d[rng.integers(0, len(d), len(d))].sum() for _ in range(n_boot)]
-        summary[m] = {
-            "heldout_loglik_per_trial": float(wide[m].sum() / n.sum()),
-            "delta_vs_reference": float(d.sum()),
-            "delta_ci95": [float(np.percentile(boot, 2.5)), float(np.percentile(boot, 97.5))],
-            "subjects_better_than_reference": int((d > 0).sum()),
-            "subjects_best": int((wide.idxmax(axis=1) == m).sum()),
-        }
+    summary = _delta_summary(wide, n, models, reference, n_boot, rng)
 
     from joblib import Parallel, delayed
+
+    replication = None
+    if replication_run:
+        rep_data = prepare(keep, reward=reward, min_rt=min_rt, runs=(replication_run,))
+        ho = session_heldout(fits, rep_data, models)
+        rw = ho.pivot(index="subject", columns="model", values="heldout_loglik")
+        rn = ho.groupby("subject")["heldout_trials"].first()
+        rep_fits = pd.DataFrame(Parallel(n_jobs=n_jobs)(
+            delayed(_fit_contingency_only)(rep_data.subset(r), n_starts, seed, prior_sd)
+            for r in _subject_rows(rep_data).values()))
+        replication = {
+            "run": replication_run, "n_subjects": len(rw), "n_scored_trials": rep_data.n_scored,
+            "session_heldout": _delta_summary(rw, rn, models, reference, n_boot, rng),
+            "contingency_contrast": contingency_contrast(rep_fits, keep, n_boot, seed,
+                                                         first_run=replication_run),
+            "stay_probabilities_observed": stay_summary(rep_data).reset_index()
+            .to_dict(orient="records"),
+        }
     pooled = Parallel(n_jobs=min(n_jobs, len(models)))(
         delayed(heldout_subjects)(data, m, n_folds, seed, n_starts, prior_sd) for m in models)
     pooled = pd.concat(pooled)
@@ -642,5 +739,6 @@ def compare(trials: pd.DataFrame, models=tuple(MODELS), reference: str = "hybrid
         "parameter_medians": {m: g[list(MODELS[m])].median().to_dict() for m, g in params},
         "stay_probabilities": ppc.to_dict(orient="records"),
         "contingency_contrast": contrast,
+        "replication": replication,
         "fits": fits,
     }

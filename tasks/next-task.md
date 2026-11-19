@@ -5,10 +5,10 @@
 - LDM-006: ds007474 audit ([`docs/ds007474-audit.md`](../docs/ds007474-audit.md)).
 - LDM-007: ds007474 two-step RL benchmark, behavior only ([`docs/ds007474-two-step-model.md`](../docs/ds007474-two-step-model.md)).
 
-## Option A: LDM-007 follow-ups (no approval needed)
-1. **Fix the predictive misfit.** All models underpredict the reward × transition stay interaction. Add separate MF/MB learning rates and MB win-stay/lose-shift terms. Run recovery first, then the held-out comparison.
-2. **Out-of-session replication.** Use the 105 structural-session trials per subject, which also have one contingency switch. Fit on the functional session and predict the structural session, and repeat the contingency contrast.
-3. **Trial-wise arbitration** (the authors' `isPost_*` terms), only if recovery supports it.
+## Option A: further LDM-007 extensions (no approval needed, lower priority)
+The misfit is addressed: hybrid + win-stay/lose-shift is best, including on a separate session.
+1. Learned pad transitions and trial-wise arbitration (the authors' `isPost_*` terms), each with recovery first.
+2. Hierarchical (empirical-Bayes) fitting, to tighten per-subject estimates at 154 trials.
 
 ## Option B: LDM-003, ds002158 EEG (needs explicit approval)
 Raw EEG for sub-02 and sub-04, about 4.2 GB.

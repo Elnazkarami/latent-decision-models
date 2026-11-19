@@ -1,0 +1,23 @@
+# Recovery over the range of the real hybrid_wsls fits (5th-95th percentiles,
+# reports/ds007474_two_step_model_extended_fits.csv), for the comparison that decides the
+# follow-up: hybrid vs hybrid_wsls (plus MF and MB). Real schedules, simulated choices.
+output: reports/two_step_recovery_extended_fitted_range.json
+recovery_table: reports/two_step_recovery_extended_fitted_range_table.csv
+schedules: real
+osf_root: data/ds007474_osf
+models: [mf, mb, hybrid, hybrid_wsls]
+reward: binary
+n_sims: 60
+n_model_sims: 100
+group_size: 10
+n_starts: 3
+prior_sd: 2.5
+seed: 0
+n_jobs: 8
+parameter_ranges:
+  alpha: [0.05, 0.9]
+  beta: [0.25, 10.8]
+  w: [0.17, 0.92]
+  stick: [-1.1, 1.8]
+  wsls_mf: [-0.6, 1.8]
+  wsls_mb: [-0.4, 2.4]

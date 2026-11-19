@@ -1,0 +1,26 @@
+# Recovery for the extended hybrid models (separate MF/MB learning rates, win-stay/lose-shift
+# terms), on the 189 real ds007474 schedules with simulated choices. Shared parameters use
+# the fitted range of the primary analysis; the WSLS weights are a priori and are checked
+# against the real fits afterwards (two_step_recovery_extended_fitted_range.yaml).
+output: reports/two_step_recovery_extended.json
+recovery_table: reports/two_step_recovery_extended_table.csv
+schedules: real
+osf_root: data/ds007474_osf
+models: [mf, mb, hybrid, hybrid_2lr, hybrid_wsls, hybrid_2lr_wsls]
+reward: binary
+n_sims: 60
+n_model_sims: 100
+group_size: 10
+n_starts: 3
+prior_sd: 2.5
+seed: 0
+n_jobs: 8
+parameter_ranges:
+  alpha: [0.3, 0.95]
+  alpha_mf: [0.3, 0.95]
+  alpha_mb: [0.3, 0.95]
+  beta: [0.7, 14.0]
+  w: [0.1, 0.97]
+  stick: [-1.6, 1.2]
+  wsls_mf: [-1.0, 1.0]
+  wsls_mb: [-1.0, 1.0]

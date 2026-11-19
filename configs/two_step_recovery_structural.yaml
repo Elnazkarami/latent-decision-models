@@ -1,0 +1,23 @@
+# Recovery on the structural-session schedules (one 105-trial run per subject, with one
+# contingency switch inside the run in 182/189 subjects): parameter recovery for
+# hybrid_contingency and a known-answer check of the order-balanced contingency contrast.
+output: reports/two_step_recovery_structural.json
+recovery_table: reports/two_step_recovery_structural_table.csv
+schedules: real
+runs: [structural]
+osf_root: data/ds007474_osf
+models: [hybrid_contingency]
+reward: binary
+n_sims: 60
+n_model_sims: 0
+n_starts: 3
+prior_sd: 2.5
+seed: 0
+n_jobs: 8
+parameter_ranges:
+  alpha: [0.3, 0.95]
+  beta: [0.7, 14.0]
+  w_stimulus: [0.1, 0.97]
+  w_state: [0.1, 0.97]
+  stick: [-1.6, 1.2]
+contingency_effects: [0.0, 0.15]

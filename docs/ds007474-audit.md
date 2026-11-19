@@ -115,7 +115,7 @@ Group mean P(stay with the same first-stage choice), within run, 189 subjects:
 2. **OSF run k = BIDS run-k** is inferred; only one subject provides a decisive test.
 3. ~~Meaning of `condState`, `condReward` and `isPost_*`~~ **Resolved (2026-11-19)** from the task code and checked on all files; see the column table and [`ds007474-two-step-model.md`](ds007474-two-step-model.md). The shown outcome is reproduced exactly from the stored schedule under the contingency rule (stimulus: pad 1 / pad 3 draw by ship; state: the reached pad's draw).
 4. **The authors' trial exclusions** (fast RTs, missed trials) and subject exclusions for the paper.
-5. **The structural-session trials** (105 per subject) can enlarge behavioral fits, but they were collected in a different session and have no event timing.
+5. **The structural-session trials** (105 per subject) were collected in a different session and have no event timing. They are now used as an out-of-session test set for the RL models ([`ds007474-two-step-model.md`](ds007474-two-step-model.md)).
 
 ## Decisions that materially affect the research (please review)
 1. **Licensing.** I recommend asking the authors to add a license to the OSF project and the code repository before any public derived release. Until then, this repo stores no OSF data, fixtures or code, and its tests are synthetic.

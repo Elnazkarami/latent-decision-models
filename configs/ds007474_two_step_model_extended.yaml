@@ -1,0 +1,22 @@
+# LDM-007 follow-up (after the primary analysis): extended hybrid models, and an
+# out-of-session replication on the structural-session trials. Same exclusions and
+# settings as the primary analysis. Real data; behavior only.
+# Input from: ldm ds007474 trials --osf-root data/ds007474_osf --out data/ds007474_trials.csv
+input: data/ds007474_trials.csv
+output: reports/ds007474_two_step_model_extended.json
+fits_table: reports/ds007474_two_step_model_extended_fits.csv
+data_kind: real_behavioral_openneuro_ds007474_v1.0.5_osf_ctfzd
+models: [mf, mb, hybrid, hybrid_contingency, hybrid_2lr, hybrid_wsls, hybrid_2lr_wsls]
+reference: hybrid
+reward: binary              # learn from win / no win (sensitivity: points)
+min_rt: 0.15                # faster responses update values but are not scored
+max_missed_fraction: 0.10   # exclude subjects missing > 10% of functional trials
+exclude_subjects: []
+n_starts: 4
+prior_sd: 2.5
+n_folds: 5                  # subject-held-out folds (pooled parameters)
+n_boot: 2000
+n_rep: 20                   # posterior-predictive replays per subject
+seed: 0
+n_jobs: 8
+replication_run: structural  # functional-run parameters score the separate structural session

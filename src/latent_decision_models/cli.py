@@ -183,7 +183,7 @@ def _two_step_schedules(cfg):
     from .datasets import ds007474 as d
 
     trials, _ = d.load_trials(cfg["osf_root"])
-    sched = ts.schedule_from_trials(trials)
+    sched = ts.schedule_from_trials(trials, runs=tuple(cfg.get("runs", ("run-1", "run-2"))))
     rows = ts._subject_rows(sched)
     return [sched.subset(r) for r in rows.values()], "real_ds007474_schedules"
 
@@ -201,6 +201,10 @@ def _two_step_recovery(args):
     rec = {m: ts.parameter_recovery(m, schedules, cfg["n_sims"], **kw) for m in models}
     conf = ts.model_recovery(models, schedules, cfg["n_model_sims"], **kw)
     group = ts.group_model_recovery(conf, models, cfg.get("group_size", 10), cfg.get("seed", 0))
+    confusion = (pd.crosstab(conf["generating"], conf["selected"]).to_dict(orient="index")
+                 if len(conf) else None)
+    group_confusion = (pd.crosstab(group["generating"], group["selected"])
+                       .to_dict(orient="index") if len(group) else None)
     contrast = [ts.contingency_effect_recovery(schedules, e, **kw)
                 for e in cfg.get("contingency_effects", [])]
     if cfg.get("recovery_table"):
@@ -209,11 +213,8 @@ def _two_step_recovery(args):
     _write_json({"config": cfg, "data_kind": f"simulated_agents_on_{kind}",
                  "parameter_ranges": {**ts.RECOVERY_RANGES, **kw["ranges"]},
                  "parameter_recovery": {m: ts.summarize_recovery(r, m) for m, r in rec.items()},
-                 "model_recovery_confusion": pd.crosstab(conf["generating"], conf["selected"])
-                 .to_dict(orient="index"),
-                 "group_model_recovery_confusion": pd.crosstab(group["generating"],
-                                                               group["selected"])
-                 .to_dict(orient="index"),
+                 "model_recovery_confusion": confusion,
+                 "group_model_recovery_confusion": group_confusion,
                  "contingency_effect_recovery": contrast},
                 cfg.get("output"))
 
@@ -230,7 +231,8 @@ def _two_step_compare(args):
                      n_starts=cfg.get("n_starts", 4), prior_sd=cfg.get("prior_sd", 2.5),
                      n_folds=cfg.get("n_folds", 5), n_boot=cfg.get("n_boot", 2000),
                      n_rep=cfg.get("n_rep", 20), seed=cfg.get("seed", 0),
-                     n_jobs=cfg.get("n_jobs", 1))
+                     n_jobs=cfg.get("n_jobs", 1),
+                     replication_run=cfg.get("replication_run"))
     fits = res.pop("fits")
     if cfg.get("fits_table"):
         fits.to_csv(cfg["fits_table"], index=False)

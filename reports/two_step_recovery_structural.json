@@ -1,0 +1,192 @@
+{
+  "config": {
+    "output": "reports/two_step_recovery_structural.json",
+    "recovery_table": "reports/two_step_recovery_structural_table.csv",
+    "schedules": "real",
+    "runs": [
+      "structural"
+    ],
+    "osf_root": "data/ds007474_osf",
+    "models": [
+      "hybrid_contingency"
+    ],
+    "reward": "binary",
+    "n_sims": 60,
+    "n_model_sims": 0,
+    "n_starts": 3,
+    "prior_sd": 2.5,
+    "seed": 0,
+    "n_jobs": 8,
+    "parameter_ranges": {
+      "alpha": [
+        0.3,
+        0.95
+      ],
+      "beta": [
+        0.7,
+        14.0
+      ],
+      "w_stimulus": [
+        0.1,
+        0.97
+      ],
+      "w_state": [
+        0.1,
+        0.97
+      ],
+      "stick": [
+        -1.6,
+        1.2
+      ]
+    },
+    "contingency_effects": [
+      0.0,
+      0.15
+    ]
+  },
+  "data_kind": "simulated_agents_on_real_ds007474_schedules",
+  "parameter_ranges": {
+    "alpha": [
+      0.3,
+      0.95
+    ],
+    "alpha_mf": [
+      0.1,
+      0.9
+    ],
+    "alpha_mb": [
+      0.1,
+      0.9
+    ],
+    "beta": [
+      0.7,
+      14.0
+    ],
+    "w": [
+      0.0,
+      1.0
+    ],
+    "w_stimulus": [
+      0.1,
+      0.97
+    ],
+    "w_state": [
+      0.1,
+      0.97
+    ],
+    "stick": [
+      -1.6,
+      1.2
+    ],
+    "wsls_mf": [
+      -1.0,
+      1.0
+    ],
+    "wsls_mb": [
+      -1.0,
+      1.0
+    ]
+  },
+  "parameter_recovery": {
+    "hybrid_contingency": {
+      "alpha": {
+        "pearson_r": 0.7355425506132048,
+        "median_abs_error": 0.0792790932318915
+      },
+      "beta": {
+        "pearson_r": 0.8760021876288595,
+        "median_abs_error": 1.618749774987862
+      },
+      "w_stimulus": {
+        "pearson_r": 0.805383889978566,
+        "median_abs_error": 0.10298108241575622
+      },
+      "w_state": {
+        "pearson_r": 0.7648611921491779,
+        "median_abs_error": 0.08200390678989855
+      },
+      "stick": {
+        "pearson_r": 0.9473972327980187,
+        "median_abs_error": 0.16631848370749203
+      }
+    }
+  },
+  "model_recovery_confusion": null,
+  "group_model_recovery_confusion": null,
+  "contingency_effect_recovery": [
+    {
+      "true_effect": 0.0,
+      "n_subjects": 189,
+      "excluded_single_contingency": [
+        "sim153",
+        "sim154",
+        "sim155",
+        "sim156",
+        "sim157",
+        "sim158",
+        "sim81"
+      ],
+      "by_first_contingency": {
+        "stimulus": {
+          "n": 100,
+          "mean": -0.04945143921901627,
+          "median": -0.02435096057805025,
+          "wilcoxon_p": 0.018002461636592717
+        },
+        "state": {
+          "n": 82,
+          "mean": 8.987431288227136e-05,
+          "median": -0.0014303197115497768,
+          "wilcoxon_p": 0.9760279187516722
+        }
+      },
+      "contingency_effect_w_state_minus_w_stimulus": -0.024680782453067,
+      "contingency_effect_ci95": [
+        -0.054389647422573434,
+        0.004548067698519798
+      ],
+      "time_effect_late_minus_early": -0.02477065676594927,
+      "time_effect_ci95": [
+        -0.054396212891306576,
+        0.0058329770610344054
+      ]
+    },
+    {
+      "true_effect": 0.15,
+      "n_subjects": 189,
+      "excluded_single_contingency": [
+        "sim153",
+        "sim154",
+        "sim155",
+        "sim156",
+        "sim157",
+        "sim158",
+        "sim81"
+      ],
+      "by_first_contingency": {
+        "stimulus": {
+          "n": 100,
+          "mean": 0.05983275761673592,
+          "median": 0.06894514258356965,
+          "wilcoxon_p": 0.0009179235476966766
+        },
+        "state": {
+          "n": 82,
+          "mean": 0.1263905502392025,
+          "median": 0.15312312777082362,
+          "wilcoxon_p": 8.60408601997338e-06
+        }
+      },
+      "contingency_effect_w_state_minus_w_stimulus": 0.09311165392796922,
+      "contingency_effect_ci95": [
+        0.06303311878384996,
+        0.12458177825725891
+      ],
+      "time_effect_late_minus_early": -0.03327889631123329,
+      "time_effect_ci95": [
+        -0.06432033180407691,
+        -0.0003675705159058362
+      ]
+    }
+  ]
+}
