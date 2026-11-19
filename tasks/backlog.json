@@ -51,9 +51,9 @@
     {
       "id": "LDM-007",
       "title": "Belief updating RL benchmark",
-      "status": "ready",
+      "status": "done",
       "deliverable": "model comparison, parameter recovery and predictive checking",
-      "notes": "Start behavior-only (no subject-level fMRI derivatives). Needs: meaning of condState/condReward/isPost_* from Cockburn et al.; RT/trial exclusion decision"
+      "notes": "Behavior only. docs/ds007474-two-step-model.md. Design semantics verified (condState = pad reliability, condReward = magnitude, isPost_* = previous-trial condition). MF/MB/hybrid/hybrid_contingency with recovery (synthetic, real schedules, fitted range; group-level). Hybrid best on held-out runs and subjects; no contingency effect on w. Follow-ups: separate MF/MB learning rates + MB WSLS (PPC misfit), structural-session replication, trial-wise arbitration."
     },
     {
       "id": "LDM-008",

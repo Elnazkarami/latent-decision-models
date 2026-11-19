@@ -25,3 +25,4 @@ outputs/
 # reviewed audit reports are versioned
 !reports/*-audit.json
 !reports/confidence_model_recovery*.json
+!reports/two_step_recovery*.json

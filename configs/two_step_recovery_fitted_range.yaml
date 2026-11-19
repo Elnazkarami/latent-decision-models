@@ -1,0 +1,26 @@
+# Recovery over the range of parameters actually fitted on ds007474: the 5th-95th
+# percentiles of the per-subject hybrid fits (reports/ds007474_two_step_model_fits.csv,
+# primary analysis). Agents are replayed on the 189 real task schedules; choices simulated.
+output: reports/two_step_recovery_fitted_range.json
+recovery_table: reports/two_step_recovery_fitted_range_table.csv
+schedules: real
+osf_root: data/ds007474_osf   # from: ldm ds007474 fetch-behavior --dest data/ds007474_osf
+models: [mf, mb, hybrid, hybrid_contingency]
+reward: binary
+n_sims: 60          # parameter-recovery simulations per model
+n_model_sims: 100   # model-recovery simulations (simulated subjects) per generating model
+group_size: 10      # group-level recovery: disjoint groups of simulated subjects
+n_starts: 3
+prior_sd: 2.5
+seed: 0
+n_jobs: 8
+parameter_ranges:
+  alpha: [0.3, 0.95]
+  beta: [0.7, 14.0]
+  w: [0.1, 0.97]
+  w_stimulus: [0.1, 0.97]
+  w_state: [0.1, 0.97]
+  stick: [-1.6, 1.2]
+# Known-answer check of the order-balanced contingency contrast: one simulated subject per
+# real schedule with w_state - w_stimulus fixed to each value below.
+contingency_effects: [0.0, 0.15]

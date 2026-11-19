@@ -14,12 +14,13 @@ Python package `latent_decision_models` · CLI `ldm` · repository `latent-decis
 - **Check EEG/behavior alignment** from BrainVision marker files. Matching is by timing, never by filename or row order.
 - **Evaluate confidence models fairly**, with subject-disjoint cross-validation, within-subject held-out runs, calibration, participant-bootstrap CIs and type-2 AUROC.
 - **Fit a computational confidence model** (second-order signal detection; committed vs observed decisions). It includes simulation, parameter and model recovery, and posterior predictive checks.
+- **Fit model-free / model-based / hybrid reinforcement learning** to the two-step task. Agents can be replayed on each participant's real task schedule. Recovery studies, held-out-run and held-out-subject comparison, and posterior predictive stay-probability checks are included.
 - **Fetch small files safely.** It downloads text metadata from pinned OpenNeuro snapshots (refusing signal files), and allow-listed, size-capped, SHA-256-checked files from OSF projects.
 
 **Limitations:**
 - EEG/fMRI signal processing, neural decoding and deep learning are not implemented yet.
 - Dynamic (RT-based) and hierarchical confidence models are not implemented yet.
-- Reinforcement-learning models for the two-step task are not implemented yet.
+- The two-step RL models are a reference set (one learning rate, fixed transitions); richer arbitration models are not implemented yet.
 - No neural findings are claimed.
 
 ## Install
@@ -63,6 +64,13 @@ pip install -e '.[ds007474]'
 ldm ds007474 trials --osf-root data/ds007474_osf --out data/ds007474_trials.csv --timing
 ```
 
+**Two-step reinforcement-learning models** (after the two commands above). Recovery runs on synthetic and real task schedules (simulated choices), then the real-data comparison:
+
+```bash
+ldm two-step-model recovery --config configs/two_step_recovery_fitted_range.yaml
+ldm two-step-model compare --config configs/ds007474_two_step_model.yaml
+```
+
 **Check one run's EEG/behavior alignment.** It needs only that run's `.vhdr` and `.vmrk` text files:
 
 ```bash
@@ -81,6 +89,7 @@ ldm ds002158 align-eeg --events <..._events.tsv> --vmrk <..._eeg.vmrk>
 | `io.brainvision` | Dependency-free `.vhdr`/`.vmrk` marker reader (no signal IO) |
 | `confidence_baseline` | Nested confidence models with subject-disjoint CV, within-subject run-held-out CV, calibration, participant bootstrap and type-2 AUROC |
 | `confidence_model` | Second-order signal-detection confidence model for committed vs observed decisions. Includes simulation, censored-rating likelihood, parameter and model recovery (per subject and group level), held-out-run comparison and posterior predictive checks |
+| `two_step_model` | Model-free / model-based / hybrid RL for the two-step task. Includes schedule replay of simulated agents, MAP fitting, leave-one-run-out and subject-k-fold held-out comparison, parameter and group-level model recovery, an order-balanced contingency contrast and stay-probability checks |
 | `metacognition` | Group metacognitive sensitivity: GEE logistic of accuracy on confidence × condition |
 | `benchmark`, `synthetic` | Synthetic pipeline smoke test |
 | `provenance` | SHA-256 and git-blob checksums |
@@ -113,7 +122,7 @@ Details and evidence: [audit](docs/ds002158-audit.md) · [behavioral baselines](
 
 ## Findings on ds007474
 
-Details: [audit](docs/ds007474-audit.md) · [JSON](reports/ds007474-audit.json).
+Details: [audit](docs/ds007474-audit.md) · [JSON](reports/ds007474-audit.json) · [RL models](docs/ds007474-two-step-model.md).
 
 - **Missing BIDS events:** all 378 BIDS `events.tsv` files are header-only. Behavior and timing come from OSF.
   - The OSF files map one-to-one onto the BIDS subjects (189/189).
@@ -122,6 +131,13 @@ Details: [audit](docs/ds007474-audit.md) · [JSON](reports/ds007474-audit.json).
   - One run (sub-MBMF025002 run-1) stops after 381 volumes, so 30 of its trials have no BOLD.
 - **No usable derivatives:** the published derivatives are group-level T maps only. Trial-level fMRI work would need preprocessing of 259 GB of raw BOLD.
 - **Sanity check:** stay probabilities show the standard reward × transition pattern. This checks the coding; it is not a finding.
+- **Task design fully verified:** every shown outcome is reproduced from the trial schedule stored in the behavior files (0 mismatches in 28,512 trials). Under stimulus contingency the reward follows the chosen ship; under state contingency it follows the planet reached.
+- **RL models (behavior, 181 subjects):**
+  - On held-out runs, a hybrid of model-free and model-based learning predicts choices better than either alone. Δ log-likelihood vs MF is +1,084 [718, 1,451]; vs MB +1,116 [680, 1,605].
+  - The ranking holds on held-out subjects and with no exclusions; learning from points instead of wins leaves the hybrid vs MB difference inconclusive.
+  - Recovery over the fitted parameter range shows the group comparison is not biased toward the hybrid.
+- **No contingency effect on the MB weight:** it does not increase when model-based control is the rewarded strategy. Order-balanced Δw = −0.003 [−0.039, 0.031]; a planted effect of 0.15 is recovered.
+- **Model misfit:** all models underpredict the reward × transition stay interaction.
 
 ## Principles
 
@@ -133,6 +149,13 @@ Details: [audit](docs/ds007474-audit.md) · [JSON](reports/ds007474-audit.json).
 Contributor rules are in [`AGENTS.md`](AGENTS.md); the research plan is in [`docs/PROJECT_PLAN.md`](docs/PROJECT_PLAN.md).
 
 ## Changelog
+
+- **2026-11-19:** Two-step RL models:
+  - MF, MB, hybrid and contingency-specific hybrid models, with replay on real task schedules.
+  - Recovery on synthetic schedules, real schedules and the fitted range, with group-level model recovery and a known-answer check of the contingency contrast.
+  - Real-data comparison: pre-specified primary analysis plus two sensitivity analyses.
+  - The ds007474 adapter now exposes the full trial schedule and checks the reward rules on every file.
+  - New `ldm two-step-model recovery|compare` commands.
 
 - **2026-11-19:** Audit of ds007474. Added the ds007474 adapter (OSF behavior and event timing), the OSF fetcher, `ldm ds007474 fetch-behavior|trials`, and the optional `[ds007474]` extra (`mat-io`).
 

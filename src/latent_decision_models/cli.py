@@ -174,6 +174,70 @@ def _confidence_model_compare(args):
                 cfg.get("output"))
 
 
+def _two_step_schedules(cfg):
+    from . import two_step_model as ts
+
+    if cfg.get("schedules", "synthetic") == "synthetic":
+        return [ts.synthetic_schedule(seed=i) for i in range(cfg.get("n_schedules", 20))], \
+            "synthetic_schedule"
+    from .datasets import ds007474 as d
+
+    trials, _ = d.load_trials(cfg["osf_root"])
+    sched = ts.schedule_from_trials(trials)
+    rows = ts._subject_rows(sched)
+    return [sched.subset(r) for r in rows.values()], "real_ds007474_schedules"
+
+
+def _two_step_recovery(args):
+    from . import two_step_model as ts
+
+    cfg = yaml.safe_load(Path(args.config).read_text())
+    models = cfg.get("models", list(ts.MODELS))
+    schedules, kind = _two_step_schedules(cfg)
+    kw = {"seed": cfg.get("seed", 0), "n_starts": cfg.get("n_starts", 3),
+          "prior_sd": cfg.get("prior_sd", 2.5), "reward": cfg.get("reward", "binary"),
+          "ranges": {k: tuple(v) for k, v in (cfg.get("parameter_ranges") or {}).items()},
+          "n_jobs": cfg.get("n_jobs", 1)}
+    rec = {m: ts.parameter_recovery(m, schedules, cfg["n_sims"], **kw) for m in models}
+    conf = ts.model_recovery(models, schedules, cfg["n_model_sims"], **kw)
+    group = ts.group_model_recovery(conf, models, cfg.get("group_size", 10), cfg.get("seed", 0))
+    contrast = [ts.contingency_effect_recovery(schedules, e, **kw)
+                for e in cfg.get("contingency_effects", [])]
+    if cfg.get("recovery_table"):
+        Path(cfg["recovery_table"]).parent.mkdir(parents=True, exist_ok=True)
+        pd.concat(rec.values()).to_csv(cfg["recovery_table"], index=False)
+    _write_json({"config": cfg, "data_kind": f"simulated_agents_on_{kind}",
+                 "parameter_ranges": {**ts.RECOVERY_RANGES, **kw["ranges"]},
+                 "parameter_recovery": {m: ts.summarize_recovery(r, m) for m, r in rec.items()},
+                 "model_recovery_confusion": pd.crosstab(conf["generating"], conf["selected"])
+                 .to_dict(orient="index"),
+                 "group_model_recovery_confusion": pd.crosstab(group["generating"],
+                                                               group["selected"])
+                 .to_dict(orient="index"),
+                 "contingency_effect_recovery": contrast},
+                cfg.get("output"))
+
+
+def _two_step_compare(args):
+    from . import two_step_model as ts
+
+    cfg = yaml.safe_load(Path(args.config).read_text())
+    res = ts.compare(pd.read_csv(cfg["input"]), models=cfg.get("models", list(ts.MODELS)),
+                     reference=cfg.get("reference", "hybrid"), reward=cfg.get("reward", "binary"),
+                     min_rt=cfg.get("min_rt", 0.15),
+                     max_missed_fraction=cfg.get("max_missed_fraction", 0.10),
+                     exclude_subjects=tuple(cfg.get("exclude_subjects", []) or []),
+                     n_starts=cfg.get("n_starts", 4), prior_sd=cfg.get("prior_sd", 2.5),
+                     n_folds=cfg.get("n_folds", 5), n_boot=cfg.get("n_boot", 2000),
+                     n_rep=cfg.get("n_rep", 20), seed=cfg.get("seed", 0),
+                     n_jobs=cfg.get("n_jobs", 1))
+    fits = res.pop("fits")
+    if cfg.get("fits_table"):
+        fits.to_csv(cfg["fits_table"], index=False)
+    _write_json({"config": cfg, "data_kind": cfg.get("data_kind", "unspecified"), **res},
+                cfg.get("output"))
+
+
 def main():
     p = argparse.ArgumentParser(prog="ldm", description="Decision modeling research tools")
     sub = p.add_subparsers(dest="cmd", required=True)
@@ -215,6 +279,13 @@ def main():
     al.add_argument("--vhdr")
     al.add_argument("--out")
 
+    ts = sub.add_parser("two-step-model",
+                        help="MF / MB / hybrid RL for the ds007474 two-step task")
+    tssub = ts.add_subparsers(dest="ts_cmd", required=True)
+    tssub.add_parser("recovery", help="Parameter and model recovery on task schedules"
+                     ).add_argument("--config", required=True)
+    tssub.add_parser("compare", help="Per-subject fits; held-out run and subject comparison"
+                     ).add_argument("--config", required=True)
     d7 = sub.add_parser("ds007474", help="OpenNeuro ds007474 two-step task (experimental)")
     d7sub = d7.add_subparsers(dest="d7_cmd", required=True)
     f7 = d7sub.add_parser("fetch-behavior",
@@ -250,6 +321,8 @@ def main():
     elif args.cmd == "confidence-model":
         {"recovery": _confidence_model_recovery,
          "compare": _confidence_model_compare}[args.cm_cmd](args)
+    elif args.cmd == "two-step-model":
+        {"recovery": _two_step_recovery, "compare": _two_step_compare}[args.ts_cmd](args)
     elif args.cmd == "ds007474":
         {"fetch-behavior": _ds007474_fetch, "trials": _ds007474_trials}[args.d7_cmd](args)
     elif args.cmd == "ds002158":

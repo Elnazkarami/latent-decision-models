@@ -63,10 +63,13 @@ Labels:
 | `doRareTrans` | rare transition on this trial | 0/1; rare rate 0.28 (task `pTransRare` = 0.3) | [D][C] |
 | `outcome1` | planet (state pair) reached | 1/2 = ceil(`outcome2` / 2). **Placeholder value 1 on all 897 no-response trials** | [D] |
 | `outcome2` | second-stage state | 1–4 | [D] |
-| `outcomeBin`, `outcomeMag` | binary reward and magnitude | 0/1; 0–~100 | [D] |
+| `outcomeBin`, `outcomeMag` | win shown and points shown | 0/1; `round(win × rewMagnitude × 100)` | [C][D] |
 | `condContingent` | reward contingency | 1 = stimulus, 2 = state | [C] (`CONT_STIM = 1`, `CONT_STATE = 2`) |
-| `condState`, `condReward` | design conditions | 1 = "high", 2 = "low" (the task constants' names; **meaning not interpreted**) | [C] |
-| `rewPWin_*`, `rewBinary_*`, `rewMagnitude`, `state2_*` | per-trial reward schedule and state options | — | [D] |
+| `condState` | P(common landing pad \| planet), 26-trial blocks | 1 ("high" uncertainty) = 0.5, 2 = 0.9 | [C][D] (empirical 0.62 vs 0.89) |
+| `condReward` | magnitude scale, 26-trial blocks | 1 = U(0.30, 1.00), 2 = U(0.10, 0.19) | [C][D] |
+| `isPost_ContState`, `isPost_StateLow`, `isPost_RewHigh` | the **previous** trial's condition (state contingency, `condState` = 2, `condReward` = 1) | 0/1; NaN on a run's first trial | [D] (one-trial lag on 100%) |
+| `state2_1`, `state2_2` | pad (1–4) each ship would reach on this trial | `outcome2 = state2_{Resp1}` on 100% | [D] |
+| `rewBinary_k`, `rewPWin_k`, `rewMagnitude` | per-pad win draw and probability (shared within a planet); magnitude scale | — | [C][D] |
 | `isStay`, `isPrev*`, `PrevRT1`, `PrevRewMag` | precomputed history regressors | `isStay` reproduced exactly from `Resp1` | [D] |
 
 - **No second-stage choice** exists in this variant: the timing file's `resp2` is empty on every trial [D].
@@ -110,7 +113,7 @@ Group mean P(stay with the same first-stage choice), within run, 189 subjects:
 ## Hypotheses and unknowns
 1. **Dummy scans.** It is not verified whether the first scanner pulse corresponds to the first *saved* volume. This determines whether onsets need a constant offset; check the sequence protocol (`code/Protocol_Translator.json`) or ask the authors.
 2. **OSF run k = BIDS run-k** is inferred; only one subject provides a decisive test.
-3. **Meaning of `condState` and `condReward`** (labelled high/low in the task code), and the role of the `isPost_*` columns. These need the Cockburn et al. task description before they are used as model inputs.
+3. ~~Meaning of `condState`, `condReward` and `isPost_*`~~ **Resolved (2026-11-19)** from the task code and checked on all files; see the column table and [`ds007474-two-step-model.md`](ds007474-two-step-model.md). The shown outcome is reproduced exactly from the stored schedule under the contingency rule (stimulus: pad 1 / pad 3 draw by ship; state: the reached pad's draw).
 4. **The authors' trial exclusions** (fast RTs, missed trials) and subject exclusions for the paper.
 5. **The structural-session trials** (105 per subject) can enlarge behavioral fits, but they were collected in a different session and have no event timing.
 

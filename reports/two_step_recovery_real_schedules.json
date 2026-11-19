@@ -1,0 +1,171 @@
+{
+  "config": {
+    "output": "reports/two_step_recovery_real_schedules.json",
+    "recovery_table": "reports/two_step_recovery_real_schedules_table.csv",
+    "schedules": "real",
+    "osf_root": "data/ds007474_osf",
+    "models": [
+      "mf",
+      "mb",
+      "hybrid",
+      "hybrid_contingency"
+    ],
+    "reward": "binary",
+    "n_sims": 60,
+    "n_model_sims": 100,
+    "group_size": 10,
+    "n_starts": 3,
+    "prior_sd": 2.5,
+    "seed": 0,
+    "n_jobs": 8
+  },
+  "data_kind": "simulated_agents_on_real_ds007474_schedules",
+  "parameter_ranges": {
+    "alpha": [
+      0.1,
+      0.9
+    ],
+    "beta": [
+      1.0,
+      10.0
+    ],
+    "w": [
+      0.0,
+      1.0
+    ],
+    "w_stimulus": [
+      0.0,
+      1.0
+    ],
+    "w_state": [
+      0.0,
+      1.0
+    ],
+    "stick": [
+      -0.5,
+      1.5
+    ]
+  },
+  "parameter_recovery": {
+    "mf": {
+      "alpha": {
+        "pearson_r": 0.8953832274091234,
+        "median_abs_error": 0.056289458096757394
+      },
+      "beta": {
+        "pearson_r": 0.659048132613863,
+        "median_abs_error": 0.7116003646945566
+      },
+      "stick": {
+        "pearson_r": 0.8651522171872368,
+        "median_abs_error": 0.201148889868208
+      }
+    },
+    "mb": {
+      "alpha": {
+        "pearson_r": 0.7878265043062229,
+        "median_abs_error": 0.06960094061774298
+      },
+      "beta": {
+        "pearson_r": 0.8052568150128833,
+        "median_abs_error": 1.0217655494757647
+      },
+      "stick": {
+        "pearson_r": 0.9527711064368769,
+        "median_abs_error": 0.12108206236526453
+      }
+    },
+    "hybrid": {
+      "alpha": {
+        "pearson_r": 0.8424332577008128,
+        "median_abs_error": 0.07458066088740449
+      },
+      "beta": {
+        "pearson_r": 0.6632512274760755,
+        "median_abs_error": 0.833851089447589
+      },
+      "w": {
+        "pearson_r": 0.7905157099663628,
+        "median_abs_error": 0.11192823913289124
+      },
+      "stick": {
+        "pearson_r": 0.9067085590008646,
+        "median_abs_error": 0.15968626500203498
+      }
+    },
+    "hybrid_contingency": {
+      "alpha": {
+        "pearson_r": 0.8131979477577572,
+        "median_abs_error": 0.07075240900316765
+      },
+      "beta": {
+        "pearson_r": 0.7046074276871346,
+        "median_abs_error": 0.8144739070444014
+      },
+      "w_stimulus": {
+        "pearson_r": 0.8069486806607558,
+        "median_abs_error": 0.10236760084154117
+      },
+      "w_state": {
+        "pearson_r": 0.7914155814821638,
+        "median_abs_error": 0.09810106479383551
+      },
+      "stick": {
+        "pearson_r": 0.9066544435178034,
+        "median_abs_error": 0.19304705622293283
+      }
+    }
+  },
+  "model_recovery_confusion": {
+    "hybrid": {
+      "hybrid": 25,
+      "hybrid_contingency": 24,
+      "mb": 18,
+      "mf": 33
+    },
+    "hybrid_contingency": {
+      "hybrid": 19,
+      "hybrid_contingency": 35,
+      "mb": 18,
+      "mf": 28
+    },
+    "mb": {
+      "hybrid": 12,
+      "hybrid_contingency": 4,
+      "mb": 73,
+      "mf": 11
+    },
+    "mf": {
+      "hybrid": 16,
+      "hybrid_contingency": 7,
+      "mb": 6,
+      "mf": 71
+    }
+  },
+  "group_model_recovery_confusion": {
+    "hybrid": {
+      "hybrid": 5,
+      "hybrid_contingency": 1,
+      "mb": 1,
+      "mf": 3
+    },
+    "hybrid_contingency": {
+      "hybrid": 3,
+      "hybrid_contingency": 2,
+      "mb": 1,
+      "mf": 4
+    },
+    "mb": {
+      "hybrid": 0,
+      "hybrid_contingency": 0,
+      "mb": 10,
+      "mf": 0
+    },
+    "mf": {
+      "hybrid": 2,
+      "hybrid_contingency": 0,
+      "mb": 0,
+      "mf": 8
+    }
+  }
+}

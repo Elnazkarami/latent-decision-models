@@ -1,0 +1,16 @@
+# Recovery with simulated agents replayed on the 189 real ds007474 task schedules
+# (functional runs), keeping each subject's real no-response trials missing. Only the task
+# schedule is read from the data; all choices are simulated.
+output: reports/two_step_recovery_real_schedules.json
+recovery_table: reports/two_step_recovery_real_schedules_table.csv
+schedules: real
+osf_root: data/ds007474_osf   # from: ldm ds007474 fetch-behavior --dest data/ds007474_osf
+models: [mf, mb, hybrid, hybrid_contingency]
+reward: binary
+n_sims: 60          # parameter-recovery simulations per model
+n_model_sims: 100   # model-recovery simulations (simulated subjects) per generating model
+group_size: 10      # group-level recovery: disjoint groups of simulated subjects
+n_starts: 3
+prior_sd: 2.5
+seed: 0
+n_jobs: 8

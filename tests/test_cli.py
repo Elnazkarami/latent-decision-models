@@ -55,3 +55,16 @@ def test_confidence_model_recovery_cli(tmp_path):
     assert {r["param"] for r in res["parameter_recovery"]} >= {"k", "rho", "sigma_c"}
     conf = res["model_recovery_bic_confusion"]
     assert sum(conf["normative"].values()) == 1
+
+
+def test_two_step_recovery_cli(tmp_path):
+    cfg = {"output": str(tmp_path / "rec.json"), "schedules": "synthetic", "n_schedules": 2,
+           "models": ["mf", "hybrid"], "n_sims": 3, "n_model_sims": 2, "group_size": 2,
+           "n_starts": 1, "seed": 0, "contingency_effects": [0.0]}
+    path = tmp_path / "rec.yaml"
+    path.write_text(yaml.safe_dump(cfg))
+    res = _ldm("two-step-model", "recovery", "--config", str(path))
+    assert res["data_kind"] == "simulated_agents_on_synthetic_schedule"
+    assert set(res["parameter_recovery"]["hybrid"]) == {"alpha", "beta", "w", "stick"}
+    assert sum(res["group_model_recovery_confusion"]["mf"].values()) == 1
+    assert res["contingency_effect_recovery"][0]["n_subjects"] == 2

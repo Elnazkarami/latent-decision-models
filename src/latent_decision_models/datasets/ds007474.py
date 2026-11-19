@@ -37,10 +37,15 @@ TRIALS_PER_RUN = 77
 STRUCTURAL_TRIALS = 105
 FUNCTIONAL_RUNS = ("run-1", "run-2")  # INFERRED: OSF functional run k = BIDS run-k
 
-# VERIFIED-CODE task constants (task_MBMF_fMRI struct); semantics of high/low not interpreted.
+# VERIFIED-CODE task constants (task_MBMF_fMRI struct, task_code/initTask.m).
 CONTINGENCY = {1: "stimulus", 2: "state"}  # CONT_STIM = 1, CONT_STATE = 2
-STATE_CODES = {1: "high", 2: "low"}  # STATE_HIGH = 1, STATE_LOW = 2
-REWARD_CODES = {1: "high", 2: "low"}  # REWARD_HIGH = 1, REWARD_LOW = 2
+STATE_CODES = {1: "high", 2: "low"}  # STATE_HIGH = 1, STATE_LOW = 2 (state uncertainty)
+REWARD_CODES = {1: "high", 2: "low"}  # REWARD_HIGH = 1, REWARD_LOW = 2 (reward magnitude)
+# condState sets P(common landing pad | planet): VERIFIED-CODE defineOutcomeState.m
+# (pTrans([STATE_LOW STATE_HIGH]) = [0.9 0.5]); VERIFIED-DATA empirical 0.89 vs ~0.6.
+PAD_TRANSITION_PROBABILITY = {1: 0.5, 2: 0.9}
+# condReward sets the per-trial magnitude scale: VERIFIED-CODE defineRewardMagnitude.m
+# (U(0.30, 1.00) vs U(0.10, 0.19)); VERIFIED-DATA ranges 0.30-1.00 and 0.10-0.19.
 CHOICE_SIDES = {1: "left", 2: "right"}  # VERIFIED-CODE: authors use isLeft = Resp1 == 1
 P_RARE_TRANSITION = 0.3  # VERIFIED-CODE: pTransRare; observed rare rate 0.28
 
@@ -142,6 +147,25 @@ def parse_behavior_csv(path: str | Path, subject: str | None = None,
     planet_ok = (np.ceil(raw.loc[responded, "outcome2"] / 2) == raw.loc[responded, "outcome1"])
     if not planet_ok.all():
         problem("error", "state_coding", "outcome1 != ceil(outcome2 / 2) on responded trials")
+    # VERIFIED-CODE showTrial.m: under state contingency the shown win is the draw of the
+    # landing pad reached; under stimulus contingency it is pad 1's draw for the left ship
+    # and pad 3's for the right ship, wherever the ship landed.
+    draws = raw[[f"rewBinary_{k}" for k in range(1, 5)]].to_numpy(float)
+    r = raw.loc[responded]
+    rows = np.flatnonzero(responded.to_numpy())
+    pad = r["outcome2"].to_numpy(int) - 1
+    win = np.where(r["condContingent"] == 2, draws[rows, pad],
+                   draws[rows, np.where(r["Resp1"] == 1, 0, 2)])
+    if not np.array_equal(win, r["outcomeBin"].to_numpy(float)):
+        problem("error", "reward_rule", "outcomeBin does not follow the contingency rule")
+    if not np.array_equal(np.round(win * r["rewMagnitude"] * 100), r["outcomeMag"].to_numpy(float)):
+        problem("error", "magnitude_rule", "outcomeMag != round(win * rewMagnitude * 100)")
+    if not (np.allclose(raw["rewPWin_1"], raw["rewPWin_2"])
+            and np.allclose(raw["rewPWin_3"], raw["rewPWin_4"])):
+        problem("error", "probability_sharing", "pads on one planet have different P(win)")
+    reached = np.where(r["Resp1"] == 1, r["state2_1"], r["state2_2"])
+    if not np.array_equal(reached, r["outcome2"].to_numpy(float)):
+        problem("error", "pad_rule", "outcome2 differs from the pad of the chosen ship")
     if raw.loc[~responded, ["outcome2", "outcomeBin"]].notna().any().any():
         problem("warning", "outcome_without_response", "outcome recorded on no-response trial")
 
@@ -169,6 +193,15 @@ def parse_behavior_csv(path: str | Path, subject: str | None = None,
         "second_state": raw["outcome2"].where(responded),
         "reward_binary": raw["outcomeBin"].where(responded),
         "reward_magnitude": raw["outcomeMag"].where(responded),
+        # Full trial schedule (also defined on no-response trials): lets any agent be
+        # replayed on the subject's actual task sequence.
+        "pad_if_left": raw["state2_1"].astype(int),
+        "pad_if_right": raw["state2_2"].astype(int),
+        **{f"reward_draw_pad{k}": raw[f"rewBinary_{k}"].astype(int) for k in range(1, 5)},
+        "reward_probability_planet1": raw["rewPWin_1"],  # pads 1-2 share it (VERIFIED-DATA)
+        "reward_probability_planet2": raw["rewPWin_3"],  # pads 3-4 share it
+        "magnitude_scale": raw["rewMagnitude"],
+        "pad_transition_probability": raw["condState"].map(PAD_TRANSITION_PROBABILITY),
         "onset_seconds": np.nan,
         "onset_reference": None,
         "valid_trial": responded,

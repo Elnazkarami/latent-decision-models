@@ -1,0 +1,646 @@
+"""Model-free / model-based / hybrid reinforcement learning for the ds007474 two-step task.
+
+Task (verified in ``docs/ds007474-audit.md`` and ``docs/ds007474-two-step-model.md``):
+on each trial the participant picks one of two ships. The left ship commonly (p = 0.7)
+reaches planet 1, the right ship planet 2; there is no second-stage choice. Under
+*state* contingency the win depends on the planet reached (pads on a planet share
+P(win)); under *stimulus* contingency it depends on the ship chosen, wherever it lands.
+
+Agents (values reset at the start of every run, as in the authors' model):
+
+* model-free (MF): ``Q_mf(a) += alpha * (r - Q_mf(a))`` for the chosen ship;
+* model-based (MB): ``V(planet) += alpha * (r - V(planet))`` for the planet reached and
+  ``Q_mb(a) = 0.7 V(common planet of a) + 0.3 V(other planet)`` with the instructed
+  transition structure;
+* choice: ``P(a) = softmax(beta * (w Q_mb + (1 - w) Q_mf) + stick * [a = previous choice])``.
+
+``mf`` fixes ``w = 0``, ``mb`` fixes ``w = 1``, ``hybrid`` fits ``w`` and
+``hybrid_contingency`` fits separate weights for stimulus- and state-contingent trials.
+No-response trials neither update values nor enter the likelihood; the stickiness term
+refers to the last choice actually made. Trials with RT below ``min_rt`` update values
+(their outcome was shown) but are not scored.
+
+Fits are MAP with an independent N(0, ``prior_sd``^2) prior on the unconstrained
+parameters (the authors used N(0, 6.25) with a Laplace approximation). Model comparison
+uses held-out log-likelihood, never in-sample fit.
+"""
+
+from __future__ import annotations
+
+from dataclasses import dataclass
+
+import numpy as np
+import pandas as pd
+from scipy.optimize import minimize
+from scipy.special import expit, log_expit, logit
+
+P_COMMON = 0.7
+MODELS: dict[str, tuple[str, ...]] = {
+    "mf": ("alpha", "beta", "stick"),
+    "mb": ("alpha", "beta", "stick"),
+    "hybrid": ("alpha", "beta", "w", "stick"),
+    "hybrid_contingency": ("alpha", "beta", "w_stimulus", "w_state", "stick"),
+}
+_UNIT = {"alpha", "w", "w_stimulus", "w_state"}
+_POSITIVE = {"beta"}
+RECOVERY_RANGES = {"alpha": (0.1, 0.9), "beta": (1.0, 10.0), "w": (0.0, 1.0),
+                   "w_stimulus": (0.0, 1.0), "w_state": (0.0, 1.0), "stick": (-0.5, 1.5)}
+
+
+# --------------------------------------------------------------------------- parameters
+def to_theta(params: dict, model: str) -> np.ndarray:
+    out = []
+    for k in MODELS[model]:
+        v = params[k]
+        out.append(logit(np.clip(v, 1e-6, 1 - 1e-6)) if k in _UNIT
+                   else np.log(v) if k in _POSITIVE else v)
+    return np.array(out, float)
+
+
+def from_theta(theta: np.ndarray, model: str) -> dict:
+    p = {}
+    for k, t in zip(MODELS[model], theta, strict=True):
+        p[k] = float(expit(t) if k in _UNIT else np.exp(t) if k in _POSITIVE else t)
+    return p
+
+
+def _weights(params: dict, model: str, contingency: np.ndarray) -> np.ndarray:
+    """Per-sequence MB weight for the current trial (contingency: 0 stimulus, 1 state)."""
+    if model == "mf":
+        return np.zeros(contingency.shape)
+    if model == "mb":
+        return np.ones(contingency.shape)
+    if model == "hybrid":
+        return np.full(contingency.shape, params["w"])
+    return np.where(contingency == 1, params["w_state"], params["w_stimulus"])
+
+
+# --------------------------------------------------------------------------- data
+@dataclass
+class TwoStepData:
+    """Runs as rows (values reset per run), trials as columns; padded with ``choice = -1``.
+
+    ``choice``: 0 left / 1 right / -1 none; ``planet``: 0/1/-1; ``reward``: learning signal;
+    ``win``: binary outcome shown; ``rare``: rare first-stage transition; ``contingency``:
+    0 stimulus / 1 state; ``scored``: enters the likelihood.
+    """
+
+    choice: np.ndarray
+    planet: np.ndarray
+    reward: np.ndarray
+    win: np.ndarray
+    rare: np.ndarray
+    contingency: np.ndarray
+    scored: np.ndarray
+    subject: np.ndarray
+    run: np.ndarray
+
+    def subset(self, rows) -> TwoStepData:
+        rows = np.asarray(rows)
+        return TwoStepData(**{k: getattr(self, k)[rows] for k in self.__dataclass_fields__})
+
+    @property
+    def n_scored(self) -> int:
+        return int(self.scored.sum())
+
+
+@dataclass
+class Schedule:
+    """Everything needed to replay any agent on a task sequence (runs x trials)."""
+
+    pad_if: np.ndarray  # (n, T, 2) landing pad 0-3 if the left/right ship were chosen
+    draws: np.ndarray  # (n, T, 4) binary reward draw of each pad
+    contingency: np.ndarray  # (n, T) 0 stimulus / 1 state
+    magnitude: np.ndarray  # (n, T) magnitude scale in [0, 1]
+    present: np.ndarray  # (n, T) trial exists
+    responds: np.ndarray  # (n, T) a response is made (replays real no-response trials)
+    subject: np.ndarray
+    run: np.ndarray
+
+    def subset(self, rows) -> Schedule:
+        rows = np.asarray(rows)
+        return Schedule(**{k: getattr(self, k)[rows] for k in self.__dataclass_fields__})
+
+
+def _runs(trials: pd.DataFrame, runs) -> list[tuple[tuple[str, str], pd.DataFrame]]:
+    t = trials[trials["run"].isin(runs)].sort_values(["subject", "run", "trial_index"])
+    return list(t.groupby(["subject", "run"], sort=True))
+
+
+def _pad(blocks: list[np.ndarray], fill, dtype) -> np.ndarray:
+    T = max(len(b) for b in blocks)
+    out = np.full((len(blocks), T) + blocks[0].shape[1:], fill, dtype)
+    for i, b in enumerate(blocks):
+        out[i, :len(b)] = b
+    return out
+
+
+def prepare(trials: pd.DataFrame, reward: str = "binary", min_rt: float | None = 0.15,
+            runs=("run-1", "run-2")) -> TwoStepData:
+    """Build model input from the ``ldm ds007474 trials`` table.
+
+    ``reward``: ``"binary"`` (win/no win) or ``"points"`` (points shown / 100).
+    """
+    if reward not in ("binary", "points"):
+        raise ValueError("reward must be 'binary' or 'points'")
+    groups = _runs(trials, runs)
+    if not groups:
+        raise ValueError(f"no trials in runs {runs}")
+    cols: dict[str, list] = {k: [] for k in ("choice", "planet", "reward", "win", "rare",
+                                             "contingency", "scored")}
+    for _, g in groups:
+        ok = g["choice"].notna().to_numpy()
+        cols["choice"].append(np.where(ok, g["choice"].fillna(1).to_numpy() - 1, -1))
+        cols["planet"].append(np.where(ok, g["planet"].fillna(1).to_numpy() - 1, -1))
+        r = (g["reward_binary"] if reward == "binary" else g["reward_magnitude"] / 100)
+        cols["reward"].append(r.fillna(0).to_numpy(float))
+        cols["win"].append(g["reward_binary"].fillna(0).to_numpy(float))
+        cols["rare"].append(g["rare_transition"].to_numpy(int))
+        cols["contingency"].append((g["reward_contingency"] == "state").to_numpy(int))
+        fast = (g["response_time_seconds"] < min_rt).to_numpy() if min_rt else 0
+        cols["scored"].append(ok & ~fast)
+    fills = {"choice": (-1, int), "planet": (-1, int), "reward": (0.0, float),
+             "win": (0.0, float), "rare": (0, int), "contingency": (0, int),
+             "scored": (False, bool)}
+    arrays = {k: _pad(v, *fills[k]) for k, v in cols.items()}
+    return TwoStepData(**arrays, subject=np.array([k[0] for k, _ in groups]),
+                       run=np.array([k[1] for k, _ in groups]))
+
+
+def schedule_from_trials(trials: pd.DataFrame, runs=("run-1", "run-2")) -> Schedule:
+    groups = _runs(trials, runs)
+    pad_if, draws, cont, mag, resp = [], [], [], [], []
+    for _, g in groups:
+        pad_if.append(g[["pad_if_left", "pad_if_right"]].to_numpy(int) - 1)
+        draws.append(g[[f"reward_draw_pad{k}" for k in range(1, 5)]].to_numpy(float))
+        cont.append((g["reward_contingency"] == "state").to_numpy(int))
+        mag.append(g["magnitude_scale"].to_numpy(float))
+        resp.append(g["choice"].notna().to_numpy())
+    present = _pad([np.ones(len(c), bool) for c in cont], False, bool)
+    return Schedule(pad_if=_pad(pad_if, 0, int), draws=_pad(draws, 0.0, float),
+                    contingency=_pad(cont, 0, int), magnitude=_pad(mag, 0.0, float),
+                    present=present, responds=_pad(resp, False, bool) & present,
+                    subject=np.array([k[0] for k, _ in groups]),
+                    run=np.array([k[1] for k, _ in groups]))
+
+
+def synthetic_schedule(n_runs: int = 2, n_trials: int = 77, seed: int = 0,
+                       subject: str = "synthetic") -> Schedule:
+    """A schedule with the verified *structure* of the ds007474 task (not its exact generator).
+
+    One contingency switch per session at the midpoint; 70/30 ship -> planet transitions;
+    26-trial blocks of pad reliability 0.5 / 0.9; reward-probability reversals every
+    ~20 trials on a rare transition, each starting at 0/1 and settling at 0.3/0.5;
+    magnitude scale in 26-trial blocks of U(0.3, 1) / U(0.1, 0.19). For tests and
+    recovery studies only; recovery on real schedules uses :func:`schedule_from_trials`.
+    """
+    rng = np.random.default_rng(seed)
+    T = n_runs * n_trials
+    switch = T // 2 + rng.integers(-1, 2)
+    first = rng.integers(0, 2)
+    cont = np.where(np.arange(T) < switch, first, 1 - first)
+    rare = rng.random(T) < 1 - P_COMMON
+    block = (np.arange(T) // 26) % 2
+    reliable = np.where(block == 0, 0.5, 0.9)
+    common_pad = np.zeros((T, 2), int)
+    for b in range(T // 26 + 1):
+        common_pad[b * 26:(b + 1) * 26] = [rng.integers(0, 2), 2 + rng.integers(0, 2)]
+    p = np.zeros((T, 2))
+    anchor = rng.permutation([1.0, 0.0])
+    since = 0
+    for t in range(T):
+        if since > 20 and rare[t]:
+            anchor, since = anchor[::-1].copy(), 0
+        settle = np.where(anchor == 1.0, 0.3, 0.5)
+        p[t] = settle + (anchor - settle) * np.exp(-(since / 6.0) ** 3)
+        since += 1
+    draws = (rng.random((T, 4)) < np.repeat(p, 2, axis=1)).astype(float)
+    pad_if = np.zeros((T, 2), int)
+    for a in (0, 1):
+        planet = np.where(rare, 1 - a, a)
+        common = common_pad[np.arange(T), planet]
+        other = np.where(planet == 0, 1 - common, 5 - common)
+        pad_if[:, a] = np.where(rng.random(T) < reliable, common, other)
+    mag_block = ((np.arange(T) + 13) // 26) % 2
+    mag = np.where(mag_block == 0, rng.uniform(0.3, 1.0, T), rng.uniform(0.10, 0.19, T))
+    shape = (n_runs, n_trials)
+    return Schedule(pad_if=pad_if.reshape(shape + (2,)), draws=draws.reshape(shape + (4,)),
+                    contingency=cont.reshape(shape), magnitude=mag.reshape(shape),
+                    present=np.ones(shape, bool), responds=np.ones(shape, bool),
+                    subject=np.array([subject] * n_runs),
+                    run=np.array([f"run-{i + 1}" for i in range(n_runs)]))
+
+
+def outcome(schedule: Schedule, t: int, choice: np.ndarray) -> tuple[np.ndarray, ...]:
+    """Pad, planet and win for ``choice`` (0/1 per run) at trial ``t``: the task's rule."""
+    idx = np.arange(len(choice))
+    pad = schedule.pad_if[idx, t, choice]
+    win_state = schedule.draws[idx, t, pad]
+    win_stim = schedule.draws[idx, t, 2 * choice]  # pad 1 for left, pad 3 for right
+    win = np.where(schedule.contingency[:, t] == 1, win_state, win_stim)
+    return pad, pad // 2, win
+
+
+# --------------------------------------------------------------------------- core
+def _step_logits(params: dict, model: str, qmf, v, prev, contingency):
+    qmb = P_COMMON * v + (1 - P_COMMON) * v[:, ::-1]
+    w = _weights(params, model, contingency)
+    q = w[:, None] * qmb + (1 - w[:, None]) * qmf
+    stick = params["stick"] * ((prev == 1).astype(float) - (prev == 0).astype(float))
+    return params["beta"] * (q[:, 1] - q[:, 0]) + stick
+
+
+def _update(params, qmf, v, choice, planet, reward, valid):
+    idx = np.flatnonzero(valid)
+    a, s, r = choice[idx], planet[idx], reward[idx]
+    qmf[idx, a] += params["alpha"] * (r - qmf[idx, a])
+    v[idx, s] += params["alpha"] * (r - v[idx, s])
+
+
+def sequence_loglik(params: dict, model: str, data: TwoStepData) -> np.ndarray:
+    """Log-likelihood of each run's scored choices."""
+    n, T = data.choice.shape
+    qmf, v = np.zeros((n, 2)), np.zeros((n, 2))
+    prev = np.full(n, -1)
+    ll = np.zeros(n)
+    for t in range(T):
+        c = data.choice[:, t]
+        dv = _step_logits(params, model, qmf, v, prev, data.contingency[:, t])
+        lp = np.where(c == 1, log_expit(dv), log_expit(-dv))
+        ll += np.where(data.scored[:, t], lp, 0.0)
+        valid = c >= 0
+        _update(params, qmf, v, c, data.planet[:, t], data.reward[:, t], valid)
+        prev = np.where(valid, c, prev)
+    return ll
+
+
+def loglik(params: dict, model: str, data: TwoStepData) -> float:
+    return float(sequence_loglik(params, model, data).sum())
+
+
+def simulate(schedule: Schedule, model: str, params: dict, seed: int = 0,
+             reward: str = "binary") -> TwoStepData:
+    """Run an agent on a schedule (no-response trials of a real schedule are kept missing)."""
+    rng = np.random.default_rng(seed)
+    n, T = schedule.present.shape
+    qmf, v = np.zeros((n, 2)), np.zeros((n, 2))
+    prev = np.full(n, -1)
+    out = {k: np.zeros((n, T), int) for k in ("choice", "planet", "rare")}
+    out.update({k: np.zeros((n, T)) for k in ("reward", "win")})
+    for t in range(T):
+        dv = _step_logits(params, model, qmf, v, prev, schedule.contingency[:, t])
+        c = (rng.random(n) < expit(dv)).astype(int)
+        _, planet, win = outcome(schedule, t, c)
+        r = win if reward == "binary" else np.round(win * schedule.magnitude[:, t] * 100) / 100
+        valid = schedule.responds[:, t]
+        _update(params, qmf, v, c, planet, r, valid)
+        prev = np.where(valid, c, prev)
+        out["choice"][:, t] = np.where(valid, c, -1)
+        out["planet"][:, t] = np.where(valid, planet, -1)
+        out["reward"][:, t] = np.where(valid, r, 0.0)
+        out["win"][:, t] = np.where(valid, win, 0.0)
+        out["rare"][:, t] = (planet != c).astype(int)
+    return TwoStepData(**out, contingency=schedule.contingency.copy(),
+                       scored=schedule.responds.copy(), subject=schedule.subject.copy(),
+                       run=schedule.run.copy())
+
+
+# --------------------------------------------------------------------------- fitting
+def fit(data: TwoStepData, model: str, n_starts: int = 4, seed: int = 0,
+        prior_sd: float = 2.5) -> dict:
+    """MAP fit (one parameter set for all runs in ``data``)."""
+    rng = np.random.default_rng(seed)
+    k = len(MODELS[model])
+
+    def objective(theta):
+        val = -loglik(from_theta(theta, model), model, data)
+        return val + 0.5 * float(theta @ theta) / prior_sd ** 2 if prior_sd else val
+
+    best = None
+    for i in range(n_starts):
+        start = np.zeros(k) if i == 0 else rng.normal(0, 1.0, k)
+        res = minimize(objective, start, method="L-BFGS-B", bounds=[(-8, 8)] * k)
+        if best is None or res.fun < best.fun:
+            best = res
+    params = from_theta(best.x, model)
+    return {"model": model, "params": params, "loglik": loglik(params, model, data),
+            "n_trials": data.n_scored, "n_params": k, "converged": bool(best.success)}
+
+
+def heldout_runs(data: TwoStepData, model: str, **fit_kw) -> dict:
+    """Leave-one-run-out: fit on the other runs of the same subject, score the held-out run."""
+    total, n = 0.0, 0
+    for i in range(len(data.run)):
+        train = data.subset([j for j in range(len(data.run)) if j != i])
+        test = data.subset([i])
+        params = fit(train, model, **fit_kw)["params"]
+        total += loglik(params, model, test)
+        n += test.n_scored
+    return {"heldout_loglik": total, "heldout_trials": n}
+
+
+def _subject_rows(data: TwoStepData) -> dict[str, np.ndarray]:
+    return {s: np.flatnonzero(data.subject == s) for s in dict.fromkeys(data.subject)}
+
+
+def _fit_subject(data: TwoStepData, models, n_starts, seed, prior_sd) -> list[dict]:
+    rows = []
+    for m in models:
+        full = fit(data, m, n_starts=n_starts, seed=seed, prior_sd=prior_sd)
+        ho = heldout_runs(data, m, n_starts=n_starts, seed=seed, prior_sd=prior_sd)
+        rows.append({"subject": data.subject[0], "model": m, **full["params"],
+                     "loglik": full["loglik"], "n_trials": full["n_trials"], **ho})
+    return rows
+
+
+def fit_subjects(data: TwoStepData, models, n_starts: int = 4, seed: int = 0,
+                 prior_sd: float = 2.5, n_jobs: int = 1) -> pd.DataFrame:
+    """Per-subject fits plus leave-one-run-out held-out log-likelihood, for every model."""
+    from joblib import Parallel, delayed
+
+    subs = _subject_rows(data)
+    out = Parallel(n_jobs=n_jobs)(
+        delayed(_fit_subject)(data.subset(r), models, n_starts, seed, prior_sd)
+        for r in subs.values())
+    return pd.DataFrame([row for rows in out for row in rows])
+
+
+def heldout_subjects(data: TwoStepData, model: str, n_folds: int = 5, seed: int = 0,
+                     n_starts: int = 4, prior_sd: float = 2.5) -> pd.DataFrame:
+    """Subject-level k-fold: one pooled parameter set fitted on training subjects is
+    scored on the held-out subjects (no subject is in both)."""
+    subs = list(_subject_rows(data))
+    order = np.random.default_rng(seed).permutation(len(subs))
+    folds = np.array_split(np.array(subs)[order], n_folds)
+    rows = []
+    for k, test_subs in enumerate(folds):
+        test = np.isin(data.subject, test_subs)
+        params = fit(data.subset(np.flatnonzero(~test)), model, n_starts=n_starts,
+                     seed=seed, prior_sd=prior_sd)["params"]
+        held = data.subset(np.flatnonzero(test))
+        ll = sequence_loglik(params, model, held)
+        for s in test_subs:
+            m = held.subject == s
+            rows.append({"subject": s, "model": model, "fold": k,
+                         "heldout_loglik": float(ll[m].sum()),
+                         "heldout_trials": int(held.scored[m].sum()), **params})
+    return pd.DataFrame(rows)
+
+
+# --------------------------------------------------------------------------- summaries
+def stay_table(data: TwoStepData) -> pd.DataFrame:
+    """P(repeat previous choice) by previous win x previous transition, per contingency.
+
+    Only consecutive responded trials within a run; the contingency is the previous
+    trial's (the one whose outcome is being reacted to).
+    """
+    c, prev = data.choice[:, 1:], data.choice[:, :-1]
+    ok = (c >= 0) & (prev >= 0)
+    df = pd.DataFrame({
+        "subject": np.repeat(data.subject, c.shape[1])[ok.ravel()],
+        "contingency": np.where(data.contingency[:, :-1] == 1, "state", "stimulus")[ok],
+        "prev_win": data.win[:, :-1][ok].astype(int),
+        "prev_rare": data.rare[:, :-1][ok].astype(int),
+        "stay": (c == prev)[ok].astype(int)})
+    return df
+
+
+def stay_summary(data: TwoStepData) -> pd.DataFrame:
+    """Group mean of per-subject stay probabilities and the reward x transition indices."""
+    per = (stay_table(data).groupby(["subject", "contingency", "prev_win", "prev_rare"])
+           ["stay"].mean().unstack(["prev_win", "prev_rare"]))
+    out = pd.DataFrame({
+        "rewarded_common": per[(1, 0)], "rewarded_rare": per[(1, 1)],
+        "unrewarded_common": per[(0, 0)], "unrewarded_rare": per[(0, 1)]})
+    out["reward_effect"] = (out.rewarded_common + out.rewarded_rare
+                            - out.unrewarded_common - out.unrewarded_rare) / 2
+    out["interaction"] = (out.rewarded_common - out.rewarded_rare
+                          - out.unrewarded_common + out.unrewarded_rare) / 2
+    return out.groupby("contingency").mean()
+
+
+def sample_params(model: str, rng: np.random.Generator, ranges: dict | None = None) -> dict:
+    r = {**RECOVERY_RANGES, **(ranges or {})}
+    return {k: float(rng.uniform(*r[k])) for k in MODELS[model]}
+
+
+def _recover_one(model, i, seed, schedules, n_starts, prior_sd, ranges, reward):
+    rng = np.random.default_rng([seed, i])
+    sched = schedules[i % len(schedules)]
+    true = sample_params(model, rng, ranges)
+    data = simulate(sched, model, true, seed=int(rng.integers(2**31)), reward=reward)
+    est = fit(data, model, n_starts=n_starts, seed=seed, prior_sd=prior_sd)["params"]
+    return {"model": model, "sim": i, **{f"true_{k}": v for k, v in true.items()},
+            **{f"est_{k}": v for k, v in est.items()}}
+
+
+def parameter_recovery(model: str, schedules: list[Schedule], n_sims: int = 50,
+                       seed: int = 0, n_starts: int = 4, prior_sd: float = 2.5,
+                       ranges: dict | None = None, reward: str = "binary",
+                       n_jobs: int = 1) -> pd.DataFrame:
+    from joblib import Parallel, delayed
+
+    rows = Parallel(n_jobs=n_jobs)(
+        delayed(_recover_one)(model, i, seed, schedules, n_starts, prior_sd, ranges, reward)
+        for i in range(n_sims))
+    return pd.DataFrame(rows)
+
+
+def summarize_recovery(df: pd.DataFrame, model: str) -> dict:
+    out = {}
+    for k in MODELS[model]:
+        t, e = df[f"true_{k}"], df[f"est_{k}"]
+        out[k] = {"pearson_r": float(np.corrcoef(t, e)[0, 1]),
+                  "median_abs_error": float((t - e).abs().median())}
+    return out
+
+
+def _model_recovery_one(gen, i, seed, schedules, models, n_starts, prior_sd, ranges, reward):
+    rng = np.random.default_rng([seed, 1000 + i, len(gen)])
+    sched = schedules[i % len(schedules)]
+    data = simulate(sched, gen, sample_params(gen, rng, ranges),
+                    seed=int(rng.integers(2**31)), reward=reward)
+    ho = {m: heldout_runs(data, m, n_starts=n_starts, seed=seed, prior_sd=prior_sd)
+          ["heldout_loglik"] for m in models}
+    return {"generating": gen, "sim": i, "selected": max(ho, key=ho.get),
+            **{f"heldout_{m}": v for m, v in ho.items()}}
+
+
+def model_recovery(models, schedules: list[Schedule], n_sims: int = 30, seed: int = 0,
+                   n_starts: int = 3, prior_sd: float = 2.5, ranges: dict | None = None,
+                   reward: str = "binary", n_jobs: int = 1) -> pd.DataFrame:
+    """Simulate from each model; select by leave-one-run-out held-out log-likelihood."""
+    from joblib import Parallel, delayed
+
+    rows = Parallel(n_jobs=n_jobs)(
+        delayed(_model_recovery_one)(g, i, seed, schedules, models, n_starts, prior_sd,
+                                     ranges, reward)
+        for g in models for i in range(n_sims))
+    return pd.DataFrame(rows)
+
+
+def group_model_recovery(conf: pd.DataFrame, models, group_size: int = 10,
+                         seed: int = 0) -> pd.DataFrame:
+    """Group-level selection from :func:`model_recovery` output: simulated subjects of each
+    generating model are split into *disjoint* groups of ``group_size``; each group picks
+    the model with the highest summed held-out log-likelihood."""
+    rng = np.random.default_rng(seed)
+    rows = []
+    for gen, g in conf.groupby("generating"):
+        order = rng.permutation(len(g))
+        for k in range(len(g) // group_size):
+            part = g.iloc[order[k * group_size:(k + 1) * group_size]]
+            totals = {m: part[f"heldout_{m}"].sum() for m in models}
+            rows.append({"generating": gen, "group": k, "selected": max(totals, key=totals.get)})
+    return pd.DataFrame(rows)
+
+
+# --------------------------------------------------------------------------- real-data run
+def missed_fraction(trials: pd.DataFrame, runs=("run-1", "run-2")) -> pd.Series:
+    t = trials[trials["run"].isin(runs)]
+    return 1 - t.groupby("subject")["valid_trial"].mean()
+
+
+def posterior_predictive(data: TwoStepData, schedule: Schedule, fits: pd.DataFrame,
+                         model: str, n_rep: int = 20, seed: int = 0,
+                         reward: str = "binary") -> pd.DataFrame:
+    """Stay-probability summary of each subject's fitted agent replayed on that subject's
+    real schedule (``n_rep`` replays), next to the observed summary."""
+    sims = []
+    for i, (s, rows) in enumerate(_subject_rows(schedule).items()):
+        p = fits[(fits["subject"] == s) & (fits["model"] == model)]
+        params = {k: float(p.iloc[0][k]) for k in MODELS[model]}
+        sim = simulate(schedule.subset(np.tile(rows, n_rep)), model, params,
+                       seed=seed + i, reward=reward)
+        sim.subject = np.array([f"{s}|{r}" for r in range(n_rep) for _ in rows])
+        sims.append(sim)
+    sim_all = TwoStepData(**{k: np.concatenate([getattr(x, k) for x in sims])
+                             for k in TwoStepData.__dataclass_fields__})
+    out = pd.concat({"observed": stay_summary(data), model: stay_summary(sim_all)},
+                    names=["source"])
+    return out.reset_index()
+
+
+def contingency_contrast(fits: pd.DataFrame, trials: pd.DataFrame, n_boot: int = 2000,
+                         seed: int = 0) -> dict:
+    """Order-balanced estimate of ``w_state - w_stimulus`` (``hybrid_contingency`` fits).
+
+    The contingency switches once, at the run boundary, so contingency is confounded with
+    time (run 1 vs run 2). The starting contingency is counterbalanced across subjects:
+    with ``d`` the per-subject difference, stimulus-first subjects give
+    ``d = contingency + time`` and state-first subjects ``d = contingency - time``. The
+    contingency effect is the mean of the two group means; the time (late minus early)
+    effect is half their difference. CIs resample subjects within order groups.
+    """
+    from scipy.stats import wilcoxon
+
+    f = fits[fits["model"] == "hybrid_contingency"].set_index("subject")
+    d = f["w_state"] - f["w_stimulus"]
+    first = (trials[(trials["run"] == "run-1") & (trials["trial_index"] == 0)]
+             .set_index("subject")["reward_contingency"].reindex(d.index))
+    groups = {g: d[first == g].to_numpy() for g in ("stimulus", "state")}
+    rng = np.random.default_rng(seed)
+
+    def effects(gs):
+        a, b = gs["stimulus"].mean(), gs["state"].mean()
+        return (a + b) / 2, (a - b) / 2
+
+    boot = np.array([effects({g: x[rng.integers(0, len(x), len(x))] for g, x in groups.items()})
+                     for _ in range(n_boot)])
+    cont, time = effects(groups)
+    return {
+        "by_first_contingency": {
+            g: {"n": len(x), "mean": float(x.mean()), "median": float(np.median(x)),
+                "wilcoxon_p": float(wilcoxon(x).pvalue)} for g, x in groups.items()},
+        "contingency_effect_w_state_minus_w_stimulus": float(cont),
+        "contingency_effect_ci95": np.percentile(boot[:, 0], [2.5, 97.5]).tolist(),
+        "time_effect_late_minus_early": float(time),
+        "time_effect_ci95": np.percentile(boot[:, 1], [2.5, 97.5]).tolist(),
+    }
+
+
+def _contrast_one(sched, i, effect, seed, n_starts, prior_sd, ranges, reward):
+    rng = np.random.default_rng([seed, 5000 + i])
+    p = sample_params("hybrid_contingency", rng, ranges)
+    lo, hi = (ranges or {}).get("w_state", RECOVERY_RANGES["w_state"])
+    p["w_stimulus"] = float(rng.uniform(lo, hi - max(effect, 0)))
+    p["w_state"] = p["w_stimulus"] + effect
+    data = simulate(sched, "hybrid_contingency", p, seed=int(rng.integers(2**31)),
+                    reward=reward)
+    est = fit(data, "hybrid_contingency", n_starts=n_starts, seed=seed, prior_sd=prior_sd)
+    first = "state" if sched.contingency[0, 0] == 1 else "stimulus"
+    return ({"subject": f"sim{i}", "model": "hybrid_contingency", **est["params"]},
+            {"subject": f"sim{i}", "run": "run-1", "trial_index": 0, "reward_contingency": first})
+
+
+def contingency_effect_recovery(schedules: list[Schedule], effect: float, seed: int = 0,
+                                n_starts: int = 3, prior_sd: float = 2.5,
+                                ranges: dict | None = None, reward: str = "binary",
+                                n_boot: int = 2000, n_jobs: int = 1) -> dict:
+    """Known-answer check of :func:`contingency_contrast`: one simulated subject per
+    schedule with ``w_state - w_stimulus = effect``, refitted and contrasted."""
+    from joblib import Parallel, delayed
+
+    out = Parallel(n_jobs=n_jobs)(
+        delayed(_contrast_one)(s, i, effect, seed, n_starts, prior_sd, ranges, reward)
+        for i, s in enumerate(schedules))
+    fits = pd.DataFrame([a for a, _ in out])
+    trials = pd.DataFrame([b for _, b in out])
+    return {"true_effect": effect, "n_subjects": len(schedules),
+            **contingency_contrast(fits, trials, n_boot, seed)}
+
+
+def compare(trials: pd.DataFrame, models=tuple(MODELS), reference: str = "hybrid",
+            reward: str = "binary", min_rt: float | None = 0.15,
+            max_missed_fraction: float | None = 0.10, exclude_subjects=(),
+            n_starts: int = 4, prior_sd: float = 2.5, n_folds: int = 5, n_boot: int = 2000,
+            n_rep: int = 20, seed: int = 0, n_jobs: int = 1) -> dict:
+    """Fit every model per subject; compare by held-out log-likelihood (runs and subjects)."""
+    miss = missed_fraction(trials)
+    excluded = sorted(set(exclude_subjects)
+                      | (set(miss[miss > max_missed_fraction].index)
+                         if max_missed_fraction is not None else set()))
+    keep = trials[~trials["subject"].isin(excluded)]
+    data = prepare(keep, reward=reward, min_rt=min_rt)
+    sched = schedule_from_trials(keep)
+    fits = fit_subjects(data, models, n_starts=n_starts, seed=seed, prior_sd=prior_sd,
+                        n_jobs=n_jobs)
+
+    rng = np.random.default_rng(seed)
+    wide = fits.pivot(index="subject", columns="model", values="heldout_loglik")
+    n = fits.groupby("subject")["heldout_trials"].first()
+    summary = {}
+    for m in models:
+        d = (wide[m] - wide[reference]).to_numpy()
+        boot = [d[rng.integers(0, len(d), len(d))].sum() for _ in range(n_boot)]
+        summary[m] = {
+            "heldout_loglik_per_trial": float(wide[m].sum() / n.sum()),
+            "delta_vs_reference": float(d.sum()),
+            "delta_ci95": [float(np.percentile(boot, 2.5)), float(np.percentile(boot, 97.5))],
+            "subjects_better_than_reference": int((d > 0).sum()),
+            "subjects_best": int((wide.idxmax(axis=1) == m).sum()),
+        }
+
+    from joblib import Parallel, delayed
+    pooled = Parallel(n_jobs=min(n_jobs, len(models)))(
+        delayed(heldout_subjects)(data, m, n_folds, seed, n_starts, prior_sd) for m in models)
+    pooled = pd.concat(pooled)
+    pooled_summary = {m: float(g["heldout_loglik"].sum() / g["heldout_trials"].sum())
+                      for m, g in pooled.groupby("model")}
+    ppc = pd.concat([posterior_predictive(data, sched, fits, m, n_rep, seed, reward)
+                     for m in models])
+    ppc = ppc.drop_duplicates(subset=["source", "contingency"])
+    params = fits.drop(columns=["subject"]).groupby("model")
+    contrast = (contingency_contrast(fits, keep, n_boot, seed)
+                if "hybrid_contingency" in models else None)
+    return {
+        "n_subjects": len(wide), "excluded_subjects": excluded,
+        "missed_fraction_threshold": max_missed_fraction, "n_scored_trials": data.n_scored,
+        "chance_loglik_per_trial": float(np.log(0.5)),
+        "run_heldout": summary,
+        "subject_heldout_pooled_loglik_per_trial": pooled_summary,
+        "parameter_medians": {m: g[list(MODELS[m])].median().to_dict() for m, g in params},
+        "stay_probabilities": ppc.to_dict(orient="records"),
+        "contingency_contrast": contrast,
+        "fits": fits,
+    }

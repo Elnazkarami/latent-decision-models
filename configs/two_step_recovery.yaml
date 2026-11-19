@@ -1,0 +1,15 @@
+# Parameter and model recovery for the two-step RL models, on synthetic schedules with the
+# verified ds007474 task structure (no data needed). Run before any real-data fit.
+output: reports/two_step_recovery.json
+recovery_table: reports/two_step_recovery_table.csv
+schedules: synthetic
+n_schedules: 20
+models: [mf, mb, hybrid, hybrid_contingency]
+reward: binary
+n_sims: 60          # parameter-recovery simulations per model
+n_model_sims: 100   # model-recovery simulations (simulated subjects) per generating model
+group_size: 10      # group-level recovery: disjoint groups of simulated subjects
+n_starts: 3
+prior_sd: 2.5
+seed: 0
+n_jobs: 8

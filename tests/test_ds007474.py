@@ -29,22 +29,37 @@ def _synthetic_csv(order="s2f3", seed=0, n_missed=3):
         sess = ["functional"] * 154 + ["structural"] * 105
     n = len(runs)
     resp = rng.choice([1.0, 2.0], n)
-    state = rng.integers(1, 5, n).astype(float)
-    win = rng.integers(0, 2, n).astype(float)
+    rare = (rng.random(n) < 0.3).astype(int)
+    # pad reached by each ship (left commonly -> planet 1 = pads 1-2, right -> pads 3-4)
+    left_planet = np.where(rare == 1, 2, 1)
+    pad_left = 2 * (left_planet - 1) + rng.integers(1, 3, n)
+    pad_right = 2 * (2 - left_planet) + rng.integers(1, 3, n)
+    state = np.where(resp == 1, pad_left, pad_right).astype(float)
+    p = rng.uniform(0, 1, (n, 2))
+    draws = (rng.random((n, 4)) < np.repeat(p, 2, axis=1)).astype(int)
+    cont = rng.integers(1, 3, n)
+    win = np.where(cont == 2, draws[np.arange(n), state.astype(int) - 1],
+                   draws[np.arange(n), np.where(resp == 1, 0, 2)]).astype(float)
+    scale = rng.uniform(0.1, 1.0, n)
     df = pd.DataFrame({c: 0.0 for c in d.CSV_COLUMNS}, index=range(n))
     df["runID"] = runs
     df["sess_type"] = sess
     df["trialID"] = np.arange(1, n + 1)
-    df["condContingent"] = rng.integers(1, 3, n)
+    df["condContingent"] = cont
     df["condState"] = rng.integers(1, 3, n)
     df["condReward"] = rng.integers(1, 3, n)
-    df["doRareTrans"] = (rng.random(n) < 0.3).astype(int)
+    df["doRareTrans"] = rare
+    for k in range(4):
+        df[f"rewBinary_{k + 1}"] = draws[:, k]
+        df[f"rewPWin_{k + 1}"] = p[:, k // 2]
+    df["state2_1"], df["state2_2"] = pad_left, pad_right
+    df["rewMagnitude"] = scale
     df["Resp1"] = resp
     df["RT1"] = rng.uniform(0.2, 1.5, n)
     df["outcome2"] = state
     df["outcome1"] = np.ceil(state / 2).astype(int)
     df["outcomeBin"] = win
-    df["outcomeMag"] = win * rng.integers(1, 100, n)
+    df["outcomeMag"] = np.round(win * scale * 100)
     missed = rng.choice(np.flatnonzero(np.array(sess) == "functional"), n_missed, replace=False)
     df.loc[missed, ["Resp1", "outcome2", "outcomeBin", "outcomeMag"]] = np.nan
     df.loc[missed, "outcome1"] = 1  # placeholder written by the authors' pipeline
@@ -96,6 +111,24 @@ def test_rejects_inconsistent_state_coding(tmp_path):
         d.parse_behavior_csv(_write(tmp_path, df))
     _, issues = d.parse_behavior_csv(_write(tmp_path, df), strict=False)
     assert [x.code for x in issues] == ["state_coding"]
+
+
+def test_rejects_outcome_breaking_the_contingency_rule(tmp_path):
+    df, missed = _synthetic_csv()
+    i = next(i for i in range(len(df)) if i not in set(missed))
+    df.loc[i, "outcomeBin"] = 1 - df.loc[i, "outcomeBin"]
+    df.loc[i, "outcomeMag"] = np.round(df.loc[i, "outcomeBin"] * df.loc[i, "rewMagnitude"] * 100)
+    _, issues = d.parse_behavior_csv(_write(tmp_path, df), strict=False)
+    assert [x.code for x in issues] == ["reward_rule", "magnitude_rule"]
+
+
+def test_schedule_columns(tmp_path):
+    df, _ = _synthetic_csv()
+    trials, _ = d.parse_behavior_csv(_write(tmp_path, df), "MBMF000202")
+    ok = trials["valid_trial"]
+    reached = np.where(trials["choice"] == 1, trials["pad_if_left"], trials["pad_if_right"])
+    assert (reached[ok] == trials.loc[ok, "second_state"]).all()
+    assert set(trials["pad_transition_probability"]) <= {0.5, 0.9}
 
 
 def _timing_table(trials, rng):
