@@ -8,6 +8,8 @@ __pycache__/
 build/
 dist/
 data/
+# data/ may be a symlink to external storage
+/data
 reports/*.json
 reports/*.csv
 examples/synthetic_trials.csv

@@ -333,3 +333,15 @@ def test_run_decoding_group_loso_recovers_planted_effects(tmp_path):
     assert g.loc[("leave_one_subject_out", "confidence", "post_decision"), "mean"] > 0.3
     assert g.loc[("within_subject", "confidence", "response_locked"), "p_wilcoxon"] > 0.05
     assert (g["n_subjects"] == 6).all()  # sub-01 is not confirmatory
+
+
+def test_signal_fetch_refuses_to_fill_the_disk(tmp_path):
+    import shutil
+
+    from latent_decision_models.io import openneuro
+
+    free = shutil.disk_usage(tmp_path).free
+    files = [{"filename": "sub-01/x_eeg.eeg", "size": 10, "urls": ["https://invalid.example/x"]}]
+    with pytest.raises(OSError, match="reserve"):
+        openneuro.fetch_signal_files(files, tmp_path, approved_bytes=100,
+                                     min_free_bytes=free + 1)

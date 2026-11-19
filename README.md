@@ -92,6 +92,8 @@ ldm ds002158 eeg-preprocess --bids-root data/ds002158 --trials data/ds002158_tri
 ldm ds002158 eeg-decode --config configs/ds002158_eeg_decoding.yaml --out reports/ds002158-eeg-decoding.json
 ```
 
+The full sample is ~35 GB. Raw data can live on an external drive: point `--dest`, `--bids-root` and `--out-dir` there, or make `data/` a symlink to it (it is git-ignored either way). `fetch-eeg` refuses to start if the download would leave less than `--min-free-gb` (default 20 GB) free on the destination disk.
+
 **Check one run's EEG/behavior alignment.** It needs only that run's `.vhdr` and `.vmrk` text files:
 
 ```bash
@@ -194,6 +196,7 @@ Contributor rules are in [`AGENTS.md`](AGENTS.md); the research plan is in [`doc
   - `ldm ds002158 fetch-eeg` (budgeted signal download), `eeg-preprocess` (pairing, gradient and BCG removal, causal filtering, epochs) and `eeg-decode` (pre-specified within- and cross-subject decoding).
   - New `eeg_clean`, `eeg_decoding` and `datasets.ds002158_eeg` modules; `io.brainvision.read_raw`; `io.openneuro.fetch_signal_files`.
   - A CI job for the optional `[eeg]` extra.
+  - `fetch-eeg --min-free-gb`: downloads never fill the destination disk. Volume-trigger grid tolerance raised to 10 samples after checking the artifact position in the full sample.
 
 - **2026-11-19:** ds002158 fMRI metadata audit:
   - `ldm ds002158 fmri-audit` (header range reads, run inventory, motion) and `ldm ds002158 fmri-design` (design diagnostics).

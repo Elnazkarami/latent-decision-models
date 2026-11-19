@@ -56,7 +56,8 @@ def _ds002158_fetch_eeg(args):
     if args.dry_run:
         _write_json({"subjects": sorted(subjects), "n_files": len(sel), "total_bytes": total})
         return
-    manifest = openneuro.fetch_signal_files(sel, args.dest, int(args.approved_gb * 1e9))
+    manifest = openneuro.fetch_signal_files(sel, args.dest, int(args.approved_gb * 1e9),
+                                             min_free_bytes=int(args.min_free_gb * 1e9))
     # One manifest per destination, accumulated over calls (one entry per file).
     mpath = Path(args.dest, "eeg_fetch_manifest.json")
     prev = json.loads(mpath.read_text())["files"] if mpath.exists() else []
@@ -475,6 +476,9 @@ def main():
     fe.add_argument("--tag", default="1.0.2")
     fe.add_argument("--approved-gb", type=float, required=True,
                     help="approved download budget in GB; the request fails if it is exceeded")
+    fe.add_argument("--min-free-gb", type=float, default=20.0,
+                    help="refuse to download if less than this would stay free on the "
+                         "destination disk (default 20)")
     fe.add_argument("--dry-run", action="store_true", help="only report what would be fetched")
     ep = dsub.add_parser("eeg-preprocess", help="Clean raw in-scanner EEG (gradient + BCG "
                          "subtraction, causal filter) and cut trial epochs")

@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import fnmatch
 import json
+import shutil
 import urllib.request
 from pathlib import Path
 
@@ -103,10 +104,13 @@ def fetch_range(entry: dict, n_bytes: int, timeout: float = 60) -> bytes:
 
 
 def fetch_signal_files(files: list[dict], dest: str | Path, approved_bytes: int,
-                       timeout: float = 120, chunk: int = 1 << 20) -> list[dict]:
+                       timeout: float = 120, chunk: int = 1 << 20,
+                       min_free_bytes: int = 20 * 10**9) -> list[dict]:
     """Download signal files (e.g. raw EEG) within an explicitly approved byte budget.
 
-    The whole selection is checked against ``approved_bytes`` before anything is fetched.
+    The whole selection is checked against ``approved_bytes`` before anything is fetched,
+    and nothing is fetched unless the destination disk keeps at least ``min_free_bytes``
+    free after the download (default 20 GB), so a download never fills the disk.
     Files already on disk with the reported size are kept (resumable). Each file is
     streamed to a ``.part`` file and renamed only after its size matches.
     """
@@ -116,6 +120,14 @@ def fetch_signal_files(files: list[dict], dest: str | Path, approved_bytes: int,
     if total > approved_bytes:
         raise PermissionError(f"selection is {total} B > approved budget {approved_bytes} B")
     dest = Path(dest)
+    dest.mkdir(parents=True, exist_ok=True)
+    missing = sum(f["size"] for f in files
+                  if not ((dest / f["filename"]).exists()
+                          and (dest / f["filename"]).stat().st_size == f["size"]))
+    free = shutil.disk_usage(dest).free
+    if free - missing < min_free_bytes:
+        raise OSError(f"{dest}: {free / 1e9:.1f} GB free; downloading {missing / 1e9:.1f} GB "
+                      f"would leave less than the {min_free_bytes / 1e9:.0f} GB reserve")
     manifest = []
     for f in files:
         out = dest / f["filename"]
