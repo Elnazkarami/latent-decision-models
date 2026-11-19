@@ -2,6 +2,7 @@
 
 import argparse
 import json
+import re
 from pathlib import Path
 
 import pandas as pd
@@ -56,6 +57,112 @@ def _ds002158_trials(args):
                    in iss.groupby(["level", "code"]).size().items()},
         "schema": validate_trials(trials),
     })
+
+
+def _ds002158_fmri_audit(args):
+    from .datasets import ds002158 as d
+    from .datasets import ds002158_fmri as f
+    from .io import nifti, openneuro
+
+    files = openneuro.snapshot_files(d.DATASET_ID, args.tag)
+    inv = f.inventory(files)
+    motion = openneuro.select_files(files, [f.DERIV + "sub-*/ses-001/func/*_headmove.txt"])
+    manifest = openneuro.fetch_files(motion, args.dest)
+    rows = []
+    for m in manifest:
+        sub, run = re.search(r"(sub-\d+)_ses-001_task-main_(run-\d+)", m["path"]).groups()
+        rows.append({"subject": sub, "run": run,
+                     **f.motion_summary(f.read_motion(Path(args.dest, m["path"])))})
+    mot = pd.DataFrame(rows)
+    headers = f.header_audit(inv, files, openneuro.fetch_range, nifti.parse_header)
+    out = Path(args.out)
+    out.parent.mkdir(parents=True, exist_ok=True)
+    table = inv.merge(mot, on=["subject", "run"], how="left")
+    hdr_wide = headers.pivot_table(index=["subject", "run"], columns="file",
+                                   values="n_volumes").reset_index()
+    table = table.merge(hdr_wide.rename(columns={"raw_bold": "raw_volumes",
+                                                 "derivative_preproc": "derivative_volumes"}),
+                        on=["subject", "run"], how="left")
+    table.to_csv(out.with_suffix(".csv"), index=False)
+    headers.to_csv(out.with_name(out.stem + "_headers.csv"), index=False)
+    deriv = headers[headers["file"] == "derivative_preproc"]
+    raw = headers[headers["file"] == "raw_bold"]
+
+    def distinct(df, col):
+        return pd.Series([str(v) for v in df[col]]).value_counts().to_dict()
+
+    _write_json({
+        "dataset_id": d.DATASET_ID, "snapshot": args.tag, "data_kind": "metadata_and_headers",
+        "n_runs": len(inv), "n_raw_bold": int(inv["raw_bold"].notna().sum()),
+        "n_derivative_preproc": int(inv["derivative_preproc"].notna().sum()),
+        "derivatives_in_reject_folders": inv.loc[inv["derivative_folder"].notna(),
+                                                 ["subject", "run", "derivative_folder"]]
+        .to_dict(orient="records"),
+        "raw_without_derivative": inv.loc[inv["raw_bold"].notna()
+                                          & inv["derivative_preproc"].isna(),
+                                          ["subject", "run"]].to_dict(orient="records"),
+        "derivative_without_raw": inv.loc[inv["raw_bold"].isna()
+                                          & inv["derivative_preproc"].notna(),
+                                          ["subject", "run"]].to_dict(orient="records"),
+        "volume_mismatch": table.loc[table["raw_volumes"].notna()
+                                     & table["derivative_volumes"].notna()
+                                     & (table["raw_volumes"] != table["derivative_volumes"]),
+                                     ["subject", "run"]].to_dict(orient="records"),
+        "motion_rows_mismatch": table.loc[table["n_volumes"].notna()
+                                          & (table["n_volumes"] != table["derivative_volumes"]),
+                                          ["subject", "run"]].to_dict(orient="records"),
+        "raw_headers": {c: distinct(raw, c) for c in ("shape", "voxel_size_mm",
+                                                      "repetition_time", "sform_code")},
+        "derivative_headers": {c: distinct(deriv, c) for c in (
+            "shape", "voxel_size_mm", "repetition_time", "datatype", "sform_code", "descrip",
+            "affine")},
+        "motion": {"fd_threshold_mm": 0.5,
+                   "mean_fd_mm_quantiles": mot["mean_fd_mm"].quantile([0, .5, .9, 1]).round(3)
+                   .tolist(),
+                   "max_abs_translation_mm_max": float(mot["max_abs_translation_mm"].max()),
+                   "max_abs_rotation_deg_max": float(mot["max_abs_rotation_deg"].max()),
+                   "runs_over_20pct_high_fd": mot.loc[mot["fraction_fd_above_threshold"] > 0.2,
+                                                      ["subject", "run"]]
+                   .to_dict(orient="records")},
+        "tables": [str(out.with_suffix(".csv")), str(out.with_name(out.stem + "_headers.csv"))],
+    }, args.out)
+
+
+def _ds002158_fmri_design(args):
+    from joblib import Parallel, delayed
+
+    from .datasets import ds002158_fmri as f
+    from .fmri_design import run_diagnostics
+
+    trials = pd.read_csv(args.trials)
+    vols = pd.read_csv(args.audit_table)
+    vols["n_volumes"] = vols["derivative_volumes"].fillna(vols["raw_volumes"])
+    vols = vols.set_index(["subject", "run"])["n_volumes"]
+    runs = [(k, g.sort_values("onset_seconds")) for k, g in trials.groupby(["subject", "run"])
+            if k in vols.index and pd.notna(vols[k])]
+
+    def one(key, g):
+        res = run_diagnostics(
+            g["onset_seconds"], g["condition"], int(vols[key]), f.TR_SECONDS,
+            response_offsets=g["response_latency_seconds"].fillna(0.0),
+            post_offsets=g["response_latency_seconds"] + g["confidence_report_time_seconds"])
+        return {"subject": key[0], "run": key[1], **res}
+
+    table = pd.DataFrame(Parallel(n_jobs=args.n_jobs)(delayed(one)(k, g) for k, g in runs))
+    out = Path(args.out)
+    out.parent.mkdir(parents=True, exist_ok=True)
+    table.to_csv(out.with_suffix(".csv"), index=False)
+    num = table.drop(columns=["subject", "run"])
+    _write_json({
+        "dataset_id": "ds002158", "data_kind": "design_diagnostics_from_event_timing",
+        "tr_seconds": f.TR_SECONDS, "hrf_model": "glover", "high_pass_hz": 1 / 128,
+        "n_runs": len(table),
+        "post_event_definition": "onset + response latency + response_time2 (assumes the "
+                                 "rating time is measured from the response; not verified)",
+        "quantiles_across_runs": num.quantile([0.0, 0.5, 0.95, 1.0]).round(4)
+        .to_dict(orient="index"),
+        "table": str(out.with_suffix(".csv")),
+    }, args.out)
 
 
 def _ds002158_align(args):
@@ -275,6 +382,17 @@ def main():
     t.add_argument("--out", required=True)
     t.add_argument("--issues")
     t.add_argument("--lenient", action="store_true", help="Report errors instead of raising")
+    fa = dsub.add_parser("fmri-audit", help="fMRI raw/derivative inventory, NIfTI headers "
+                         "(range requests, no image data) and realignment-parameter summary")
+    fa.add_argument("--dest", default="data/ds002158")
+    fa.add_argument("--tag", default="1.0.2")
+    fa.add_argument("--out", default="reports/ds002158-fmri-audit.json")
+    fd = dsub.add_parser("fmri-design", help="Single-trial and phase separability of the "
+                         "fMRI design, from event timing only")
+    fd.add_argument("--trials", default="data/ds002158_trials.csv")
+    fd.add_argument("--audit-table", default="reports/ds002158-fmri-audit.csv")
+    fd.add_argument("--out", default="reports/ds002158-fmri-design.json")
+    fd.add_argument("--n-jobs", type=int, default=8)
     al = dsub.add_parser("align-eeg", help="Match one run's events to its BrainVision markers")
     al.add_argument("--events", required=True)
     al.add_argument("--vmrk", required=True)
@@ -329,7 +447,8 @@ def main():
         {"fetch-behavior": _ds007474_fetch, "trials": _ds007474_trials}[args.d7_cmd](args)
     elif args.cmd == "ds002158":
         {"fetch-metadata": _ds002158_fetch, "trials": _ds002158_trials,
-         "align-eeg": _ds002158_align}[args.ds_cmd](args)
+         "align-eeg": _ds002158_align, "fmri-audit": _ds002158_fmri_audit,
+         "fmri-design": _ds002158_fmri_design}[args.ds_cmd](args)
 
 
 if __name__ == "__main__":

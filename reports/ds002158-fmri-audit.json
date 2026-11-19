@@ -1,0 +1,100 @@
+{
+  "dataset_id": "ds002158",
+  "snapshot": "1.0.2",
+  "data_kind": "metadata_and_headers",
+  "n_runs": 119,
+  "n_raw_bold": 118,
+  "n_derivative_preproc": 118,
+  "derivatives_in_reject_folders": [
+    {
+      "subject": "sub-14",
+      "run": "run-005",
+      "derivative_folder": "rejected"
+    },
+    {
+      "subject": "sub-20",
+      "run": "run-007",
+      "derivative_folder": "reject"
+    }
+  ],
+  "raw_without_derivative": [
+    {
+      "subject": "sub-19",
+      "run": "run-001"
+    }
+  ],
+  "derivative_without_raw": [
+    {
+      "subject": "sub-19",
+      "run": "run-006"
+    }
+  ],
+  "volume_mismatch": [],
+  "motion_rows_mismatch": [],
+  "raw_headers": {
+    "shape": {
+      "[108, 108, 64, 373]": 108,
+      "[108, 108, 64, 375]": 6,
+      "[108, 108, 64, 371]": 4
+    },
+    "voxel_size_mm": {
+      "[1.9907, 1.9907, 2.0]": 118
+    },
+    "repetition_time": {
+      "1.28": 118
+    },
+    "sform_code": {
+      "scanner_anat": 118
+    }
+  },
+  "derivative_headers": {
+    "shape": {
+      "[121, 145, 121, 373]": 108,
+      "[121, 145, 121, 375]": 6,
+      "[121, 145, 121, 371]": 4
+    },
+    "voxel_size_mm": {
+      "[1.5, 1.5, 1.5]": 118
+    },
+    "repetition_time": {
+      "0.0": 118
+    },
+    "datatype": {
+      "float32": 118
+    },
+    "sform_code": {
+      "mni_152": 118
+    },
+    "descrip": {
+      "Smoothed (5x5x5) Dartel normed": 118
+    },
+    "affine": {
+      "[[-1.5, 0.0, 0.0, 90.0], [0.0, 1.5, 0.0, -126.0], [0.0, 0.0, 1.5, -72.0], [0.0, 0.0, 0.0, 1.0]]": 118
+    }
+  },
+  "motion": {
+    "fd_threshold_mm": 0.5,
+    "mean_fd_mm_quantiles": [
+      0.081,
+      0.156,
+      0.216,
+      0.456
+    ],
+    "max_abs_translation_mm_max": 4.8385854,
+    "max_abs_rotation_deg_max": 2.733371193171006,
+    "runs_over_20pct_high_fd": [
+      {
+        "subject": "sub-20",
+        "run": "run-001"
+      },
+      {
+        "subject": "sub-07",
+        "run": "run-004"
+      }
+    ]
+  },
+  "tables": [
+    "reports/ds002158-fmri-audit.csv",
+    "reports/ds002158-fmri-audit_headers.csv"
+  ]
+}

@@ -4,6 +4,7 @@
 - LDM-001 / LDM-002: ds002158 audit, behavioral baselines, computational confidence model.
 - LDM-006: ds007474 audit ([`docs/ds007474-audit.md`](../docs/ds007474-audit.md)).
 - LDM-007: ds007474 two-step RL benchmark, behavior only ([`docs/ds007474-two-step-model.md`](../docs/ds007474-two-step-model.md)).
+- LDM-004 (metadata part): ds002158 fMRI derivative and design audit ([`docs/ds002158-fmri-audit.md`](../docs/ds002158-fmri-audit.md)).
 
 ## Option A: further LDM-007 extensions (no approval needed, lower priority)
 The misfit is addressed: hybrid + win-stay/lose-shift is best, including on a separate session.
@@ -13,9 +14,17 @@ The misfit is addressed: hybrid + win-stay/lose-shift is best, including on a se
 ## Option B: LDM-003, ds002158 EEG (needs explicit approval)
 Raw EEG for sub-02 and sub-04, about 4.2 GB.
 
-## Option C: LDM-004, ds002158 fMRI derivative audit (metadata first)
+## Option C: LDM-004 continued, ds002158 trial-level fMRI (needs explicit approval)
+Download published derivative images for a 2-subject pilot (6 runs each, about 38 GB; full set 374 GB). Then:
+1. LSS single-trial betas with 6 realignment regressors.
+2. Atlas ROI extraction on the MNI grid.
+3. A subject-disjoint confidence benchmark using these whole-trial features.
 
 ## Open questions for the PI
+- **ds002158 fMRI:**
+  - Approve the derivative-image pilot (about 38 GB)?
+  - Exclude sub-20 from fMRI as well? It has the highest motion, a rejected run-007 derivative and unresolved EEG labels.
+  - Accept that fMRI features are whole-trial, not pre-decision?
 - **ds007474 licensing:** the OSF project and the authors' code declare no license. Ask the authors to add one before any public derived release?
 - **ds007474 fMRI:** there are no subject-level derivatives. Is preprocessing 259 GB of raw BOLD in scope, or does the work stay behavior-only?
 - **ds007474 exclusions:** the primary analysis excludes 8 subjects with > 10% missed trials and does not score RTs < 150 ms. Results are unchanged without exclusions. Keep this as the default?

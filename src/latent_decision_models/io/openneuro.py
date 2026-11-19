@@ -74,3 +74,25 @@ def fetch_files(files: list[dict], dest: str | Path, max_bytes: int = DEFAULT_MA
         manifest.append({"path": f["filename"], "bytes": len(data),
                          "sha256": sha256_file(out), "url": url.split("?")[0]})
     return manifest
+
+
+MAX_RANGE_BYTES = 65_536
+
+
+def fetch_range(entry: dict, n_bytes: int, timeout: float = 60) -> bytes:
+    """Fetch only the first ``n_bytes`` of a snapshot file (e.g. an image header).
+
+    Capped at ``MAX_RANGE_BYTES`` so it can never pull image data in bulk; nothing is
+    written to disk. Raises if the server ignores the range request.
+    """
+    if n_bytes > MAX_RANGE_BYTES:
+        raise PermissionError(f"range of {n_bytes} B exceeds the {MAX_RANGE_BYTES} B header cap")
+    req = urllib.request.Request(entry["urls"][0],
+                                 headers={"Range": f"bytes=0-{n_bytes - 1}"})
+    with urllib.request.urlopen(req, timeout=timeout) as resp:
+        if resp.status != 206:
+            raise OSError(f"server ignored the range request for {entry['filename']}")
+        data = resp.read(n_bytes + 1)
+    if len(data) > n_bytes:
+        raise OSError(f"server returned more than {n_bytes} B for {entry['filename']}")
+    return data

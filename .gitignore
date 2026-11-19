@@ -24,5 +24,6 @@ outputs/
 !tests/fixtures/**/*.vmrk
 # reviewed audit reports are versioned
 !reports/*-audit.json
+!reports/ds002158-fmri-design.json
 !reports/confidence_model_recovery*.json
 !reports/two_step_recovery*.json

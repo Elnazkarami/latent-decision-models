@@ -14,3 +14,13 @@ jobs:
       - run: ldm simulate --out /tmp/ldm_trials.csv
       - run: ldm validate --input /tmp/ldm_trials.csv
       - run: ldm ds002158 trials --bids-root tests/fixtures/ds002158 --out /tmp/ldm_ds002158_trials.csv
+  test-fmri-extra:
+    # optional neuroimaging dependencies (nibabel, nilearn): runs the tests that skip without them
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install -e '.[dev,fmri]'
+      - run: pytest -q tests/test_ds002158_fmri.py

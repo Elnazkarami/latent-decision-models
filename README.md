@@ -15,6 +15,7 @@ Python package `latent_decision_models` · CLI `ldm` · repository `latent-decis
 - **Evaluate confidence models fairly**, with subject-disjoint cross-validation, within-subject held-out runs, calibration, participant-bootstrap CIs and type-2 AUROC.
 - **Fit a computational confidence model** (second-order signal detection; committed vs observed decisions). It includes simulation, parameter and model recovery, and posterior predictive checks.
 - **Fit model-free / model-based / hybrid reinforcement learning** to the two-step task. Agents can be replayed on each participant's real task schedule. Recovery studies, held-out-run and held-out-subject comparison, and posterior predictive stay-probability checks are included.
+- **Audit fMRI data without downloading images.** It reads NIfTI headers through capped HTTP range requests, builds a raw/derivative run inventory, and summarises head motion. It also computes design diagnostics from event timing alone: single-trial VIF (LSA/LSS) and whether within-trial phases can be separated.
 - **Fetch small files safely.** It downloads text metadata from pinned OpenNeuro snapshots (refusing signal files), and allow-listed, size-capped, SHA-256-checked files from OSF projects.
 
 **Limitations:**
@@ -71,6 +72,14 @@ ldm two-step-model recovery --config configs/two_step_recovery_fitted_range.yaml
 ldm two-step-model compare --config configs/ds007474_two_step_model.yaml
 ```
 
+**fMRI metadata audit (ds002158).** It reads image headers via range requests and 4.3 MB of motion text; no image data is downloaded:
+
+```bash
+pip install -e '.[fmri]'
+ldm ds002158 fmri-audit --dest data/ds002158 --out reports/ds002158-fmri-audit.json
+ldm ds002158 fmri-design --trials data/ds002158_trials.csv --audit-table reports/ds002158-fmri-audit.csv
+```
+
 **Check one run's EEG/behavior alignment.** It needs only that run's `.vhdr` and `.vmrk` text files:
 
 ```bash
@@ -84,6 +93,9 @@ ldm ds002158 align-eeg --events <..._events.tsv> --vmrk <..._eeg.vmrk>
 | `schema` | Generic trial-table validation (unique trial identity, onsets, RT) |
 | `datasets.ds002158` | Verified codebook and strict events parser for ds002158 (experimental). Aligns EEG markers by **timing**, never by row order or filename. |
 | `datasets.ds007474` | ds007474 adapter: OSF behavior CSV to trial table, OSF-to-BIDS subject mapping, event timing from the `.mat` files cross-checked against the behavior |
+| `datasets.ds002158_fmri` | ds002158 fMRI raw/derivative inventory, header audit and realignment-parameter (FD) summary |
+| `fmri_design` | Design diagnostics from event timing (nilearn): single-trial VIF under LSA/LSS, neighbouring-trial correlation, separability of stimulus / response / post-decision regressors |
+| `io.nifti` | NIfTI-1 header summary from a byte prefix (nibabel) |
 | `io.osf` | OSF listing and allow-listed, capped, SHA-256-verified downloads |
 | `io.openneuro` | Metadata-only access to pinned OpenNeuro snapshots. Refuses signal files and caps file size. |
 | `io.brainvision` | Dependency-free `.vhdr`/`.vmrk` marker reader (no signal IO) |
@@ -104,12 +116,16 @@ No participant data are redistributed apart from a minimal CC0 test fixture (one
 
 ## Findings on ds002158
 
-Details and evidence: [audit](docs/ds002158-audit.md) · [behavioral baselines](docs/ds002158-behavioral-baseline.md) · [computational model](docs/ds002158-confidence-model.md).
+Details and evidence: [audit](docs/ds002158-audit.md) · [fMRI audit](docs/ds002158-fmri-audit.md) · [behavioral baselines](docs/ds002158-behavioral-baseline.md) · [computational model](docs/ds002158-confidence-model.md).
 
 - **Behavior → fMRI timing:** events `onset` = stimulus marker − first scanner-volume trigger, with 0.0 ms residual. Trigger count equals the BOLD volume count.
 - **Behavior → EEG:** 22/25 sampled runs are fully verified.
   - **sub-12's EEG run filenames are shifted**, so filename pairing would be wrong.
   - **sub-20's events and EEG markers disagree on stimulus and response side.** This is unresolved, so sub-20 is excluded from EEG work.
+- **fMRI derivative:** it is SPM DARTEL-normalised to MNI-152, 1.5 mm isotropic and 5 mm FWHM smoothed; the image headers say so, although the dataset docs do not.
+  - Its headers store TR = 0; use 1.28 s.
+  - sub-20 run-007's derivative was moved to a `reject/` folder, but its raw data and behavior were not.
+- **Trial-level fMRI:** single-trial responses are estimable (trials ≥ 9 s apart; LSS VIF ≤ 1.2). Pre-decision and response-locked activity are **not** separable (r ≈ 0.96, 0.4 s apart), so fMRI trial features are whole-trial measures.
 - **Observed trials** are shuffled replays of the participant's own preceding active block. Their "RT" is the replayed virtual-hand latency, not a participant RT.
 - **Behavioral baseline (post-decision, held-out subjects):** error vs null 0.136 vs 0.222, almost entirely from objective accuracy. Predictions are well calibrated (slope 0.99). Per-person models add only a little (MAE 0.010 lower).
 - **Metacognition (committed vs observed):** confidence tracks accuracy less steeply for observed decisions. GEE interaction −1.73 [−2.95, −0.51], p = 0.006; robust to excluding sub-20. The direction matches the paper. These are post-hoc, population-averaged estimates, and the design is paired (replayed trials).
@@ -152,6 +168,11 @@ Details: [audit](docs/ds007474-audit.md) · [JSON](reports/ds007474-audit.json) 
 Contributor rules are in [`AGENTS.md`](AGENTS.md); the research plan is in [`docs/PROJECT_PLAN.md`](docs/PROJECT_PLAN.md).
 
 ## Changelog
+
+- **2026-11-19:** ds002158 fMRI metadata audit:
+  - `ldm ds002158 fmri-audit` (header range reads, run inventory, motion) and `ldm ds002158 fmri-design` (design diagnostics).
+  - New `io.nifti`, `fmri_design` and `datasets.ds002158_fmri` modules.
+  - A CI job for the optional `[fmri]` extra.
 
 - **2026-11-19:** Two-step RL follow-up:
   - Win-stay/lose-shift and two-learning-rate extensions, with recovery over the fitted range.

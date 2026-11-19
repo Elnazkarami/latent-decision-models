@@ -8,7 +8,7 @@
 | --- | --- | --- |
 | Behavioral confidence modeling | **GO** | Trial identity, confidence scale, condition and exclusions verified across all 118 runs |
 | Trial-level EEG | **CONDITIONAL GO** | Use raw BrainVision data and **marker-based** alignment (`ldm ds002158 align-eeg`). Exclude sub-20 until its label conflict is resolved. Never pair runs by filename (sub-12 is mislabeled). |
-| Trial-level fMRI | **CONDITIONAL GO** | Onsets verified against the scanner clock. The derivative space and smoothing are undocumented; audit them before use. |
+| Trial-level fMRI | **GO for whole-trial estimates** | Onsets verified against the scanner clock. The derivative is SPM DARTEL/MNI, 1.5 mm, 5 mm FWHM (from its headers). Pre-decision and response-locked BOLD cannot be separated. See [`ds002158-fmri-audit.md`](ds002158-fmri-audit.md). |
 | Published `eegprep` derivative | **NOT YET** | One concatenated file per subject; the epoch-to-trial mapping is unknown. |
 
 ## How this audit was done (no signal data downloaded)
@@ -96,7 +96,7 @@ The sidecar's confidence unit string ("%, 0 is sure error, 1 is sure correct") i
 
 ## Hypotheses and unknowns (not verified)
 1. The 24 unexplained exclusions are observation-period button presses.
-2. The `fmriprep` derivative is SPM-normalised and smoothed in MNI/DARTEL space.
+2. ~~The `fmriprep` derivative is SPM-normalised and smoothed in MNI/DARTEL space.~~ **Verified (2026-11-19):** every derivative header reads "Smoothed (5x5x5) Dartel normed", MNI-152, 1.5 mm ([fMRI audit](ds002158-fmri-audit.md)).
 3. Meaning of the `S128` marker train and of codes `S27/S38/S40/S41/S43/S44/S171`. A guess: S171/S43 are post-response mask or scale events at about +1.47 s, by condition.
 4. Which source is correct for sub-20 labels.
 5. The exact staircase implementation. For example, whether the staircase ran per side, per block, or only on non-bad trials.

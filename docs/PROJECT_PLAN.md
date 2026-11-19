@@ -88,7 +88,7 @@ M0 Data feasibility (week 1): inspect BIDS metadata and event JSON/TSVs, count u
 M1 Foundation (week 2): pyproject, src layout, tests, lint/type-check, CI, CLI skeleton, synthetic dataset. GO if clean install and all CPU tests pass.
 M2 Behavior (weeks 3–4): schema adapter, descriptives, one well-specified baseline, group CV, report. GO if reproducible real-data behavior run and synthetic known-answer tests pass.
 M3 EEG (weeks 5–6): minimal verified EEG subset; preprocessing and decoding, independent baseline. GO if event alignment/QC clear and no leakage.
-M4 MRI (weeks 7–9): GLM/ROI features with confounds, provenance. GO if matched trials and valid designs.
+M4 MRI (weeks 7–9): GLM/ROI features with confounds, provenance. GO if matched trials and valid designs. **Status 2026-11-19:** metadata audit done (`docs/ds002158-fmri-audit.md`); image download awaiting approval.
 M5 Fusion (weeks 10–12): simple feature concat then gated/late fusion, ablations and uncertainty; never privilege deep model if no observed benefit.
 M6 Paper-ready (weeks 13–14): reproducible end-to-end documentation, benchmarks, project website if justified, release tag, CITATION.cff; scientific report includes negative findings.
 M7 Belief updating follow-up: ds007474 alignment and distinct adapter; implement RL baseline after task contingencies verified. **Status 2026-11-19:** behavior-only RL benchmark done (`docs/ds007474-two-step-model.md`).
