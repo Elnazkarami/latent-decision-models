@@ -57,10 +57,18 @@ def _ds002158_fetch_eeg(args):
         _write_json({"subjects": sorted(subjects), "n_files": len(sel), "total_bytes": total})
         return
     manifest = openneuro.fetch_signal_files(sel, args.dest, int(args.approved_gb * 1e9))
-    out = {"dataset_id": d.DATASET_ID, "snapshot": args.tag, "subjects": sorted(subjects),
-           "n_files": len(manifest), "total_bytes": total, "files": manifest}
-    Path(args.dest, "eeg_fetch_manifest.json").write_text(json.dumps(out, indent=1) + "\n")
-    _write_json({k: v for k, v in out.items() if k != "files"})
+    # One manifest per destination, accumulated over calls (one entry per file).
+    mpath = Path(args.dest, "eeg_fetch_manifest.json")
+    prev = json.loads(mpath.read_text())["files"] if mpath.exists() else []
+    files_by_path = {m["path"]: m for m in prev} | {m["path"]: m for m in manifest}
+    all_files = sorted(files_by_path.values(), key=lambda m: m["path"])
+    out = {"dataset_id": d.DATASET_ID, "snapshot": args.tag,
+           "subjects": sorted({m["path"].split("/")[0] for m in all_files}),
+           "n_files": len(all_files), "total_bytes": sum(m["bytes"] for m in all_files),
+           "files": all_files}
+    mpath.write_text(json.dumps(out, indent=1) + "\n")
+    _write_json({"fetched_subjects": sorted(subjects), "n_files": len(manifest),
+                 "bytes": total, "manifest_total_bytes": out["total_bytes"]})
 
 
 def _ds002158_eeg_preprocess(args):
@@ -83,18 +91,27 @@ def _ds002158_eeg_decode(args):
     from .datasets import ds002158_eeg as e
 
     cfg = yaml.safe_load(Path(args.config).read_text())
+    if args.epochs_dir:
+        cfg["epochs_dir"] = args.epochs_dir
     res = e.run_decoding(cfg)
     out = {"config": args.config, "channels_used": res["channels_used"],
            "excluded_channels": res["excluded_channels"], "windows": res["windows"],
            "within_subject": _records(res["within_subject"]),
-           "cross_subject": _records(res["cross_subject"])}
+           "cross_subject": _records(res["cross_subject"]),
+           "score_mode": res["score_mode"], "group": _records(res["group"])}
     if args.out:
         Path(args.out).parent.mkdir(parents=True, exist_ok=True)
         Path(args.out).write_text(json.dumps(out, indent=1, default=_json_default) + "\n")
-    w = res["within_subject"]
-    cols = ["subject", "target", "condition", "window", "score", "null_95", "p_value",
-            "p_holm_primary", "n_trials"]
-    print(w[cols].round(3).to_string(index=False))
+    g = res["group"]
+    if not g.empty:
+        cols = ["analysis", "target", "condition", "window", "n_subjects", "mean", "ci95",
+                "n_above_chance", "p_wilcoxon", "p_holm_primary"]
+        print(g[cols].to_string(index=False))
+    else:
+        w = res["within_subject"]
+        cols = ["subject", "target", "condition", "window", "score", "null_95", "p_value",
+                "p_holm_primary", "n_trials"]
+        print(w[cols].round(3).to_string(index=False))
 
 
 def _records(df):
@@ -471,6 +488,7 @@ def main():
     ed = dsub.add_parser("eeg-decode", help="Within- and cross-subject decoding from "
                          "preprocessed epochs (config-driven)")
     ed.add_argument("--config", required=True)
+    ed.add_argument("--epochs-dir", help="override the config's epochs_dir (e.g. an external drive)")
     ed.add_argument("--out")
     t = dsub.add_parser("trials", help="Parse events into a validated trial table")
     t.add_argument("--bids-root", required=True)

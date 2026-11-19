@@ -9,8 +9,13 @@
   on the training fold only, and the test target is residualised with those coefficients.
   This asks whether EEG explains the target *beyond* the covariates (e.g. confidence
   beyond accuracy, response time and evidence).
+* Scoring (``score_mode``): ``"pooled"`` scores all held-out predictions together;
+  ``"per_group"`` scores each held-out group (run) separately and averages. Pooled scores
+  are biased when the target drifts between runs (a training fold's mean sits on the
+  wrong side of the held-out run's mean, pushing the pooled score below chance);
+  per-group scores are invariant to such offsets and centred on chance under the null.
 * Inference: labels permuted *within* each group (run), repeating the full pipeline.
-  p = (1 + #{perm >= observed}) / (1 + n_perm).
+  p = (1 + #{perm >= observed}) / (1 + n_perm). Across subjects: :func:`group_test`.
 """
 
 from __future__ import annotations
@@ -57,6 +62,18 @@ def _score(task, y, pred):
     return float(spearmanr(y, pred).statistic)
 
 
+def _combined_score(task, target, pred, groups, score_mode):
+    ok = ~np.isnan(pred)
+    if score_mode == "pooled":
+        return _score(task, target[ok], pred[ok])
+    if score_mode == "per_group":
+        per = [_score(task, target[ok & (groups == g)], pred[ok & (groups == g)])
+               for g in np.unique(groups[ok])]
+        per = [v for v in per if np.isfinite(v)]
+        return float(np.mean(per)) if per else float("nan")
+    raise ValueError(f"unknown score_mode {score_mode!r}")
+
+
 def _residualise(y_tr, y_te, c_tr, c_te):
     lr = LinearRegression().fit(c_tr, y_tr)
     return y_tr - lr.predict(c_tr), y_te - lr.predict(c_te)
@@ -87,7 +104,7 @@ def _permute_within(y, groups, rng):
 
 
 def decode(X, y, groups, task: str, covariates=None, n_perm: int = 200,
-           seed: int = 0) -> dict:
+           seed: int = 0, score_mode: str = "pooled") -> dict:
     """Leave-one-group-out decoding with a within-group permutation test."""
     X, y, groups = np.asarray(X, float), np.asarray(y, float), np.asarray(groups)
     cov = None if covariates is None else np.asarray(covariates, float)
@@ -96,16 +113,16 @@ def decode(X, y, groups, task: str, covariates=None, n_perm: int = 200,
         warnings.simplefilter("ignore", FutureWarning)  # sklearn API transition notices
         pred, target = _cv_predict(X, y, groups, task, cov)
         ok = ~np.isnan(pred)
-        obs = _score(task, target[ok], pred[ok])
+        obs = _combined_score(task, target, pred, groups, score_mode)
         rng = np.random.default_rng(seed)
         null = []
         for _ in range(n_perm):
             yp = _permute_within(y, groups, rng)
             pp, tp = _cv_predict(X, yp, groups, task, cov)
-            k = ~np.isnan(pp)
-            null.append(_score(task, tp[k], pp[k]))
+            null.append(_combined_score(task, tp, pp, groups, score_mode))
     null = np.asarray(null)
     return {"score": obs, "metric": "auc" if task == "classification" else "spearman_r",
+            "score_mode": score_mode,
             "chance": 0.5 if task == "classification" else 0.0,
             "n_trials": int(ok.sum()), "n_groups": len(np.unique(groups)),
             "n_features": int(X.shape[1]), "n_perm": n_perm,
@@ -115,7 +132,8 @@ def decode(X, y, groups, task: str, covariates=None, n_perm: int = 200,
 
 
 def transfer(X_train, y_train, X_test, y_test, task: str, cov_train=None, cov_test=None,
-             n_perm: int = 1000, seed: int = 0) -> dict:
+             n_perm: int = 1000, seed: int = 0, test_groups=None,
+             score_mode: str = "pooled") -> dict:
     """Train on one subject, test on another (subject-held-out).
 
     The model is fitted once; the p-value permutes the *test* labels, i.e. it asks
@@ -131,12 +149,34 @@ def transfer(X_train, y_train, X_test, y_test, task: str, cov_train=None, cov_te
         warnings.simplefilter("ignore", FutureWarning)  # sklearn API transition notices
         m = _model(task).fit(Xtr, ytr)
     pred = m.predict_proba(Xte)[:, 1] if task == "classification" else m.predict(Xte)
-    obs = _score(task, yte, pred)
+    g = np.zeros(len(yte)) if test_groups is None else np.asarray(test_groups)
+    obs = _combined_score(task, yte, pred, g, score_mode)
     rng = np.random.default_rng(seed)
-    null = np.array([_score(task, rng.permutation(yte), pred) for _ in range(n_perm)])
-    return {"score": obs, "n_train": len(ytr), "n_test": len(yte),
-            "null_95": float(np.nanpercentile(null, 95)),
-            "p_value": float((1 + np.sum(null >= obs)) / (1 + n_perm))}
+    null = np.array([_combined_score(task, _permute_within(yte, g, rng), pred, g, score_mode)
+                     for _ in range(n_perm)])
+    return {"score": obs, "score_mode": score_mode, "n_train": len(ytr), "n_test": len(yte),
+            "null_95": float(np.nanpercentile(null, 95)) if n_perm else None,
+            "p_value": float((1 + np.sum(null >= obs)) / (1 + n_perm)) if n_perm else None}
+
+
+def group_test(scores, chance: float, n_boot: int = 10_000, seed: int = 0) -> dict:
+    """Across-subject test of per-subject scores against chance.
+
+    One-sided Wilcoxon signed-rank (scores > chance), mean with a subject-bootstrap 95% CI,
+    and the number of subjects above chance.
+    """
+    from scipy.stats import wilcoxon
+
+    x = np.asarray(scores, float)
+    x = x[np.isfinite(x)]
+    if len(x) < 5:
+        return {"n_subjects": len(x), "p_wilcoxon": None}
+    rng = np.random.default_rng(seed)
+    boots = rng.choice(x, size=(n_boot, len(x))).mean(axis=1)
+    return {"n_subjects": len(x), "mean": float(x.mean()), "median": float(np.median(x)),
+            "ci95": [float(np.percentile(boots, 2.5)), float(np.percentile(boots, 97.5))],
+            "n_above_chance": int((x > chance).sum()),
+            "p_wilcoxon": float(wilcoxon(x - chance, alternative="greater").pvalue)}
 
 
 def holm(pvalues) -> np.ndarray:

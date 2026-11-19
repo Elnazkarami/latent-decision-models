@@ -230,7 +230,9 @@ def preprocess_subject(bids_root: str | Path, subject: str, trials: pd.DataFrame
     from ..io.brainvision import read_vhdr_sampling_rate
 
     eeg_dir = Path(bids_root, subject, "ses-001", "eeg")
-    vhdrs = {re.search(_EEG_RUN, p.name)[2]: p for p in sorted(eeg_dir.glob("*_eeg.vhdr"))}
+    # Skip macOS "._*" AppleDouble files (written on exFAT/FAT external drives).
+    vhdrs = {re.search(_EEG_RUN, p.name)[2]: p for p in sorted(eeg_dir.glob("*_eeg.vhdr"))
+             if not p.name.startswith(".")}
     if not vhdrs:
         raise FileNotFoundError(f"no EEG headers in {eeg_dir}")
     sub_trials = trials[trials["subject"] == subject]
@@ -330,10 +332,17 @@ def _analysis_inputs(t, ep, chans, condition, window, spec, bin_s):
 
 
 def run_decoding(cfg: dict) -> dict:
-    """Within-subject (leave-one-run-out) and cross-subject decoding per the config."""
+    """Within-subject (leave-one-run-out) and cross-subject decoding per the config.
+
+    Config keys (defaults reproduce the two-subject analysis): ``score_mode`` ("pooled" or
+    "per_group"), ``n_perm``; ``loso`` (train on all other subjects, test on each one) or,
+    without it, pairwise transfer between subjects; ``confirmatory_subjects`` with
+    ``min_runs`` / ``min_trials`` for across-subject tests (:func:`eeg_decoding.group_test`),
+    Holm-corrected over the targets marked ``primary``.
+    """
     from joblib import Parallel, delayed
 
-    from ..eeg_decoding import decode, holm, transfer
+    from ..eeg_decoding import decode, group_test, holm, transfer
 
     loaded = {s: load_epochs(cfg["epochs_dir"], s) for s in cfg["subjects"]}
     names = [str(c) for c in next(iter(loaded.values()))[1]["ch_names"]]
@@ -345,41 +354,87 @@ def run_decoding(cfg: dict) -> dict:
             bad |= set(filter(None, str(b).split(";")))
     chans = [i for i, c in enumerate(names) if c != ECG_CHANNEL and c not in bad]
     bin_s = cfg.get("bin_seconds", 0.05)
+    mode = cfg.get("score_mode", "pooled")
+    seed = cfg.get("seed", 0)
     specs = {k: {**v, "_name": k} for k, v in cfg["targets"].items()}
-    jobs = [(s, k, c, w) for s in cfg["subjects"] for k in specs
-            for c in cfg["conditions"] for w in cfg["windows"]]
+    cells = [(k, c, w) for k in specs for c in cfg["conditions"] for w in cfg["windows"]]
+    inputs = {(s, *cell): _analysis_inputs(*loaded[s], chans, cell[1], cell[2],
+                                           specs[cell[0]], bin_s)
+              for s in cfg["subjects"] for cell in cells}
+    n_jobs = cfg.get("n_jobs", 1)
 
     def one(s, k, c, w):
-        t, ep = loaded[s]
-        X, y, g, cov = _analysis_inputs(t, ep, chans, c, w, specs[k], bin_s)
-        r = decode(X, y, g, specs[k]["task"], cov, cfg.get("n_perm", 200),
-                   cfg.get("seed", 0))
+        X, y, g, cov = inputs[(s, k, c, w)]
+        r = decode(X, y, g, specs[k]["task"], cov, cfg.get("n_perm", 200), seed, mode)
         return {"subject": s, "target": k, "condition": c, "window": w, **r}
 
-    within = Parallel(n_jobs=cfg.get("n_jobs", 1))(delayed(one)(*j) for j in jobs)
-    within = pd.DataFrame(within)
+    within = pd.DataFrame(Parallel(n_jobs=n_jobs)(
+        delayed(one)(s, *cell) for s in cfg["subjects"] for cell in cells))
     within["primary"] = within["target"].map(lambda k: bool(specs[k].get("primary")))
     within["p_holm_primary"] = np.nan
     for s in cfg["subjects"]:
-        m = (within["subject"] == s) & within["primary"]
-        within.loc[m, "p_holm_primary"] = holm(within.loc[m, "p_value"])
+        m = (within["subject"] == s) & within["primary"] & within["p_value"].notna()
+        if m.any():
+            within.loc[m, "p_holm_primary"] = holm(within.loc[m, "p_value"])
 
-    cross = []
-    subs = cfg["subjects"]
-    if len(subs) >= 2:
-        for a in subs:
-            for b in subs:
+    def loso_one(s, k, c, w):
+        tr = [inputs[(o, k, c, w)] for o in cfg["subjects"] if o != s]
+        Xtr = np.concatenate([a[0] for a in tr])
+        ytr = np.concatenate([a[1] for a in tr])
+        ctr = None if tr[0][3] is None else np.concatenate([a[3] for a in tr])
+        Xte, yte, gte, cte = inputs[(s, k, c, w)]
+        r = transfer(Xtr, ytr, Xte, yte, specs[k]["task"], ctr, cte,
+                     cfg.get("n_perm_transfer", 0), seed, gte, mode)
+        return {"train_subject": "all_others", "test_subject": s, "target": k,
+                "condition": c, "window": w, **r}
+
+    if cfg.get("loso"):
+        cross = pd.DataFrame(Parallel(n_jobs=n_jobs)(
+            delayed(loso_one)(s, *cell) for s in cfg["subjects"] for cell in cells))
+    elif len(cfg["subjects"]) >= 2:
+        rows = []
+        for a in cfg["subjects"]:
+            for b in cfg["subjects"]:
                 if a == b:
                     continue
-                for k, c, w in {(j[1], j[2], j[3]) for j in jobs}:
-                    Xa, ya, _, ca = _analysis_inputs(*loaded[a], chans, c, w, specs[k], bin_s)
-                    Xb, yb, _, cb = _analysis_inputs(*loaded[b], chans, c, w, specs[k], bin_s)
+                for k, c, w in cells:
+                    Xa, ya, _, ca = inputs[(a, k, c, w)]
+                    Xb, yb, gb, cb = inputs[(b, k, c, w)]
                     r = transfer(Xa, ya, Xb, yb, specs[k]["task"], ca, cb,
-                                 cfg.get("n_perm_transfer", 1000), cfg.get("seed", 0))
-                    cross.append({"train_subject": a, "test_subject": b, "target": k,
-                                  "condition": c, "window": w, **r})
-    cross = pd.DataFrame(cross).sort_values(["target", "condition", "window",
-                                             "train_subject"]) if cross else pd.DataFrame()
-    return {"channels_used": [names[i] for i in chans], "excluded_channels":
-            sorted(bad | {ECG_CHANNEL}), "windows": WINDOWS, "within_subject": within,
-            "cross_subject": cross}
+                                 cfg.get("n_perm_transfer", 1000), seed, gb, mode)
+                    rows.append({"train_subject": a, "test_subject": b, "target": k,
+                                 "condition": c, "window": w, **r})
+        cross = pd.DataFrame(rows).sort_values(["target", "condition", "window",
+                                                "train_subject"])
+    else:
+        cross = pd.DataFrame()
+
+    group = []
+    conf = cfg.get("confirmatory_subjects")
+    if conf:
+        n_trials = within.set_index(["subject", "target", "condition", "window"])["n_trials"]
+        n_groups = within.set_index(["subject", "target", "condition", "window"])["n_groups"]
+        for kind, table, subj_col in (("within_subject", within, "subject"),
+                                      ("leave_one_subject_out", cross, "test_subject")):
+            if table.empty:
+                continue
+            for k, c, w in cells:
+                rows = table[(table["target"] == k) & (table["condition"] == c)
+                             & (table["window"] == w) & table[subj_col].isin(conf)]
+                elig = [r for r in rows.itertuples()
+                        if n_trials[(getattr(r, subj_col), k, c, w)] >= cfg.get("min_trials", 40)
+                        and n_groups[(getattr(r, subj_col), k, c, w)] >= cfg.get("min_runs", 3)]
+                chance = 0.5 if specs[k]["task"] == "classification" else 0.0
+                g = group_test([r.score for r in elig], chance, seed=seed)
+                group.append({"analysis": kind, "target": k, "condition": c, "window": w,
+                              "primary": bool(specs[k].get("primary")), "chance": chance, **g})
+        group = pd.DataFrame(group)
+        group["p_holm_primary"] = np.nan
+        for kind in group["analysis"].unique():
+            m = (group["analysis"] == kind) & group["primary"] & group["p_wilcoxon"].notna()
+            if m.any():
+                group.loc[m, "p_holm_primary"] = holm(group.loc[m, "p_wilcoxon"])
+    return {"channels_used": [names[i] for i in chans],
+            "excluded_channels": sorted(bad | {ECG_CHANNEL}), "windows": WINDOWS,
+            "score_mode": mode, "within_subject": within, "cross_subject": cross,
+            "group": pd.DataFrame(group)}

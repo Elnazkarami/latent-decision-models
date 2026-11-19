@@ -249,3 +249,76 @@ def test_read_raw_tolerates_stale_datafile_name(tmp_path):
     assert raw.info["sfreq"] == 5000.0 and raw.ch_names == ["Cz", "ECG"]
     assert np.allclose(raw.get_data()[0] * 1e6, data[:, 0] * 0.5)
     assert (tmp_path / "old_name.eeg").exists() is False  # nothing written next to data
+
+
+# ------------------------------------------------------------------ run drift, group level
+def test_per_group_score_is_robust_to_run_drift():
+    # The target drifts between runs and the features carry nothing: pooled
+    # leave-one-run-out scoring is biased below chance, per-run scoring is not.
+    rng = np.random.default_rng(5)
+    n_runs, per = 6, 40
+    g = np.repeat(np.arange(n_runs), per)
+    run_means = np.linspace(-1, 1, n_runs)
+    pooled, per_run = [], []
+    for rep in range(8):
+        y = run_means[g] + rng.standard_normal(len(g))
+        X = rng.standard_normal((len(g), 10))
+        pooled.append(eeg_decoding.decode(X, y, g, "regression", n_perm=0)["score"])
+        per_run.append(eeg_decoding.decode(X, y, g, "regression", n_perm=0,
+                                           score_mode="per_group")["score"])
+    assert np.mean(pooled) < -0.15
+    assert abs(np.mean(per_run)) < 0.05
+
+
+def test_group_test_known_answers():
+    hit = eeg_decoding.group_test(np.full(12, 0.6) + np.linspace(-0.02, 0.02, 12), 0.5)
+    assert hit["n_above_chance"] == 12 and hit["p_wilcoxon"] < 0.001
+    assert hit["ci95"][0] > 0.5
+    miss = eeg_decoding.group_test(np.linspace(-0.1, 0.1, 11), 0.0)
+    assert miss["p_wilcoxon"] > 0.3
+    assert eeg_decoding.group_test([0.1, 0.2], 0.0)["p_wilcoxon"] is None
+
+
+def _write_fake_subject(root, subject, rng, effect):
+    sf, ch = 250, ["Cz", "Pz", "ECG", "Oz"]
+    st = np.arange(*[round(v * sf) for v in e.STIM_EPOCH]) / sf
+    rt = np.arange(*[round(v * sf) for v in e.RESP_EPOCH]) / sf
+    n = 4 * 30
+    conf = rng.random(n)
+    side = rng.integers(0, 2, n)
+    stim = rng.standard_normal((n, len(ch), len(st))).astype(np.float32)
+    resp = rng.standard_normal((n, len(ch), len(rt))).astype(np.float32)
+    resp[:, 0, (rt >= 0.1) & (rt < 0.6)] += effect * (conf[:, None] - 0.5) * 4
+    resp[:, 1, (rt >= -0.2) & (rt < 0.1)] += 2.0 * (side[:, None] - 0.5)
+    t = pd.DataFrame({
+        "subject": subject, "run": np.repeat([f"run-00{i}" for i in range(1, 5)], 30),
+        "condition": np.tile(["active", "observed"], n // 2), "valid_trial": True,
+        "eeg_rejected": False, "eeg_has_response": True,
+        "eeg_response_latency_seconds": 0.35, "response_latency_seconds": 0.35,
+        "choice_side": np.where(side == 1, "right", "left"),
+        "accuracy": rng.integers(0, 2, n), "evidence_dots_difference": rng.integers(1, 20, n),
+        "confidence_raw": conf, "eeg_bad_channels": np.nan})
+    t.to_csv(root / f"{subject}_trials.csv", index=False)
+    np.savez_compressed(root / f"{subject}_epochs.npz", stim=stim, resp=resp, stim_times=st,
+                        resp_times=rt, ch_names=np.array(ch))
+
+
+def test_run_decoding_group_loso_recovers_planted_effects(tmp_path):
+    rng = np.random.default_rng(0)
+    subs = [f"sub-{i:02d}" for i in range(1, 8)]
+    for s in subs:
+        _write_fake_subject(tmp_path, s, rng, effect=1.0)
+    cfg = {"epochs_dir": str(tmp_path), "subjects": subs, "confirmatory_subjects": subs[1:],
+           "min_runs": 3, "min_trials": 40, "conditions": ["active"],
+           "windows": ["response_locked", "post_decision"], "score_mode": "per_group",
+           "n_perm": 0, "n_perm_transfer": 0, "loso": True, "n_jobs": 1,
+           "targets": {"choice_side": {"task": "classification"},
+                       "confidence": {"task": "regression", "primary": True}}}
+    res = e.run_decoding(cfg)
+    assert "ECG" in res["excluded_channels"]
+    g = res["group"].set_index(["analysis", "target", "window"])
+    assert g.loc[("within_subject", "choice_side", "response_locked"), "p_wilcoxon"] < 0.05
+    assert g.loc[("within_subject", "confidence", "post_decision"), "p_holm_primary"] < 0.05
+    assert g.loc[("leave_one_subject_out", "confidence", "post_decision"), "mean"] > 0.3
+    assert g.loc[("within_subject", "confidence", "response_locked"), "p_wilcoxon"] > 0.05
+    assert (g["n_subjects"] == 6).all()  # sub-01 is not confirmatory
