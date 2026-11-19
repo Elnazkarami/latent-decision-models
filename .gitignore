@@ -29,5 +29,7 @@ outputs/
 !reports/ds002158-fmri-design.json
 !reports/ds002158-eeg-preprocess.json
 !reports/ds002158-eeg-decoding.json
+!reports/ds002158-eeg-preprocess-all.json
+!reports/ds002158-eeg-decoding-confirmatory.json
 !reports/confidence_model_recovery*.json
 !reports/two_step_recovery*.json

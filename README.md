@@ -20,10 +20,10 @@ Python package `latent_decision_models` · CLI `ldm` · repository `latent-decis
 - **Fetch files safely.** It downloads text metadata from pinned OpenNeuro snapshots (refusing signal files), and allow-listed, size-capped, SHA-256-checked files from OSF projects. Signal data (raw EEG) is fetched only by a separate command that needs an explicit size budget.
 
 **Limitations:**
-- EEG work so far covers two ds002158 subjects; fMRI signal processing and deep learning are not implemented yet.
+- EEG covers 19 ds002158 subjects (all with usable labels); fMRI signal processing and deep learning are not implemented yet.
 - Dynamic (RT-based) and hierarchical confidence models are not implemented yet.
 - The two-step RL models use fixed, instructed transitions; trial-wise arbitration models are not implemented yet.
-- No population-level neural findings are claimed.
+- Neural findings come from one dataset (ds002158; 17 subjects in the confirmatory test) and classical linear decoding only.
 
 ## Install
 
@@ -139,11 +139,12 @@ Details and evidence: [audit](docs/ds002158-audit.md) · [EEG](docs/ds002158-eeg
 - **Behavior → EEG:** 22/25 sampled runs are fully verified.
   - **sub-12's EEG run filenames are shifted**, so filename pairing would be wrong.
   - **sub-20's events and EEG markers disagree on stimulus and response side.** This is unresolved, so sub-20 is excluded from EEG work.
-- **EEG, two subjects (sub-02, sub-04):**
-  - All 12 runs pair with their events by marker timing and verify. The raw headers name the original lab files, so MNE cannot open them as published; `io.brainvision.read_raw` handles this.
-  - MR gradient and heartbeat artifacts are still in the raw files. Template subtraction removes them (slice-frequency power down 25- to 1000-fold, heartbeat-locked activity down 80–96%).
-  - **Positive control passes:** response side decodes from response-locked and post-response activity (AUC 0.78–0.99 within subject, 0.67–0.94 across subjects) and is at chance before the decision.
-  - **Confidence:** no pre-specified test survives correction (best: Holm-adjusted p = 0.18). Accuracy decodes after own responses (AUC 0.64–0.68).
+- **EEG, 19 subjects (two exploratory, 17 confirmatory):**
+  - 109 of 111 runs pair with their events by marker timing. The raw headers name the original lab files, so MNE cannot open them as published; `io.brainvision.read_raw` handles this.
+  - MR gradient and heartbeat artifacts are still in the raw files. Template subtraction removes them in every subject (slice-frequency power down 5- to 2,500-fold, heartbeat-locked activity to 0.2–3.4 µV).
+  - **Positive control passes in 17/17 new subjects:** response side decodes at the response (AUC 0.73) and after it (0.93), also in left-out subjects (0.69 / 0.82), and is at chance before the decision.
+  - **Confidence (pre-registered on the 17 new subjects):** decodable from EEG 0.1–0.6 s after one's own response: r = 0.16 within subject (16/17 subjects > 0, Holm p = 0.0009) and r = 0.10 in left-out subjects (Holm p = 0.005). Not before the decision; not reliably for observed decisions (Holm p = 0.18).
+  - **Mostly shared with behavior:** after removing what accuracy, response latency and evidence explain, r = 0.08 within subject (uncorrected p = 0.013) and ≈ 0 across subjects. This is a post-decision signal, not a prospective prediction.
 - **fMRI derivative:** it is SPM DARTEL-normalised to MNI-152, 1.5 mm isotropic and 5 mm FWHM smoothed; the image headers say so, although the dataset docs do not.
   - Its headers store TR = 0; use 1.28 s.
   - sub-20 run-007's derivative was moved to a `reject/` folder, but its raw data and behavior were not.
@@ -192,6 +193,7 @@ Contributor rules are in [`AGENTS.md`](AGENTS.md); the research plan is in [`doc
 
 ## Changelog
 
+- **2026-11-19:** ds002158 EEG, confirmatory analysis on 17 new subjects (pre-registered plan `configs/ds002158_eeg_decoding_confirmatory.yaml`): per-run scoring, group Wilcoxon tests, leave-one-subject-out decoding. Volume grid cropped on the modal trigger phase.
 - **2026-11-19:** ds002158 EEG (two subjects):
   - `ldm ds002158 fetch-eeg` (budgeted signal download), `eeg-preprocess` (pairing, gradient and BCG removal, causal filtering, epochs) and `eeg-decode` (pre-specified within- and cross-subject decoding).
   - New `eeg_clean`, `eeg_decoding` and `datasets.ds002158_eeg` modules; `io.brainvision.read_raw`; `io.openneuro.fetch_signal_files`.
