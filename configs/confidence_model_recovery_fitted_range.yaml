@@ -1,0 +1,26 @@
+# Recovery re-run in the region where real ds002158 fits lie (approx. 10th-90th percentile
+# of per-subject normative/agency_blind fits, rounded; see docs/ds002158-confidence-model.md).
+# The default ranges (confidence_model_recovery.yaml) did not cover the fitted gain/sigma_r.
+output: reports/confidence_model_recovery_fitted_range.json
+recovery_table: reports/confidence_model_recovery_fitted_range_table.csv
+models: [agency_blind, normative, free_rho, obs_noise]
+n_sims: 60          # parameter-recovery simulations per model
+n_model_sims: 30    # model-recovery simulations per generating model
+n_trials: 240
+n_starts: 2
+seed: 0
+n_jobs: 8
+# Group-level model recovery for the two parameter-matched variants (summed per-subject BIC).
+group_recovery:
+  models: [agency_blind, normative]
+  n_groups: 20
+  n_subjects: 20
+parameter_ranges:
+  k: [0.4, 0.7]
+  sigma_c: [0.25, 0.55]
+  rho: [-0.2, 0.85]
+  bias: [-0.45, 0.3]
+  gain: [0.13, 0.7]
+  sigma_r: [0.02, 0.12]
+  rho_obs: [-0.2, 0.8]
+  sigma_c_obs: [0.25, 0.55]

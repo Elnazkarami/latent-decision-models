@@ -24,3 +24,4 @@ outputs/
 !tests/fixtures/**/*.vmrk
 # reviewed audit reports are versioned
 !reports/*-audit.json
+!reports/confidence_model_recovery*.json

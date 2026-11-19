@@ -1,0 +1,286 @@
+{
+  "config": {
+    "output": "reports/confidence_model_recovery.json",
+    "recovery_table": "reports/confidence_model_recovery_table.csv",
+    "models": [
+      "agency_blind",
+      "normative",
+      "free_rho",
+      "obs_noise"
+    ],
+    "n_sims": 60,
+    "n_model_sims": 30,
+    "n_trials": 240,
+    "n_starts": 2,
+    "seed": 0,
+    "n_jobs": 8,
+    "group_recovery": {
+      "models": [
+        "agency_blind",
+        "normative"
+      ],
+      "n_groups": 20,
+      "n_subjects": 20
+    }
+  },
+  "data_kind": "synthetic_parameter_and_model_recovery",
+  "parameter_ranges": {
+    "k": [
+      0.3,
+      1.2
+    ],
+    "sigma_c": [
+      0.3,
+      1.5
+    ],
+    "rho": [
+      0.1,
+      0.9
+    ],
+    "bias": [
+      -0.5,
+      0.5
+    ],
+    "gain": [
+      0.5,
+      1.5
+    ],
+    "sigma_r": [
+      0.08,
+      0.25
+    ],
+    "rho_obs": [
+      0.0,
+      0.8
+    ],
+    "sigma_c_obs": [
+      0.3,
+      1.5
+    ]
+  },
+  "parameter_recovery": [
+    {
+      "model": "agency_blind",
+      "param": "bias",
+      "pearson_r": 0.4835420961385406,
+      "median_abs_error": 0.31262991515387506,
+      "median_bias": 0.059299290937353775
+    },
+    {
+      "model": "agency_blind",
+      "param": "gain",
+      "pearson_r": 0.4357091769346124,
+      "median_abs_error": 0.23715439594446205,
+      "median_bias": -0.07964721130965724
+    },
+    {
+      "model": "agency_blind",
+      "param": "k",
+      "pearson_r": 0.8958969172713137,
+      "median_abs_error": 0.0713039037892702,
+      "median_bias": 0.009109298547744421
+    },
+    {
+      "model": "agency_blind",
+      "param": "rho",
+      "pearson_r": 0.42049498035101285,
+      "median_abs_error": 0.15212439692538265,
+      "median_bias": -0.029810642770637497
+    },
+    {
+      "model": "agency_blind",
+      "param": "sigma_c",
+      "pearson_r": 0.8270028607096576,
+      "median_abs_error": 0.13184818096513684,
+      "median_bias": -0.014564443131115906
+    },
+    {
+      "model": "agency_blind",
+      "param": "sigma_r",
+      "pearson_r": 0.8631888140658258,
+      "median_abs_error": 0.014348963268356656,
+      "median_bias": -0.00550697847950804
+    },
+    {
+      "model": "free_rho",
+      "param": "bias",
+      "pearson_r": 0.34621789172323303,
+      "median_abs_error": 0.2782274762982522,
+      "median_bias": -0.033795093337192675
+    },
+    {
+      "model": "free_rho",
+      "param": "gain",
+      "pearson_r": 0.4251326975334397,
+      "median_abs_error": 0.2821141152246849,
+      "median_bias": -0.08715701467023546
+    },
+    {
+      "model": "free_rho",
+      "param": "k",
+      "pearson_r": 0.9137881694324509,
+      "median_abs_error": 0.06847188982562796,
+      "median_bias": 0.04421639735371996
+    },
+    {
+      "model": "free_rho",
+      "param": "rho",
+      "pearson_r": 0.2570832541168003,
+      "median_abs_error": 0.22798738272343508,
+      "median_bias": 0.004297574942779964
+    },
+    {
+      "model": "free_rho",
+      "param": "rho_obs",
+      "pearson_r": 0.48398330483231256,
+      "median_abs_error": 0.1735846276666757,
+      "median_bias": -0.05234071769564787
+    },
+    {
+      "model": "free_rho",
+      "param": "sigma_c",
+      "pearson_r": 0.5455369200019156,
+      "median_abs_error": 0.12278475728558041,
+      "median_bias": -0.0044570595276939295
+    },
+    {
+      "model": "free_rho",
+      "param": "sigma_r",
+      "pearson_r": 0.9351916810382178,
+      "median_abs_error": 0.014359393363102699,
+      "median_bias": 0.002341911037359319
+    },
+    {
+      "model": "normative",
+      "param": "bias",
+      "pearson_r": 0.4161245056253032,
+      "median_abs_error": 0.21952610594225594,
+      "median_bias": 0.05884844123274638
+    },
+    {
+      "model": "normative",
+      "param": "gain",
+      "pearson_r": 0.387664755804103,
+      "median_abs_error": 0.19179670784824665,
+      "median_bias": -0.03829291230851911
+    },
+    {
+      "model": "normative",
+      "param": "k",
+      "pearson_r": 0.8883026470288992,
+      "median_abs_error": 0.07297790149539862,
+      "median_bias": 0.019911965099485618
+    },
+    {
+      "model": "normative",
+      "param": "rho",
+      "pearson_r": 0.08284941711960146,
+      "median_abs_error": 0.21793190261507592,
+      "median_bias": -0.007605516790283623
+    },
+    {
+      "model": "normative",
+      "param": "sigma_c",
+      "pearson_r": 0.8309507891094898,
+      "median_abs_error": 0.1239197108113613,
+      "median_bias": 0.005555769291551049
+    },
+    {
+      "model": "normative",
+      "param": "sigma_r",
+      "pearson_r": 0.9172468372784018,
+      "median_abs_error": 0.014453261544216764,
+      "median_bias": -0.0035228731071511588
+    },
+    {
+      "model": "obs_noise",
+      "param": "bias",
+      "pearson_r": 0.4242742212219978,
+      "median_abs_error": 0.20069164396778866,
+      "median_bias": -0.04629553342607043
+    },
+    {
+      "model": "obs_noise",
+      "param": "gain",
+      "pearson_r": 0.6480789498925886,
+      "median_abs_error": 0.23142124291435573,
+      "median_bias": -0.008954113390945984
+    },
+    {
+      "model": "obs_noise",
+      "param": "k",
+      "pearson_r": 0.9098795172994895,
+      "median_abs_error": 0.09040661142911333,
+      "median_bias": 0.058006934000892546
+    },
+    {
+      "model": "obs_noise",
+      "param": "rho",
+      "pearson_r": 0.06559146776052215,
+      "median_abs_error": 0.43424083373735145,
+      "median_bias": -0.11225542766220135
+    },
+    {
+      "model": "obs_noise",
+      "param": "sigma_c",
+      "pearson_r": 0.2769158270226514,
+      "median_abs_error": 0.17077558207460306,
+      "median_bias": 0.04114984241706132
+    },
+    {
+      "model": "obs_noise",
+      "param": "sigma_c_obs",
+      "pearson_r": 0.6818853937492739,
+      "median_abs_error": 0.15826031115654118,
+      "median_bias": 0.04103632036002253
+    },
+    {
+      "model": "obs_noise",
+      "param": "sigma_r",
+      "pearson_r": 0.9433379314374551,
+      "median_abs_error": 0.014238694681472486,
+      "median_bias": 0.0014965096195992192
+    }
+  ],
+  "model_recovery_bic_confusion": {
+    "agency_blind": {
+      "agency_blind": 23,
+      "normative": 6,
+      "free_rho": 0,
+      "obs_noise": 1
+    },
+    "normative": {
+      "agency_blind": 10,
+      "normative": 20,
+      "free_rho": 0,
+      "obs_noise": 0
+    },
+    "free_rho": {
+      "agency_blind": 20,
+      "normative": 8,
+      "free_rho": 1,
+      "obs_noise": 1
+    },
+    "obs_noise": {
+      "agency_blind": 2,
+      "normative": 23,
+      "free_rho": 0,
+      "obs_noise": 5
+    }
+  },
+  "group_model_recovery": {
+    "n_groups": 20,
+    "n_subjects": 20,
+    "n_trials": 240,
+    "confusion": {
+      "agency_blind": {
+        "agency_blind": 18,
+        "normative": 2
+      },
+      "normative": {
+        "agency_blind": 1,
+        "normative": 19
+      }
+    }
+  }
+}

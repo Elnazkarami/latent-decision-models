@@ -1,0 +1,17 @@
+# Synthetic parameter and model recovery for the second-order SDT confidence model.
+# Run before (and independently of) any real-data fit. Trials per simulated subject match
+# ds002158 (~240 valid trials, half active / half observed).
+output: reports/confidence_model_recovery.json
+recovery_table: reports/confidence_model_recovery_table.csv
+models: [agency_blind, normative, free_rho, obs_noise]
+n_sims: 60          # parameter-recovery simulations per model
+n_model_sims: 30    # model-recovery simulations per generating model
+n_trials: 240
+n_starts: 2
+seed: 0
+n_jobs: 8
+# Group-level model recovery for the two parameter-matched variants (summed per-subject BIC).
+group_recovery:
+  models: [agency_blind, normative]
+  n_groups: 20
+  n_subjects: 20

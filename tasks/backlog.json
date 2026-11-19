@@ -19,9 +19,9 @@
     {
       "id": "LDM-002",
       "title": "Dataset-specific behavioral confidence baseline",
-      "status": "in_progress",
+      "status": "done",
       "deliverable": "real behavioral pipeline and held-out subject metrics",
-      "notes": "Done: adapter, continuous-target ridge baselines, calibration, run-held-out CV, type-2 AUROC, GEE metacognition. Next: computational confidence model with parameter recovery; optional mixed-effects/ordinal variants"
+      "notes": "Done: adapter, ridge baselines, calibration, run-held-out CV, type-2 AUROC, GEE metacognition, second-order SDT confidence model with recovery (docs/ds002158-confidence-model.md; comparison inconclusive, rho not identifiable). Optional follow-ups: hierarchical or dynamic (RT) confidence model, mixed-effects/ordinal metacognition variants"
     },
     {
       "id": "LDM-003",
@@ -32,7 +32,7 @@
     {
       "id": "LDM-004",
       "title": "fMRI derivatives audit and trial-level ROI/GLM baseline",
-      "status": "blocked:LDM-002",
+      "status": "ready",
       "deliverable": "documented feature extraction and tests"
     },
     {

@@ -43,3 +43,15 @@ def test_confidence_baseline_cli_on_synthetic(tmp_path):
     res = _ldm("confidence-baseline", "--config", str(cfg))
     assert res["data_kind"] == "synthetic" and res["n_subjects"] == 8
     assert (tmp_path / "r.json").exists()
+
+
+def test_confidence_model_recovery_cli(tmp_path):
+    cfg = {"output": str(tmp_path / "rec.json"), "models": ["normative", "agency_blind"],
+           "n_sims": 3, "n_model_sims": 1, "n_trials": 80, "n_starts": 1, "seed": 0}
+    path = tmp_path / "rec.yaml"
+    path.write_text(yaml.safe_dump(cfg))
+    res = _ldm("confidence-model", "recovery", "--config", str(path))
+    assert res["data_kind"] == "synthetic_parameter_and_model_recovery"
+    assert {r["param"] for r in res["parameter_recovery"]} >= {"k", "rho", "sigma_c"}
+    conf = res["model_recovery_bic_confusion"]
+    assert sum(conf["normative"].values()) == 1

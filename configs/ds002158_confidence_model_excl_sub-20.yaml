@@ -1,0 +1,14 @@
+# LDM-002: second-order SDT confidence model on ds002158 (real data; behavior only).
+# Input from: ldm ds002158 trials --bids-root data/ds002158 --out data/ds002158_trials.csv
+input: data/ds002158_trials.csv
+output: reports/ds002158_confidence_model_excl_sub-20.json
+ppc_table: reports/ds002158_confidence_model_ppc_excl_sub-20.csv
+data_kind: real_behavioral_openneuro_ds002158_v1.0.2
+models: [agency_blind, normative, free_rho, obs_noise]
+reference: normative
+n_starts: 3
+n_boot: 2000
+n_rep: 50
+seed: 0
+n_jobs: 8
+exclude_subjects: [sub-20]

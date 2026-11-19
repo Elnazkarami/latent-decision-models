@@ -1,19 +1,29 @@
 # Next task
 
-**LDM-001 is done** (see `docs/ds002158-audit.md`). **LDM-002 is in progress** (first pass in `docs/ds002158-behavioral-baseline.md`).
+**Done:**
+- LDM-001: the audit ([`docs/ds002158-audit.md`](../docs/ds002158-audit.md)).
+- LDM-002: [`docs/ds002158-behavioral-baseline.md`](../docs/ds002158-behavioral-baseline.md) and [`docs/ds002158-confidence-model.md`](../docs/ds002158-confidence-model.md).
 
-## Option A: finish LDM-002 (no approvals needed)
-Done so far: calibration, run-held-out evaluation, GEE metacognition (see `docs/ds002158-behavioral-baseline.md`).
-1. **Next:** a computational confidence model (e.g. signal detection or evidence accumulation with post-decision evidence; committed vs observed variants). Test parameter recovery on synthetic data before any real-data fit, and compare models on held-out subjects.
-2. Optional: a mixed-effects random-slope metacognition model (optional extra), a within-subject-centered confidence variant, and ordinal/beta-regression alternatives.
+The computational model's comparison of committed vs observed readouts is **inconclusive**, and its key parameter ρ is not identifiable per subject. Do not build on its per-subject parameters.
 
-## Option B: start LDM-003 (needs explicit approval)
+## Option A: LDM-006, audit ds007474 (no approval needed; metadata only)
+Do the same kind of audit as LDM-001: events columns, behavior on OSF, subject mapping, permissions. This unblocks the belief-updating RL benchmark (LDM-007).
+
+## Option B: LDM-003, EEG (needs explicit approval)
 - Download the raw EEG `.eeg/.vhdr/.vmrk` for **sub-02 and sub-04** (about 4.2 GB) to `data/ds002158/`.
-- Use MNE (`[eeg]` extra) to read the data and the verified marker map (`latent_decision_models.datasets.ds002158.STIMULUS_MARKERS` / `RESPONSE_MARKERS`).
-- Run `align_eeg_markers` before epoching and refuse to proceed unless the status is `verified`.
-- Keep pre-response windows (stimulus-locked, before the response marker) separate from post-response windows.
+- Read it with MNE (`[eeg]` extra).
+- Before epoching, run `align_eeg_markers` and refuse to continue unless the status is `verified`.
+- Keep pre-response and post-response windows separate.
 
-## Open questions for the PI (from the audit)
-- sub-20: should it be excluded from EEG work? Recommended: yes, until the events/marker label conflict is resolved.
+## Option C: LDM-004, fMRI derivative audit (metadata first)
+Settle the derivative's space and smoothing from headers and sidecars before any volume download. Volume downloads (about 3.2 GB per run) need approval.
+
+## Optional LDM-002 follow-ups
+- A hierarchical version of the confidence model. Partial pooling may make ρ, or the observed-readout comparison, identifiable at the group level; it must pass group-level recovery first.
+- A dynamic (accumulation) model that uses active RTs.
+- Mixed-effects or ordinal metacognition variants.
+
+## Open questions for the PI
+- sub-20: exclude it from EEG work? Recommended: yes.
 - Is the continuous [0, 1] confidence target acceptable as the primary endpoint?
-- Should ds007474 (LDM-006, ready) be audited in parallel?
+- Approval for the LDM-003 EEG download (about 4.2 GB).
