@@ -121,18 +121,20 @@ def clean_run(vhdr: str | Path, l_freq: float = 1.0, h_freq: float = 10.0,
     names = list(raw.ch_names)
     markers = read_vmrk(vhdr.with_suffix(".vmrk"), SFREQ_RAW)
     vol = markers.loc[markers["description"] == d.VOLUME_MARKER, "sample"].to_numpy()
-    s0 = int(vol[0])
+    # Crop on the volume grid, not on the first logged trigger (which may be logged late).
+    grid, n_snapped = eeg_clean.volume_grid(vol, TR_SAMPLES)
     # Keep complete volumes only: the EEG recording may stop before the scan ends
     # (sub-02 run-004 ends 0.8 s into its last volume, after the last trial).
-    complete = vol + TR_SAMPLES <= raw.n_times
+    complete = (grid >= 0) & (grid + TR_SAMPLES <= raw.n_times)
     n_incomplete = int((~complete).sum())
-    vol = vol[complete]
+    vol, grid = vol[complete], grid[complete]
+    s0 = int(grid[0])
     n_vol = len(vol)
     x = (raw.get_data(start=s0, stop=s0 + n_vol * TR_SAMPLES) * 1e6).astype(np.float32)
     del raw
     qc = {"n_volumes": n_vol, "n_volumes_incomplete_dropped": n_incomplete,
           "first_volume_raw_sample": s0,
-          "n_volume_triggers_snapped_to_grid": eeg_clean.volume_grid(vol, TR_SAMPLES)[1],
+          "n_volume_triggers_snapped_to_grid": n_snapped,
           "power_before_gradient_correction": eeg_clean.band_power(
               x[:, : 60 * int(SFREQ_RAW)], SFREQ_RAW, (5, 10, 12.5, 25))}
     x = eeg_clean.gradient_correct(x, vol - s0, TR_SAMPLES, n_template)
