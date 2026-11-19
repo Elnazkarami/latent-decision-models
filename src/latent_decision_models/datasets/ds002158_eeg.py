@@ -400,8 +400,11 @@ def run_decoding(cfg: dict) -> dict:
                 for k, c, w in cells:
                     Xa, ya, _, ca = inputs[(a, k, c, w)]
                     Xb, yb, gb, cb = inputs[(b, k, c, w)]
+                    # Test-run groups only matter for per-run scoring; pooled scoring
+                    # keeps the original whole-subject permutation (reproducibility).
                     r = transfer(Xa, ya, Xb, yb, specs[k]["task"], ca, cb,
-                                 cfg.get("n_perm_transfer", 1000), seed, gb, mode)
+                                 cfg.get("n_perm_transfer", 1000), seed,
+                                 gb if mode == "per_group" else None, mode)
                     rows.append({"train_subject": a, "test_subject": b, "target": k,
                                  "condition": c, "window": w, **r})
         cross = pd.DataFrame(rows).sort_values(["target", "condition", "window",
