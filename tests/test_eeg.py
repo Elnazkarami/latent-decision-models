@@ -345,3 +345,53 @@ def test_signal_fetch_refuses_to_fill_the_disk(tmp_path):
     with pytest.raises(OSError, match="reserve"):
         openneuro.fetch_signal_files(files, tmp_path, approved_bytes=100,
                                      min_free_bytes=free + 1)
+
+
+def test_obs_removes_artifact_with_varying_amplitude_and_keeps_unlocked_signal():
+    # A BCG-like artifact whose amplitude drifts beat to beat: OBS (mean + PCs) removes it
+    # better than a moving-average template; broadband non-locked activity survives.
+    # (A single pure sinusoid would not: at random phases it lies in the span of two
+    # PCs and is fitted away, a known OBS caveat.)
+    rng = np.random.default_rng(5)
+    fs, n_beats, period = 250.0, 300, 200
+    shape = np.hanning(120) * 40
+    n = n_beats * period + 200
+    peaks = 100 + period * np.arange(n_beats) + rng.integers(-20, 21, n_beats)
+    gain = 1 + 0.5 * np.sin(np.arange(n_beats) / 7)
+    art = np.zeros(n)
+    for p, g in zip(peaks, gain, strict=True):
+        art[p - 40:p + 80] += g * shape
+    brain = eeg_clean.causal_bandpass(5 * rng.standard_normal((1, n)), fs, 1.0, 30.0)[0]
+    x = (art + brain)[None]
+    out, ok = eeg_clean.obs_subtract(x, peaks, 60, 140, n_pc=3)
+    aas, _ = eeg_clean.template_subtract(x, peaks, 60, 140, n_template=21)
+    inner = slice(2000, n - 2000)
+    err_obs = np.sqrt(np.mean((out[0, inner] - brain[inner]) ** 2))
+    err_aas = np.sqrt(np.mean((aas[0, inner] - brain[inner]) ** 2))
+    assert ok.all()
+    assert err_obs < 0.5 * err_aas
+    r_obs = np.corrcoef(out[0, inner], brain[inner])[0, 1]
+    r_aas = np.corrcoef(aas[0, inner], brain[inner])[0, 1]
+    assert r_obs > 0.9 and r_obs > r_aas
+
+
+def test_run_decoding_custom_windows_time_course(tmp_path):
+    # Confidence is planted at +0.1..0.6 s after the response: a sliding time course finds
+    # it there (Holm across the windows) and not before the response.
+    rng = np.random.default_rng(1)
+    subs = [f"sub-{i:02d}" for i in range(1, 9)]  # 6 would floor Holm p at 0.0625
+    for s in subs:
+        _write_fake_subject(tmp_path, s, rng, effect=1.0)
+    custom = {"pre": ["response", -0.4, -0.3], "early": ["response", 0.0, 0.1],
+              "mid": ["response", 0.2, 0.3], "late": ["response", 0.4, 0.5]}
+    cfg = {"epochs_dir": str(tmp_path), "subjects": subs, "confirmatory_subjects": subs,
+           "conditions": ["active"], "custom_windows": custom, "windows": list(custom),
+           "score_mode": "per_group", "n_perm": 0, "n_perm_transfer": 0, "loso": False,
+           "n_jobs": 1, "holm_by": ["analysis", "target", "condition"],
+           "targets": {"confidence": {"task": "regression"}}}
+    res = e.run_decoding(cfg)
+    assert res["windows"]["mid"] == ("response", 0.2, 0.3)
+    g = res["group"].set_index("window")
+    assert g.loc["mid", "p_holm_by"] < 0.05 and g.loc["late", "p_holm_by"] < 0.05
+    assert g.loc["pre", "p_wilcoxon"] > 0.05
+    assert (g["p_holm_by"] >= g["p_wilcoxon"]).all()

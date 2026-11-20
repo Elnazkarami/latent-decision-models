@@ -76,10 +76,12 @@ def _ds002158_eeg_preprocess(args):
     from .datasets import ds002158_eeg as e
 
     trials = pd.read_csv(args.trials)
-    report = {"band_hz": [args.l_freq, args.h_freq], "subjects": []}
+    report = {"band_hz": [args.l_freq, args.h_freq], "bcg_method": args.bcg_method,
+              "subjects": []}
     for s in args.subjects:
         report["subjects"].append(e.preprocess_subject(args.bids_root, s, trials, args.out_dir,
-                                                       l_freq=args.l_freq, h_freq=args.h_freq))
+                                                       l_freq=args.l_freq, h_freq=args.h_freq,
+                                                       bcg_method=args.bcg_method))
     if args.report:
         Path(args.report).parent.mkdir(parents=True, exist_ok=True)
         Path(args.report).write_text(json.dumps(report, indent=1, default=_json_default) + "\n")
@@ -485,6 +487,9 @@ def main():
     ep.add_argument("--bids-root", required=True)
     ep.add_argument("--trials", required=True, help="trial table from `ldm ds002158 trials`")
     ep.add_argument("--subjects", nargs="+", required=True)
+    ep.add_argument("--bcg-method", choices=["aas", "obs"], default="aas",
+                    help="heartbeat artifact removal: moving-average template (aas, default) "
+                         "or optimal basis set (obs)")
     ep.add_argument("--out-dir", required=True)
     ep.add_argument("--report", help="JSON QC report")
     ep.add_argument("--l-freq", type=float, default=1.0)

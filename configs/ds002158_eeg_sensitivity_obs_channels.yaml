@@ -1,0 +1,27 @@
+# Sensitivity (post hoc): the confirmatory plan on template-subtraction (AAS) epochs, restricted to
+# the 56 channels left by OBS cleaning, to separate a channel-set effect from a BCG-method effect.
+epochs_dir: data/derivatives/ldm-eeg   # override with --epochs-dir
+subjects: [sub-02, sub-04, sub-07, sub-08, sub-09, sub-10, sub-11, sub-12, sub-13, sub-14,
+           sub-15, sub-16, sub-17, sub-18, sub-19, sub-21, sub-22, sub-24, sub-26]
+confirmatory_subjects: [sub-07, sub-08, sub-09, sub-10, sub-11, sub-12, sub-13, sub-14,
+                        sub-15, sub-16, sub-17, sub-18, sub-19, sub-21, sub-22, sub-24, sub-26]
+min_runs: 3       # a subject enters a group test with >= 3 usable runs ...
+min_trials: 40    # ... and >= 40 trials for that condition
+conditions: [active, observed]
+windows: [pre_decision, response_locked, post_decision]
+bin_seconds: 0.05
+score_mode: per_group
+n_perm: 0
+n_perm_transfer: 0
+loso: true
+seed: 0
+n_jobs: 8
+targets:
+  choice_side: {task: classification}          # positive control
+  accuracy: {task: classification}             # secondary
+  confidence: {task: regression, primary: true}  # PRIMARY: 2 conditions x 3 windows, Holm
+  confidence_beyond_behavior:                  # secondary
+    task: regression
+    target: confidence
+    covariates: [accuracy, response_latency_seconds, evidence_dots_difference]
+exclude_channels: [AF7, AF8, Fp1, Fp2, FT10]

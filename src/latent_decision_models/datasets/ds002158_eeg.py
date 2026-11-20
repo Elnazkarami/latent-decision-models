@@ -112,8 +112,14 @@ def _heartbeat_rms(x: np.ndarray, peaks: np.ndarray, sfreq: float) -> float:
 
 
 def clean_run(vhdr: str | Path, l_freq: float = 1.0, h_freq: float = 10.0,
-              n_template: int = 21) -> CleanRun:
-    """Steps 2-5 of the module pipeline for one run (see module docstring)."""
+              n_template: int = 21, bcg_method: str = "aas", obs_n_pc: int = 4) -> CleanRun:
+    """Steps 2-5 of the module pipeline for one run (see module docstring).
+
+    ``bcg_method``: ``"aas"`` (21-beat moving-average template, the default) or ``"obs"``
+    (optimal basis set, mean + ``obs_n_pc`` principal components; Niazy et al. 2005).
+    """
+    if bcg_method not in ("aas", "obs"):
+        raise ValueError(f"unknown bcg_method {bcg_method!r}")
     vhdr = Path(vhdr)
     raw = read_raw(vhdr)
     if raw.info["sfreq"] != SFREQ_RAW:
@@ -150,8 +156,15 @@ def clean_run(vhdr: str | Path, l_freq: float = 1.0, h_freq: float = 10.0,
             hb = {**alt, "channel": FALLBACK_HEART_CHANNEL}
     eeg_idx = [i for i, c in enumerate(names) if c != ECG_CHANNEL]
     qc["bcg_evoked_rms_uv_before"] = _heartbeat_rms(x[eeg_idx], hb["peaks"], sfreq)
-    x[eeg_idx], corrected = eeg_clean.bcg_correct(x[eeg_idx], hb["peaks"], sfreq,
-                                                  hb["median_rr_s"], n_template)
+    var_before = float(x[eeg_idx].var(axis=1).mean())
+    if bcg_method == "aas":
+        x[eeg_idx], corrected = eeg_clean.bcg_correct(x[eeg_idx], hb["peaks"], sfreq,
+                                                      hb["median_rr_s"], n_template)
+    else:
+        x[eeg_idx], corrected = eeg_clean.bcg_correct_obs(x[eeg_idx], hb["peaks"], sfreq,
+                                                          hb["median_rr_s"], obs_n_pc)
+    qc["bcg_method"] = bcg_method
+    qc["bcg_variance_removed_fraction"] = 1 - float(x[eeg_idx].var(axis=1).mean()) / var_before
     qc["heartbeat"] = {k: v for k, v in hb.items() if k != "peaks"}
     qc["heartbeat"]["n_corrected"] = int(corrected.sum())
     qc["bcg_evoked_rms_uv_after"] = _heartbeat_rms(x[eeg_idx], hb["peaks"], sfreq)
@@ -293,18 +306,20 @@ def load_epochs(epochs_dir: str | Path, subject: str) -> tuple[pd.DataFrame, dic
     return t, {k: z[k] for k in z.files}
 
 
-def window_data(ep: dict, window: str) -> tuple[np.ndarray, np.ndarray, float, float]:
-    lock, tmin, tmax = WINDOWS[window]
+def window_data(ep: dict, window: str,
+                windows: dict | None = None) -> tuple[np.ndarray, np.ndarray, float, float]:
+    lock, tmin, tmax = (windows or WINDOWS)[window]
     return ((ep["stim"], ep["stim_times"]) if lock == "stimulus"
             else (ep["resp"], ep["resp_times"])) + (tmin, tmax)
 
 
-def decoding_trials(t: pd.DataFrame, condition: str, window: str) -> np.ndarray:
+def decoding_trials(t: pd.DataFrame, condition: str, window: str,
+                    windows: dict | None = None) -> np.ndarray:
     """Rows used for one analysis: valid, not rejected, the condition, a response marker,
     and (pre-decision) a response at least as late as the window end."""
     m = (t["valid_trial"].astype(bool) & ~t["eeg_rejected"].astype(bool)
          & (t["condition"] == condition) & t["eeg_has_response"].astype(bool))
-    lock, _, tmax = WINDOWS[window]
+    lock, _, tmax = (windows or WINDOWS)[window]
     if lock == "stimulus":
         m &= t["eeg_response_latency_seconds"] >= tmax
     return m.to_numpy()
@@ -321,11 +336,11 @@ def _target(t: pd.DataFrame, name: str) -> np.ndarray:
     return t[col].to_numpy(float)
 
 
-def _analysis_inputs(t, ep, chans, condition, window, spec, bin_s):
+def _analysis_inputs(t, ep, chans, condition, window, spec, bin_s, windows=None):
     from ..eeg_decoding import window_features
 
-    rows = decoding_trials(t, condition, window)
-    data, times, tmin, tmax = window_data(ep, window)
+    rows = decoding_trials(t, condition, window, windows)
+    data, times, tmin, tmax = window_data(ep, window, windows)
     X = window_features(data[rows][:, chans], times, tmin, tmax, bin_s)
     tt = t[rows]
     y = _target(tt, spec.get("target", spec["_name"]))
@@ -341,6 +356,12 @@ def run_decoding(cfg: dict) -> dict:
     without it, pairwise transfer between subjects; ``confirmatory_subjects`` with
     ``min_runs`` / ``min_trials`` for across-subject tests (:func:`eeg_decoding.group_test`),
     Holm-corrected over the targets marked ``primary``.
+
+    ``exclude_channels`` drops further channels for every subject; ``channels`` uses
+    exactly the listed channels (e.g. ``[ECG]`` as a cardiac control). ``custom_windows`` ({name: [lock, tmin, tmax]}, lock "stimulus" or "response") adds
+    analysis windows, e.g. a sliding time course. ``holm_by`` (list of columns, e.g.
+    ``[analysis, target, condition]``) adds ``p_holm_by``: group-test p-values Holm-corrected
+    within each such family (e.g. across the windows of one time course).
     """
     from joblib import Parallel, delayed
 
@@ -354,14 +375,22 @@ def run_decoding(cfg: dict) -> dict:
             raise ValueError("channel lists differ between subjects")
         for b in t["eeg_bad_channels"].dropna():
             bad |= set(filter(None, str(b).split(";")))
-    chans = [i for i, c in enumerate(names) if c != ECG_CHANNEL and c not in bad]
+    bad |= set(cfg.get("exclude_channels", []))  # e.g. to match another channel set
+    if cfg.get("channels"):  # explicit channel list, e.g. [ECG] for a cardiac control
+        chans = [names.index(c) for c in cfg["channels"]]
+    else:
+        chans = [i for i, c in enumerate(names) if c != ECG_CHANNEL and c not in bad]
     bin_s = cfg.get("bin_seconds", 0.05)
+    windows = {**WINDOWS, **{k: tuple(v) for k, v in cfg.get("custom_windows", {}).items()}}
+    for w in cfg["windows"]:
+        if windows[w][0] not in ("stimulus", "response"):
+            raise ValueError(f"window {w}: lock must be 'stimulus' or 'response'")
     mode = cfg.get("score_mode", "pooled")
     seed = cfg.get("seed", 0)
     specs = {k: {**v, "_name": k} for k, v in cfg["targets"].items()}
     cells = [(k, c, w) for k in specs for c in cfg["conditions"] for w in cfg["windows"]]
     inputs = {(s, *cell): _analysis_inputs(*loaded[s], chans, cell[1], cell[2],
-                                           specs[cell[0]], bin_s)
+                                           specs[cell[0]], bin_s, windows)
               for s in cfg["subjects"] for cell in cells}
     n_jobs = cfg.get("n_jobs", 1)
 
@@ -419,8 +448,12 @@ def run_decoding(cfg: dict) -> dict:
     if conf:
         n_trials = within.set_index(["subject", "target", "condition", "window"])["n_trials"]
         n_groups = within.set_index(["subject", "target", "condition", "window"])["n_groups"]
-        for kind, table, subj_col in (("within_subject", within, "subject"),
-                                      ("leave_one_subject_out", cross, "test_subject")):
+        # Pairwise transfer (loso off) has several rows per test subject, so only
+        # leave-one-subject-out results enter subject-level group tests.
+        analyses = [("within_subject", within, "subject")]
+        if cfg.get("loso"):
+            analyses.append(("leave_one_subject_out", cross, "test_subject"))
+        for kind, table, subj_col in analyses:
             if table.empty:
                 continue
             for k, c, w in cells:
@@ -439,7 +472,13 @@ def run_decoding(cfg: dict) -> dict:
             m = (group["analysis"] == kind) & group["primary"] & group["p_wilcoxon"].notna()
             if m.any():
                 group.loc[m, "p_holm_primary"] = holm(group.loc[m, "p_wilcoxon"])
+        if cfg.get("holm_by"):
+            group["p_holm_by"] = np.nan
+            tested = group[group["p_wilcoxon"].notna()]
+            for idx in tested.groupby(cfg["holm_by"]).groups.values():
+                group.loc[idx, "p_holm_by"] = holm(group.loc[idx, "p_wilcoxon"])
     return {"channels_used": [names[i] for i in chans],
-            "excluded_channels": sorted(bad | {ECG_CHANNEL}), "windows": WINDOWS,
+            "excluded_channels": sorted(set(names) - {names[i] for i in chans}),
+            "windows": {w: windows[w] for w in cfg["windows"]},
             "score_mode": mode, "within_subject": within, "cross_subject": cross,
             "group": pd.DataFrame(group)}

@@ -5,6 +5,10 @@ Generic building blocks (NumPy / SciPy; MNE only for heartbeat detection):
 * :func:`template_subtract` - sliding-window average artifact subtraction (AAS; Allen et
   al. 1998, 2000). Used for MR gradient artifacts (one template per volume, locked to
   the volume trigger) and for ballistocardiogram (BCG) artifacts (locked to heartbeats).
+* :func:`obs_subtract` - optimal basis set (OBS; Niazy et al. 2005): each heartbeat
+  segment is fitted with the mean segment plus the first principal components of all
+  segments, and the fit is subtracted. Captures beat-to-beat shape changes that a moving
+  average misses.
 * :func:`causal_bandpass` / :func:`causal_decimate` - one-pass (causal) IIR filtering.
   A zero-phase (two-pass) filter spreads later activity backwards in time, which would
   let post-response signal leak into a "pre-decision" window. With a causal filter,
@@ -150,6 +154,56 @@ def bcg_correct(x: np.ndarray, peaks: np.ndarray, sfreq: float, median_rr_s: flo
     before = round(0.3 * median_rr_s * sfreq)
     after = round(0.7 * median_rr_s * sfreq)
     return template_subtract(x, peaks, before, after, n_template)
+
+
+def _segment_owner(idx, ev, n_samp):
+    owner = np.full(n_samp, -1)
+    dist = np.full(n_samp, np.inf)
+    for i, row in enumerate(idx):
+        d = np.abs(row - ev[i])
+        better = d < dist[row]
+        owner[row[better]] = i
+        dist[row[better]] = d[better]
+    return owner
+
+
+def obs_subtract(x: np.ndarray, onsets: np.ndarray, before: int, after: int,
+                 n_pc: int = 4) -> tuple[np.ndarray, np.ndarray]:
+    """Optimal-basis-set artifact removal (Niazy et al. 2005), per channel.
+
+    Segments ``[onset - before, onset + after)`` are stacked; the basis is the mean segment
+    plus the first ``n_pc`` principal components of the mean-removed segments. Each
+    segment's least-squares fit on that basis is subtracted. Overlapping samples are
+    corrected once, by the nearest event (as in :func:`template_subtract`).
+    """
+    x = np.asarray(x)
+    n_samp = x.shape[1]
+    onsets = np.asarray(onsets, int)
+    ok = (onsets - before >= 0) & (onsets + after <= n_samp)
+    ev = onsets[ok]
+    out = x.astype(np.float32, copy=True)
+    if len(ev) <= n_pc + 1:
+        return out, ok & False
+    idx = ev[:, None] - before + np.arange(before + after)[None, :]
+    owner = _segment_owner(idx, ev, n_samp)
+    mine = owner[idx] == np.arange(len(ev))[:, None]  # (n_ev, length)
+    for ch in range(x.shape[0]):
+        seg = x[ch, idx].astype(np.float64)  # (n_ev, length)
+        mean = seg.mean(axis=0)
+        _, _, vt = np.linalg.svd(seg - mean, full_matrices=False)
+        basis = np.vstack([mean, vt[:n_pc]])  # (n_pc + 1, length)
+        coef, *_ = np.linalg.lstsq(basis.T, seg.T, rcond=None)
+        fit = (basis.T @ coef).T
+        out[ch, idx[mine]] -= fit[mine].astype(np.float32)
+    return out, ok
+
+
+def bcg_correct_obs(x: np.ndarray, peaks: np.ndarray, sfreq: float, median_rr_s: float,
+                    n_pc: int = 4) -> tuple[np.ndarray, np.ndarray]:
+    """BCG removal by OBS, same window as :func:`bcg_correct`."""
+    before = round(0.3 * median_rr_s * sfreq)
+    after = round(0.7 * median_rr_s * sfreq)
+    return obs_subtract(x, peaks, before, after, n_pc)
 
 
 def band_power(x: np.ndarray, sfreq: float, freqs) -> dict:

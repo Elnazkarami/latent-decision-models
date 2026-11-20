@@ -30,6 +30,9 @@ outputs/
 !reports/ds002158-eeg-preprocess.json
 !reports/ds002158-eeg-decoding.json
 !reports/ds002158-eeg-preprocess-all.json
-!reports/ds002158-eeg-decoding-confirmatory.json
+!reports/ds002158-eeg-decoding-confirmatory*.json
+!reports/ds002158-eeg-decoding-sensitivity-*.json
+!reports/ds002158-eeg-preprocess-obs.json
+!reports/ds002158-eeg-timecourse.json
 !reports/confidence_model_recovery*.json
 !reports/two_step_recovery*.json

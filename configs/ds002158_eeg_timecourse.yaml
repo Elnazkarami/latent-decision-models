@@ -1,0 +1,66 @@
+# ds002158 EEG: time-resolved decoding around the response. EXPLORATORY.
+# Written 2026-11-19, after the confirmatory analysis (configs/ds002158_eeg_decoding_confirmatory.yaml)
+# showed confidence in the post-decision window. Question: when, relative to the response,
+# does the confidence signal appear? Not a confirmatory test.
+#
+# 100 ms windows (two 50 ms bins), 50 ms step, response-locked, -0.6 to +1.0 s (the epoch).
+# Filters are causal, so a window ending before the response holds no later activity.
+# Windows before about -0.3 s overlap the stimulus period for fast responses.
+# Same models, per-run scoring and group tests as the confirmatory plan, on the same 17
+# subjects; p-values Holm-corrected across the 31 windows of each time course (holm_by).
+epochs_dir: data/derivatives/ldm-eeg   # override with --epochs-dir
+subjects: [sub-02, sub-04, sub-07, sub-08, sub-09, sub-10, sub-11, sub-12, sub-13, sub-14,
+           sub-15, sub-16, sub-17, sub-18, sub-19, sub-21, sub-22, sub-24, sub-26]
+confirmatory_subjects: [sub-07, sub-08, sub-09, sub-10, sub-11, sub-12, sub-13, sub-14,
+                        sub-15, sub-16, sub-17, sub-18, sub-19, sub-21, sub-22, sub-24, sub-26]
+min_runs: 3
+min_trials: 40
+conditions: [active, observed]
+custom_windows:
+  resp_-0.60: [response, -0.60, -0.50]
+  resp_-0.55: [response, -0.55, -0.45]
+  resp_-0.50: [response, -0.50, -0.40]
+  resp_-0.45: [response, -0.45, -0.35]
+  resp_-0.40: [response, -0.40, -0.30]
+  resp_-0.35: [response, -0.35, -0.25]
+  resp_-0.30: [response, -0.30, -0.20]
+  resp_-0.25: [response, -0.25, -0.15]
+  resp_-0.20: [response, -0.20, -0.10]
+  resp_-0.15: [response, -0.15, -0.05]
+  resp_-0.10: [response, -0.10, 0.00]
+  resp_-0.05: [response, -0.05, 0.05]
+  resp_+0.00: [response, 0.00, 0.10]
+  resp_+0.05: [response, 0.05, 0.15]
+  resp_+0.10: [response, 0.10, 0.20]
+  resp_+0.15: [response, 0.15, 0.25]
+  resp_+0.20: [response, 0.20, 0.30]
+  resp_+0.25: [response, 0.25, 0.35]
+  resp_+0.30: [response, 0.30, 0.40]
+  resp_+0.35: [response, 0.35, 0.45]
+  resp_+0.40: [response, 0.40, 0.50]
+  resp_+0.45: [response, 0.45, 0.55]
+  resp_+0.50: [response, 0.50, 0.60]
+  resp_+0.55: [response, 0.55, 0.65]
+  resp_+0.60: [response, 0.60, 0.70]
+  resp_+0.65: [response, 0.65, 0.75]
+  resp_+0.70: [response, 0.70, 0.80]
+  resp_+0.75: [response, 0.75, 0.85]
+  resp_+0.80: [response, 0.80, 0.90]
+  resp_+0.85: [response, 0.85, 0.95]
+  resp_+0.90: [response, 0.90, 1.00]
+windows: [resp_-0.60, resp_-0.55, resp_-0.50, resp_-0.45, resp_-0.40, resp_-0.35, resp_-0.30, resp_-0.25, resp_-0.20, resp_-0.15, resp_-0.10, resp_-0.05, resp_+0.00, resp_+0.05, resp_+0.10, resp_+0.15, resp_+0.20, resp_+0.25, resp_+0.30, resp_+0.35, resp_+0.40, resp_+0.45, resp_+0.50, resp_+0.55, resp_+0.60, resp_+0.65, resp_+0.70, resp_+0.75, resp_+0.80, resp_+0.85, resp_+0.90]
+bin_seconds: 0.05
+score_mode: per_group
+n_perm: 0
+n_perm_transfer: 0
+loso: true
+seed: 0
+n_jobs: 8
+holm_by: [analysis, target, condition]
+targets:
+  choice_side: {task: classification}          # timing reference (motor)
+  confidence: {task: regression}
+  confidence_beyond_behavior:
+    task: regression
+    target: confidence
+    covariates: [accuracy, response_latency_seconds, evidence_dots_difference]
