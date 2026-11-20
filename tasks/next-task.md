@@ -15,7 +15,7 @@ The misfit is addressed: hybrid + win-stay/lose-shift is best, including on a se
 ## Option B: LDM-003 follow-ups (no approval needed; data already on external storage)
 Done: OBS sensitivity, ECG-only control, exploratory time course, cardiac-timing controls and ICA (see the EEG doc). Heartbeat timing does not explain the effect; ICA finds nothing heartbeat-locked after template subtraction and is inadequate alone. Open:
 1. Done: the planted-signal test shows OBS (4 components) removes about half of a slow response-locked signal; OBS with 1 component restores the cross-subject transfer (r = 0.11), as predicted.
-2. Pre-register an own-vs-observed contrast before testing it.
+2. Done: own-vs-observed cross-condition decoding (plan committed first): no transfer in either direction. Remaining EEG questions need new data (e.g. separating movement from commitment).
 
 ## Option C: LDM-004 continued, ds002158 trial-level fMRI (needs explicit approval)
 Download published derivative images for a 2-subject pilot (6 runs each, about 38 GB; full set 374 GB). Then:

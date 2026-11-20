@@ -36,6 +36,7 @@ bin_seconds: 0.05
 score_mode: per_group
 n_perm: 0
 loso: false
+pairwise_transfer: false   # added after commit 7ede011: computation only (unused output)
 seed: 0
 n_jobs: 8
 targets:

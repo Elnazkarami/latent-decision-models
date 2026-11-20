@@ -559,8 +559,8 @@ def test_cross_condition_decoding_and_contrast(tmp_path):
         np.savez_compressed(only_active / f"{s}_epochs.npz", **z)
     cfg = {"subjects": subs, "confirmatory_subjects": subs, "min_runs": 3, "min_trials": 40,
            "conditions": ["active", "observed"], "windows": ["post_decision"],
-           "score_mode": "per_group", "n_perm": 0, "loso": False, "n_jobs": 1,
-           "cross_condition": [["active", "observed"], ["observed", "active"]],
+           "score_mode": "per_group", "n_perm": 0, "loso": False, "pairwise_transfer": False,
+           "n_jobs": 1, "cross_condition": [["active", "observed"], ["observed", "active"]],
            "condition_contrasts": [["active", "observed"]],
            "targets": {"confidence": {"task": "regression", "primary": True}}}
     shared = e.run_decoding({**cfg, "epochs_dir": str(tmp_path)})
@@ -568,6 +568,7 @@ def test_cross_condition_decoding_and_contrast(tmp_path):
     assert g.loc[("within_subject_cross_condition", "active->observed"), "p_wilcoxon"] < 0.01
     assert g.loc[("within_subject_cross_condition", "observed->active"), "p_wilcoxon"] < 0.01
     assert shared["cross_condition"]["n_trials"].min() == 60
+    assert shared["cross_subject"].empty  # pairwise transfer skipped
     specific = e.run_decoding({**cfg, "epochs_dir": str(only_active)})
     g = specific["group"].set_index(["analysis", "condition"])
     assert g.loc[("within_subject", "active"), "p_wilcoxon"] < 0.01

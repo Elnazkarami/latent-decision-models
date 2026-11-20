@@ -416,7 +416,8 @@ def run_decoding(cfg: dict) -> dict:
 
     Config keys (defaults reproduce the two-subject analysis): ``score_mode`` ("pooled" or
     "per_group"), ``n_perm``; ``loso`` (train on all other subjects, test on each one) or,
-    without it, pairwise transfer between subjects; ``confirmatory_subjects`` with
+    without it, pairwise transfer between subjects (``pairwise_transfer: false`` skips it;
+    it grows with the square of the number of subjects); ``confirmatory_subjects`` with
     ``min_runs`` / ``min_trials`` for across-subject tests (:func:`eeg_decoding.group_test`),
     Holm-corrected over the targets marked ``primary``.
 
@@ -510,7 +511,7 @@ def run_decoding(cfg: dict) -> dict:
     if cfg.get("loso"):
         cross = pd.DataFrame(Parallel(n_jobs=n_jobs)(
             delayed(loso_one)(s, *cell) for s in cfg["subjects"] for cell in cells))
-    elif len(cfg["subjects"]) >= 2:
+    elif cfg.get("pairwise_transfer", True) and len(cfg["subjects"]) >= 2:
         rows = []
         for a in cfg["subjects"]:
             for b in cfg["subjects"]:
