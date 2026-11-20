@@ -194,6 +194,7 @@ Contributor rules are in [`AGENTS.md`](AGENTS.md); the research plan is in [`doc
 
 ## Changelog
 
+- **2026-11-20:** Repository metadata: description and topics, `CITATION.cff`, package keywords, classifiers and project URLs.
 - **2026-11-20:** Planted-signal test of heartbeat-artifact removal (`eeg_clean.planted_signal_retention`, `ldm ds002158 eeg-bcg-retention`) and `eeg-preprocess --obs-n-pc`. On ds002158, OBS with 4 components keeps a median 54% (30–81%) of a slow response-locked signal; template subtraction keeps 96%.
 - **2026-11-20:** EEG cardiac controls: `eeg_clean.ica_remove_cardiac` and `cardiac_trial_features`; `eeg-preprocess --bcg-method` accepts several methods in one pass (`aas`, `obs`, `ica`, `aas_ica`) and writes per-trial heart-period and R-peak-timing columns; new `ldm ds002158 eeg-cardiac`; decoding targets can name any trial column (`column`, `require_columns`). Results for ds002158 in `docs/ds002158-eeg.md`.
 - **2026-11-19:** EEG follow-ups: `eeg_clean.obs_subtract` (optimal-basis-set BCG removal) and `eeg-preprocess --bcg-method obs`; decoding configs accept `custom_windows`, `holm_by`, `channels` and `exclude_channels`; group tests use only leave-one-subject-out results. Time-resolved decoding, OBS sensitivity and an ECG-only control for ds002158.
@@ -233,6 +234,10 @@ Contributor rules are in [`AGENTS.md`](AGENTS.md); the research plan is in [`doc
 - **2026-11-18:** Confidence baselines, second pass: calibration metrics, within-subject run-held-out evaluation, GEE metacognition model (`ldm confidence-baseline` now reports all three); statsmodels added as a core dependency.
 - **2026-11-18:** Audit of ds002158; ds002158 adapter, EEG marker alignment, metadata-only OpenNeuro fetcher; first-pass behavioral confidence baselines.
 - **2026-11-18:** Initial package: package, synthetic generator, validator, subject-disjoint benchmark, CI.
+
+## Citing
+
+Citation metadata are in [`CITATION.cff`](CITATION.cff) (GitHub's "Cite this repository" button uses it). When you use results on a public dataset, also cite the dataset and its original paper (listed under "Datasets").
 
 ## License
 

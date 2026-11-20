@@ -1,0 +1,21 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+title: "latent-decision-models"
+abstract: >-
+  Reproducible Python tools for trial-level modeling of decision confidence and belief
+  updating from behavior, EEG and fMRI, with audited OpenNeuro datasets and
+  subject-disjoint evaluation. Research software in active development.
+type: software
+authors:
+  - alias: Elnazkarami
+version: 0.0.1
+license: MIT
+repository-code: "https://github.com/Elnazkarami/latent-decision-models"
+keywords:
+  - computational neuroscience
+  - decision making
+  - metacognition
+  - confidence
+  - EEG
+  - fMRI
+  - OpenNeuro

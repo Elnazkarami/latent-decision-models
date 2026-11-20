@@ -5,10 +5,22 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "latent-decision-models"
 version = "0.0.1"
-description = "Reproducible tools for computational decision-neuroscience modeling"
+description = "Reproducible tools for trial-level modeling of decision confidence and belief updating from behavior, EEG and fMRI"
 readme = "README.md"
 requires-python = ">=3.10"
 license = {file = "LICENSE"}
+authors = [{name = "Elnazkarami"}]
+keywords = ["computational neuroscience", "decision making", "metacognition", "confidence",
+            "EEG", "fMRI", "EEG-fMRI", "OpenNeuro", "BIDS", "decoding", "reinforcement learning"]
+classifiers = [
+    "Development Status :: 2 - Pre-Alpha",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Topic :: Scientific/Engineering :: Medical Science Apps.",
+    "Topic :: Scientific/Engineering :: Information Analysis",
+]
 dependencies = ["numpy>=1.23", "pandas>=1.5", "scipy>=1.9", "scikit-learn>=1.2", "statsmodels>=0.14", "PyYAML>=6"]
 
 [project.optional-dependencies]
@@ -17,6 +29,11 @@ eeg = ["mne>=1.5", "mne-bids>=0.14"]
 fmri = ["nilearn>=0.10", "nibabel>=5", "pybids>=0.16"]
 deep = ["torch>=2.1"]
 ds007474 = ["mat-io>=1.0.2"]  # reads MATLAB table objects in the OSF timing files (BSD-3)
+
+[project.urls]
+Homepage = "https://github.com/Elnazkarami/latent-decision-models"
+Documentation = "https://github.com/Elnazkarami/latent-decision-models/tree/main/docs"
+Issues = "https://github.com/Elnazkarami/latent-decision-models/issues"
 
 [project.scripts]
 ldm = "latent_decision_models.cli:main"
