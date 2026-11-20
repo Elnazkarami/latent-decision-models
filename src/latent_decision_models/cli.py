@@ -153,6 +153,7 @@ def _ds002158_eeg_decode(args):
            "excluded_channels": res["excluded_channels"], "windows": res["windows"],
            "within_subject": _records(res["within_subject"]),
            "cross_subject": _records(res["cross_subject"]),
+           "cross_condition": _records(res["cross_condition"]),
            "score_mode": res["score_mode"], "group": _records(res["group"])}
     if args.out:
         Path(args.out).parent.mkdir(parents=True, exist_ok=True)

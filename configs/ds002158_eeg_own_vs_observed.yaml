@@ -1,0 +1,47 @@
+# ds002158 EEG: is the post-decision confidence signal specific to one's own decisions?
+# Written 2026-11-20 and committed before this analysis was run. Exploratory: the same 17
+# subjects were already analysed per condition (confirmatory plan), so nothing here is
+# confirmatory.
+#
+# Already known (configs/ds002158_eeg_decoding_confirmatory.yaml): confidence decodes
+# after own decisions (r = 0.16) and only weakly after observed decisions (r = 0.05).
+# Observed trials are replays: the participant watches a virtual hand respond and makes
+# no movement, so the "response" marker is the replayed movement.
+#
+# New question (not yet looked at): does a decoder trained on own decisions predict
+# confidence in observed decisions, and vice versa? Within subject, one run held out at a
+# time (train on condition A outside the run, test on condition B inside it).
+#  * Generalises from own to observed: a shared confidence/evaluation signal.
+#  * Does not: the own-decision signal is tied to the participant's own action
+#    (movement or commitment), or observed confidence is too weakly expressed.
+# Main test: confidence, active->observed, post-decision window, one-sided Wilcoxon
+# (r > 0). Holm over confidence x {active->observed, observed->active} x 3 windows.
+# The paired own - observed contrast of the within-condition scores is reported as
+# descriptive (two-sided), since both scores were already known.
+# choice_side is a control: the replayed movement is visible, so response side should
+# generalise across conditions if the visual/motor representation of the side is shared.
+# Epochs: template subtraction (hb-aas); sensitivity: OBS with 1 component (hb-obs1).
+epochs_dir: data/derivatives/ldm-eeg   # override with --epochs-dir
+subjects: [sub-02, sub-04, sub-07, sub-08, sub-09, sub-10, sub-11, sub-12, sub-13, sub-14,
+           sub-15, sub-16, sub-17, sub-18, sub-19, sub-21, sub-22, sub-24, sub-26]
+confirmatory_subjects: [sub-07, sub-08, sub-09, sub-10, sub-11, sub-12, sub-13, sub-14,
+                        sub-15, sub-16, sub-17, sub-18, sub-19, sub-21, sub-22, sub-24, sub-26]
+min_runs: 3
+min_trials: 40
+conditions: [active, observed]
+windows: [pre_decision, response_locked, post_decision]
+cross_condition: [[active, observed], [observed, active]]
+condition_contrasts: [[active, observed]]
+bin_seconds: 0.05
+score_mode: per_group
+n_perm: 0
+loso: false
+seed: 0
+n_jobs: 8
+targets:
+  choice_side: {task: classification}
+  confidence: {task: regression, primary: true}
+  confidence_beyond_behavior:
+    task: regression
+    target: confidence
+    covariates: [accuracy, response_latency_seconds, evidence_dots_difference]

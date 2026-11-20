@@ -190,3 +190,38 @@ def holm(pvalues) -> np.ndarray:
         running = max(running, (len(p) - rank) * p[i])
         adj[i] = min(1.0, running)
     return adj
+
+
+def cross_decode(X_a, y_a, groups_a, X_b, y_b, groups_b, task: str, cov_a=None, cov_b=None,
+                 score_mode: str = "per_group") -> dict:
+    """Train on condition A, test on condition B, holding out one group (run) at a time.
+
+    For each group ``g`` of B, the model is fitted on A's trials *outside* ``g`` and
+    predicts B's trials in ``g``, so training and test trials never share a run (as in
+    :func:`decode`). Covariates residualise the target with coefficients from the
+    training trials. Scored like :func:`decode`.
+    """
+    Xa, Xb = np.asarray(X_a, float), np.asarray(X_b, float)
+    ya, yb = np.asarray(y_a, float), np.asarray(y_b, float)
+    ga, gb = np.asarray(groups_a), np.asarray(groups_b)
+    pred = np.full(len(yb), np.nan)
+    target = np.full(len(yb), np.nan)
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore", ConvergenceWarning)
+        warnings.simplefilter("ignore", FutureWarning)
+        for g in np.unique(gb):
+            tr, te = ga != g, gb == g
+            y_tr, y_te = ya[tr], yb[te]
+            if cov_a is not None:
+                y_tr, y_te = _residualise(y_tr, y_te, np.asarray(cov_a, float)[tr],
+                                          np.asarray(cov_b, float)[te])
+            if tr.sum() < 10 or (task == "classification" and len(np.unique(y_tr)) < 2):
+                continue
+            m = _model(task).fit(Xa[tr], y_tr)
+            pred[te] = (m.predict_proba(Xb[te])[:, 1] if task == "classification"
+                        else m.predict(Xb[te]))
+            target[te] = y_te
+    ok = ~np.isnan(pred)
+    return {"score": _combined_score(task, target, pred, gb, score_mode),
+            "score_mode": score_mode, "n_trials": int(ok.sum()),
+            "n_groups": len(np.unique(gb[ok])), "n_train_max": len(ya)}

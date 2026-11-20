@@ -424,6 +424,11 @@ def run_decoding(cfg: dict) -> dict:
     (any trial-table column), ``covariates``, ``require_columns`` (drop trials where these
     are missing, e.g. to compare on the same trials as a covariate analysis), ``primary``.
 
+    ``cross_condition`` (list of [train, test] condition pairs) trains on one condition and
+    tests on the other within subject, holding out one run at a time
+    (:func:`eeg_decoding.cross_decode`); ``condition_contrasts`` (list of [a, b]) adds
+    two-sided paired tests of within-subject scores a - b.
+
     ``exclude_channels`` drops further channels for every subject; ``channels`` uses
     exactly the listed channels (e.g. ``[ECG]`` as a cardiac control). ``custom_windows`` ({name: [lock, tmin, tmax]}, lock "stimulus" or "response") adds
     analysis windows, e.g. a sliding time course. ``holm_by`` (list of columns, e.g.
@@ -432,7 +437,7 @@ def run_decoding(cfg: dict) -> dict:
     """
     from joblib import Parallel, delayed
 
-    from ..eeg_decoding import decode, group_test, holm, transfer
+    from ..eeg_decoding import cross_decode, decode, group_test, holm, transfer
 
     loaded = {s: load_epochs(cfg["epochs_dir"], s) for s in cfg["subjects"]}
     names = [str(c) for c in next(iter(loaded.values()))[1]["ch_names"]]
@@ -449,6 +454,11 @@ def run_decoding(cfg: dict) -> dict:
         chans = [i for i, c in enumerate(names) if c != ECG_CHANNEL and c not in bad]
     bin_s = cfg.get("bin_seconds", 0.05)
     windows = {**WINDOWS, **{k: tuple(v) for k, v in cfg.get("custom_windows", {}).items()}}
+    cc_pairs = [tuple(pair) for pair in cfg.get("cross_condition", [])]
+    contrasts = [tuple(pair) for pair in cfg.get("condition_contrasts", [])]
+    for a, b in cc_pairs + contrasts:
+        if a not in cfg["conditions"] or b not in cfg["conditions"]:
+            raise ValueError(f"conditions {a!r}, {b!r} must both be in 'conditions'")
     for w in cfg["windows"]:
         if windows[w][0] not in ("stimulus", "response"):
             raise ValueError(f"window {w}: lock must be 'stimulus' or 'response'")
@@ -474,6 +484,17 @@ def run_decoding(cfg: dict) -> dict:
         m = (within["subject"] == s) & within["primary"] & within["p_value"].notna()
         if m.any():
             within.loc[m, "p_holm_primary"] = holm(within.loc[m, "p_value"])
+
+    def cc_one(s, k, a, b, w):
+        Xa, ya, ga, ca = inputs[(s, k, a, w)]
+        Xb, yb, gb, cb = inputs[(s, k, b, w)]
+        r = cross_decode(Xa, ya, ga, Xb, yb, gb, specs[k]["task"], ca, cb, mode)
+        return {"subject": s, "target": k, "condition": f"{a}->{b}", "train_condition": a,
+                "test_condition": b, "window": w, **r}
+
+    cross_condition = pd.DataFrame(Parallel(n_jobs=n_jobs)(
+        delayed(cc_one)(s, k, a, b, w) for s in cfg["subjects"] for k in specs
+        for a, b in cc_pairs for w in cfg["windows"])) if cc_pairs else pd.DataFrame()
 
     def loso_one(s, k, c, w):
         tr = [inputs[(o, k, c, w)] for o in cfg["subjects"] if o != s]
@@ -517,22 +538,50 @@ def run_decoding(cfg: dict) -> dict:
         n_groups = within.set_index(["subject", "target", "condition", "window"])["n_groups"]
         # Pairwise transfer (loso off) has several rows per test subject, so only
         # leave-one-subject-out results enter subject-level group tests.
-        analyses = [("within_subject", within, "subject")]
+        analyses = [("within_subject", within, "subject", cells)]
         if cfg.get("loso"):
-            analyses.append(("leave_one_subject_out", cross, "test_subject"))
-        for kind, table, subj_col in analyses:
+            analyses.append(("leave_one_subject_out", cross, "test_subject", cells))
+        if cc_pairs:
+            analyses.append(("within_subject_cross_condition", cross_condition, "subject",
+                             [(k, f"{a}->{b}", w) for k in specs for a, b in cc_pairs
+                              for w in cfg["windows"]]))
+
+        def eligible(r, subj_col, k, c, w):
+            key = (getattr(r, subj_col), k, c, w)
+            nt = r.n_trials if "->" in c else n_trials[key]
+            ng = r.n_groups if "->" in c else n_groups[key]
+            return nt >= cfg.get("min_trials", 40) and ng >= cfg.get("min_runs", 3)
+
+        for kind, table, subj_col, kind_cells in analyses:
             if table.empty:
                 continue
-            for k, c, w in cells:
+            for k, c, w in kind_cells:
                 rows = table[(table["target"] == k) & (table["condition"] == c)
                              & (table["window"] == w) & table[subj_col].isin(conf)]
-                elig = [r for r in rows.itertuples()
-                        if n_trials[(getattr(r, subj_col), k, c, w)] >= cfg.get("min_trials", 40)
-                        and n_groups[(getattr(r, subj_col), k, c, w)] >= cfg.get("min_runs", 3)]
+                elig = [r for r in rows.itertuples() if eligible(r, subj_col, k, c, w)]
                 chance = 0.5 if specs[k]["task"] == "classification" else 0.0
                 g = group_test([r.score for r in elig], chance, seed=seed)
                 group.append({"analysis": kind, "target": k, "condition": c, "window": w,
                               "primary": bool(specs[k].get("primary")), "chance": chance, **g})
+        # Paired condition contrasts of within-subject scores (two-sided; descriptive).
+        for a, b in contrasts:
+            for k in specs:
+                for w in cfg["windows"]:
+                    diffs = []
+                    for sj in conf:
+                        ra = within[(within["subject"] == sj) & (within["target"] == k)
+                                    & (within["condition"] == a) & (within["window"] == w)]
+                        rb = within[(within["subject"] == sj) & (within["target"] == k)
+                                    & (within["condition"] == b) & (within["window"] == w)]
+                        if (len(ra) and len(rb)
+                                and all(eligible(r, "subject", k, c, w)
+                                        for r, c in ((next(ra.itertuples()), a),
+                                                     (next(rb.itertuples()), b)))):
+                            diffs.append(ra["score"].iloc[0] - rb["score"].iloc[0])
+                    g = group_test(diffs, 0.0, seed=seed, alternative="two-sided")
+                    group.append({"analysis": "within_subject_contrast", "target": k,
+                                  "condition": f"{a}-{b}", "window": w, "primary": False,
+                                  "chance": 0.0, **g})
         group = pd.DataFrame(group)
         group["p_holm_primary"] = np.nan
         for kind in group["analysis"].unique():
@@ -548,6 +597,7 @@ def run_decoding(cfg: dict) -> dict:
             "excluded_channels": sorted(set(names) - {names[i] for i in chans}),
             "windows": {w: windows[w] for w in cfg["windows"]},
             "score_mode": mode, "within_subject": within, "cross_subject": cross,
+            "cross_condition": cross_condition,
             "group": pd.DataFrame(group)}
 
 

@@ -538,3 +538,39 @@ def test_planted_waveforms_sit_in_the_post_decision_window():
     for w in e.planted_waveforms(sf).values():
         t = np.arange(len(w)) / sf
         assert np.all(w[(t < 0.1) | (t >= 0.6)] == 0) and np.abs(w).max() > 0.9
+
+
+def test_cross_condition_decoding_and_contrast(tmp_path):
+    # Confidence is planted in both conditions in half of the subjects ("shared") and only
+    # in active trials in the other half: cross-condition decoding generalises only where
+    # the signal is shared, and the paired contrast sees active > observed.
+    rng = np.random.default_rng(7)
+    subs = [f"sub-{i:02d}" for i in range(1, 9)]
+    for s in subs:
+        _write_fake_subject(tmp_path, s, rng, effect=1.0)
+    only_active = tmp_path / "only_active"
+    only_active.mkdir()
+    for s in subs:
+        t = pd.read_csv(tmp_path / f"{s}_trials.csv")
+        t.to_csv(only_active / f"{s}_trials.csv", index=False)
+        z = dict(np.load(tmp_path / f"{s}_epochs.npz"))
+        obs = (t["condition"] == "observed").to_numpy()
+        z["resp"][obs, 0] = rng.standard_normal(z["resp"][obs, 0].shape)
+        np.savez_compressed(only_active / f"{s}_epochs.npz", **z)
+    cfg = {"subjects": subs, "confirmatory_subjects": subs, "min_runs": 3, "min_trials": 40,
+           "conditions": ["active", "observed"], "windows": ["post_decision"],
+           "score_mode": "per_group", "n_perm": 0, "loso": False, "n_jobs": 1,
+           "cross_condition": [["active", "observed"], ["observed", "active"]],
+           "condition_contrasts": [["active", "observed"]],
+           "targets": {"confidence": {"task": "regression", "primary": True}}}
+    shared = e.run_decoding({**cfg, "epochs_dir": str(tmp_path)})
+    g = shared["group"].set_index(["analysis", "condition"])
+    assert g.loc[("within_subject_cross_condition", "active->observed"), "p_wilcoxon"] < 0.01
+    assert g.loc[("within_subject_cross_condition", "observed->active"), "p_wilcoxon"] < 0.01
+    assert shared["cross_condition"]["n_trials"].min() == 60
+    specific = e.run_decoding({**cfg, "epochs_dir": str(only_active)})
+    g = specific["group"].set_index(["analysis", "condition"])
+    assert g.loc[("within_subject", "active"), "p_wilcoxon"] < 0.01
+    assert g.loc[("within_subject_cross_condition", "active->observed"), "p_wilcoxon"] > 0.05
+    assert g.loc[("within_subject_contrast", "active-observed"), "mean"] > 0.3
+    assert g.loc[("within_subject_contrast", "active-observed"), "p_wilcoxon"] < 0.05
