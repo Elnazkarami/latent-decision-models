@@ -33,6 +33,7 @@ outputs/
 !reports/ds002158-eeg-decoding-confirmatory*.json
 !reports/ds002158-eeg-decoding-sensitivity-*.json
 !reports/ds002158-eeg-preprocess-obs.json
+!reports/ds002158-eeg-preprocess-obs1.json
 !reports/ds002158-eeg-timecourse.json
 !reports/ds002158-eeg-preprocess-ica.json
 !reports/ds002158-eeg-bcg-retention.json
