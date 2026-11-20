@@ -75,19 +75,46 @@ def _ds002158_fetch_eeg(args):
 def _ds002158_eeg_preprocess(args):
     from .datasets import ds002158_eeg as e
 
+    methods = list(dict.fromkeys(args.bcg_method))
+    if len(methods) > 1 and ("{method}" not in args.out_dir
+                             or (args.report and "{method}" not in args.report)):
+        raise SystemExit("with several --bcg-method values, --out-dir and --report must "
+                         "contain {method}")
     trials = pd.read_csv(args.trials)
-    report = {"band_hz": [args.l_freq, args.h_freq], "bcg_method": args.bcg_method,
-              "subjects": []}
+    reports = {m: {"band_hz": [args.l_freq, args.h_freq], "bcg_method": m, "subjects": []}
+               for m in methods}
     for s in args.subjects:
-        report["subjects"].append(e.preprocess_subject(args.bids_root, s, trials, args.out_dir,
-                                                       l_freq=args.l_freq, h_freq=args.h_freq,
-                                                       bcg_method=args.bcg_method))
+        res = e.preprocess_subject_methods(
+            args.bids_root, s, trials, {m: args.out_dir.format(method=m) for m in methods},
+            l_freq=args.l_freq, h_freq=args.h_freq)
+        for m in methods:
+            reports[m]["subjects"].append(res[m])
     if args.report:
-        Path(args.report).parent.mkdir(parents=True, exist_ok=True)
-        Path(args.report).write_text(json.dumps(report, indent=1, default=_json_default) + "\n")
-    _write_json({"subjects": [{k: r[k] for k in ("subject", "n_eeg_runs", "n_runs_used",
-                                                  "n_epochs", "n_rejected")}
-                              for r in report["subjects"]]})
+        for m, report in reports.items():
+            path = Path(args.report.format(method=m))
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_text(json.dumps(report, indent=1, default=_json_default) + "\n")
+    _write_json({m: [{k: r[k] for k in ("subject", "n_eeg_runs", "n_runs_used", "n_epochs",
+                                        "n_rejected")} for r in report["subjects"]]
+                 for m, report in reports.items()})
+
+
+def _ds002158_eeg_cardiac(args):
+    from .datasets import ds002158_eeg as e
+
+    cfg = yaml.safe_load(Path(args.config).read_text())
+    res = e.cardiac_behavior(args.epochs_dir or cfg["epochs_dir"], cfg["subjects"],
+                             cfg.get("confirmatory_subjects"),
+                             min_trials=cfg.get("min_trials", 40),
+                             min_runs=cfg.get("min_runs", 3), seed=cfg.get("seed", 0))
+    if args.out:
+        Path(args.out).parent.mkdir(parents=True, exist_ok=True)
+        Path(args.out).write_text(json.dumps(
+            {"config": args.config, "per_subject": _records(res["per_subject"]),
+             "group": _records(res["group"])}, indent=1, default=_json_default) + "\n")
+    cols = ["condition", "behavior", "measure", "n_subjects", "mean", "ci95", "p_wilcoxon",
+            "p_holm"]
+    print(res["group"][cols].to_string(index=False))
 
 
 def _ds002158_eeg_decode(args):
@@ -487,9 +514,12 @@ def main():
     ep.add_argument("--bids-root", required=True)
     ep.add_argument("--trials", required=True, help="trial table from `ldm ds002158 trials`")
     ep.add_argument("--subjects", nargs="+", required=True)
-    ep.add_argument("--bcg-method", choices=["aas", "obs"], default="aas",
-                    help="heartbeat artifact removal: moving-average template (aas, default) "
-                         "or optimal basis set (obs)")
+    ep.add_argument("--bcg-method", nargs="+", choices=["aas", "obs", "ica", "aas_ica"],
+                    default=["aas"],
+                    help="heartbeat artifact removal: moving-average template (aas, default), "
+                         "optimal basis set (obs), heartbeat-locked ICA components (ica), or "
+                         "aas followed by ica (aas_ica). Several values share one gradient "
+                         "pass; --out-dir and --report then need a {method} placeholder")
     ep.add_argument("--out-dir", required=True)
     ep.add_argument("--report", help="JSON QC report")
     ep.add_argument("--l-freq", type=float, default=1.0)
@@ -499,6 +529,12 @@ def main():
     ed.add_argument("--config", required=True)
     ed.add_argument("--epochs-dir", help="override the config's epochs_dir (e.g. an external drive)")
     ed.add_argument("--out")
+    ec = dsub.add_parser("eeg-cardiac", help="Within-subject association of per-trial "
+                         "heart period and R-peak timing with confidence and accuracy")
+    ec.add_argument("--config", required=True, help="decoding config (subjects, "
+                    "confirmatory_subjects, min_trials, min_runs)")
+    ec.add_argument("--epochs-dir", help="override the config's epochs_dir")
+    ec.add_argument("--out")
     t = dsub.add_parser("trials", help="Parse events into a validated trial table")
     t.add_argument("--bids-root", required=True)
     t.add_argument("--out", required=True)
@@ -570,7 +606,8 @@ def main():
     elif args.cmd == "ds002158":
         {"fetch-metadata": _ds002158_fetch, "trials": _ds002158_trials,
          "align-eeg": _ds002158_align, "fetch-eeg": _ds002158_fetch_eeg,
-         "eeg-preprocess": _ds002158_eeg_preprocess, "eeg-decode": _ds002158_eeg_decode, "fmri-audit": _ds002158_fmri_audit,
+         "eeg-preprocess": _ds002158_eeg_preprocess, "eeg-decode": _ds002158_eeg_decode,
+         "eeg-cardiac": _ds002158_eeg_cardiac, "fmri-audit": _ds002158_fmri_audit,
          "fmri-design": _ds002158_fmri_design}[args.ds_cmd](args)
 
 

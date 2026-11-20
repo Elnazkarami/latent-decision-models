@@ -9,6 +9,11 @@ Generic building blocks (NumPy / SciPy; MNE only for heartbeat detection):
   segment is fitted with the mean segment plus the first principal components of all
   segments, and the fit is subtracted. Captures beat-to-beat shape changes that a moving
   average misses.
+* :func:`ica_remove_cardiac` - independent component analysis (MNE): components whose
+  phase locks to the heartbeat (cross-trial phase statistics, Dammers et al. 2008) are
+  removed. Can run alone or on the output of AAS, to remove what AAS left behind.
+* :func:`cardiac_trial_features` - per-trial heart periods and R-peak timing around the
+  response, for checking whether cardiac timing could confound a neural effect.
 * :func:`causal_bandpass` / :func:`causal_decimate` - one-pass (causal) IIR filtering.
   A zero-phase (two-pass) filter spreads later activity backwards in time, which would
   let post-response signal leak into a "pre-decision" window. With a causal filter,
@@ -204,6 +209,98 @@ def bcg_correct_obs(x: np.ndarray, peaks: np.ndarray, sfreq: float, median_rr_s:
     before = round(0.3 * median_rr_s * sfreq)
     after = round(0.7 * median_rr_s * sfreq)
     return obs_subtract(x, peaks, before, after, n_pc)
+
+
+def ica_remove_cardiac(x: np.ndarray, peaks: np.ndarray, sfreq: float, median_rr_s: float,
+                       n_components: int = 30, threshold: float = 0.3,
+                       seed: int = 0) -> tuple[np.ndarray, dict]:
+    """Remove heartbeat-locked independent components (MNE ICA, FastICA).
+
+    ICA is fitted on a 1-40 Hz (causal) copy, every second sample; components are scored
+    by cross-trial phase statistics over heartbeat epochs (-0.3 x RR to +0.7 x RR around
+    each R peak, the BCG window) with :meth:`mne.preprocessing.ICA.find_bads_ecg`
+    (``method="ctps"``; MNE's default threshold 0.3). The excluded components are removed from the unfiltered
+    data; all other variance is kept. Uses no trial labels.
+    """
+    import mne
+
+    x = np.asarray(x, np.float32)
+    n_ch, n_samp = x.shape
+    info = mne.create_info([f"e{i}" for i in range(n_ch)] + ["ecg"], sfreq,
+                           ["eeg"] * n_ch + ["ecg"])
+    # The ecg channel only satisfies MNE's channel check; components are scored on the
+    # heartbeat epochs built from ``peaks``, and ICA uses the EEG channels only.
+    fit = np.vstack([causal_bandpass(x, sfreq, 1.0, 40.0), np.zeros((1, n_samp))])
+    raw_fit = mne.io.RawArray(fit.astype(float) * 1e-6, info, verbose="ERROR")
+    ica = mne.preprocessing.ICA(n_components=min(n_components, n_ch - 1), method="fastica",
+                                random_state=seed, max_iter="auto", verbose="ERROR")
+    ica.fit(raw_fit, picks="eeg", decim=2, verbose="ERROR")  # fit on every 2nd sample
+    before = round(0.3 * median_rr_s * sfreq)
+    after = round(0.7 * median_rr_s * sfreq)
+    p = np.asarray(peaks, int)
+    p = p[(p - before >= 0) & (p + after < n_samp)]
+    events = np.column_stack([p, np.zeros_like(p), np.ones_like(p)])
+    ep = mne.Epochs(raw_fit, events, tmin=-before / sfreq, tmax=(after - 1) / sfreq,
+                    baseline=None, preload=True, verbose="ERROR")
+    bads, scores = ica.find_bads_ecg(ep, ch_name="ecg", method="ctps", threshold=threshold,
+                                     verbose="ERROR")
+    raw = mne.io.RawArray(np.vstack([x, np.zeros((1, n_samp))]).astype(float) * 1e-6, info,
+                          verbose="ERROR")
+    ica.apply(raw, exclude=list(bads), verbose="ERROR")
+    out = (raw.get_data(picks="eeg") * 1e6).astype(np.float32)
+    return out, {"n_components": int(ica.n_components_), "excluded": [int(b) for b in bads],
+                 "n_excluded": len(bads),
+                 "ctps_scores": [round(float(v), 3) for v in np.asarray(scores)]}
+
+
+def cardiac_trial_features(peaks: np.ndarray, stim: np.ndarray, resp: np.ndarray,
+                           sfreq: float, tolerance: float = 0.3) -> dict:
+    """Per-trial heart periods and R-peak timing around stimulus and response.
+
+    ``peaks``, ``stim`` and ``resp`` are sample indices at ``sfreq`` (``stim``/``resp`` may be
+    NaN). Inter-beat interval (IBI) ``k`` is ``peaks[k]`` to ``peaks[k + 1]``. An IBI is used
+    only if it lies within ``tolerance`` (30%) of the median IBI; otherwise it is treated
+    as a missed or spurious detection and the feature is NaN. Returned arrays (seconds):
+
+    * ``hb_ibi_base_s`` - the IBI before the one containing the stimulus onset;
+    * ``hb_ibi_resp0_s`` / ``hb_ibi_resp1_s`` / ``hb_ibi_resp2_s`` - the IBI containing the
+      response and the next two;
+    * ``hb_post_response_change_s`` - mean(resp1, resp2) - base (cardiac slowing > 0);
+    * ``hb_prev_rpeak_s`` / ``hb_next_rpeak_s`` - time from the last R peak to the response
+      and from the response to the next R peak (where heartbeat artifacts fall in
+      response-locked windows); NaN unless the containing IBI is plausible.
+    """
+    pk = np.sort(np.asarray(peaks, int))
+    ibi = np.diff(pk) / sfreq
+    med = np.median(ibi) if len(ibi) else np.nan
+    ok = np.abs(ibi - med) <= tolerance * med
+
+    def containing(t):
+        t = np.asarray(t, float)
+        i = np.full(len(t), -1)
+        f = np.isfinite(t)
+        i[f] = np.searchsorted(pk, t[f], side="right") - 1
+        i[~f] = -10**6
+        return i
+
+    def ibi_at(i):
+        out = np.full(len(i), np.nan)
+        v = (i >= 0) & (i < len(ibi))
+        out[v] = np.where(ok[i[v]], ibi[i[v]], np.nan)
+        return out
+
+    i_s, i_r = containing(stim), containing(resp)
+    base = ibi_at(i_s - 1)
+    r0, r1, r2 = ibi_at(i_r), ibi_at(i_r + 1), ibi_at(i_r + 2)
+    resp = np.asarray(resp, float)
+    prev = np.full(len(resp), np.nan)
+    nxt = np.full(len(resp), np.nan)
+    v = np.isfinite(r0)
+    prev[v] = (resp[v] - pk[i_r[v]]) / sfreq
+    nxt[v] = (pk[i_r[v] + 1] - resp[v]) / sfreq
+    return {"hb_ibi_base_s": base, "hb_ibi_resp0_s": r0, "hb_ibi_resp1_s": r1,
+            "hb_ibi_resp2_s": r2, "hb_post_response_change_s": (r1 + r2) / 2 - base,
+            "hb_prev_rpeak_s": prev, "hb_next_rpeak_s": nxt}
 
 
 def band_power(x: np.ndarray, sfreq: float, freqs) -> dict:

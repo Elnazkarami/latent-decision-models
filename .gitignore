@@ -34,5 +34,8 @@ outputs/
 !reports/ds002158-eeg-decoding-sensitivity-*.json
 !reports/ds002158-eeg-preprocess-obs.json
 !reports/ds002158-eeg-timecourse.json
+!reports/ds002158-eeg-preprocess-ica.json
+!reports/ds002158-eeg-cardiac-behavior.json
+!reports/ds002158-eeg-decoding-cardiac-control-*.json
 !reports/confidence_model_recovery*.json
 !reports/two_step_recovery*.json

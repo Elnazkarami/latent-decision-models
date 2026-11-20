@@ -69,6 +69,7 @@ class CleanRun:
     first_sample_raw: int  # raw (5000 Hz) sample of data[:, 0]
     bad_channels: list[str]
     qc: dict = field(default_factory=dict)
+    heartbeat_peaks: np.ndarray | None = None  # R peaks, samples of ``data`` (250 Hz)
 
     def to_clean_sample(self, raw_sample) -> np.ndarray:
         return np.round((np.asarray(raw_sample, float) - self.first_sample_raw)
@@ -111,16 +112,37 @@ def _heartbeat_rms(x: np.ndarray, peaks: np.ndarray, sfreq: float) -> float:
     return float(np.sqrt(np.mean(avg**2)))
 
 
+BCG_METHODS = ("aas", "obs", "ica", "aas_ica")
+
+
 def clean_run(vhdr: str | Path, l_freq: float = 1.0, h_freq: float = 10.0,
               n_template: int = 21, bcg_method: str = "aas", obs_n_pc: int = 4) -> CleanRun:
     """Steps 2-5 of the module pipeline for one run (see module docstring).
 
-    ``bcg_method``: ``"aas"`` (21-beat moving-average template, the default) or ``"obs"``
-    (optimal basis set, mean + ``obs_n_pc`` principal components; Niazy et al. 2005).
+    ``bcg_method``: ``"aas"`` (21-beat moving-average template, the default), ``"obs"``
+    (optimal basis set, mean + ``obs_n_pc`` principal components; Niazy et al. 2005),
+    ``"ica"`` (heartbeat-locked independent components removed) or ``"aas_ica"`` (AAS,
+    then ICA on what AAS left behind).
     """
-    if bcg_method not in ("aas", "obs"):
-        raise ValueError(f"unknown bcg_method {bcg_method!r}")
-    vhdr = Path(vhdr)
+    return clean_run_methods(vhdr, [bcg_method], l_freq, h_freq, n_template,
+                             obs_n_pc)[bcg_method]
+
+
+def clean_run_methods(vhdr: str | Path, bcg_methods, l_freq: float = 1.0,
+                      h_freq: float = 10.0, n_template: int = 21,
+                      obs_n_pc: int = 4) -> dict[str, CleanRun]:
+    """:func:`clean_run` for several BCG methods, sharing the gradient-correction stage."""
+    bad_m = [m for m in bcg_methods if m not in BCG_METHODS]
+    if bad_m:
+        raise ValueError(f"unknown bcg_method {bad_m}; choose from {BCG_METHODS}")
+    x, sfreq, names, s0, qc, hb = _gradient_stage(Path(vhdr), n_template)
+    eeg_idx = [i for i, c in enumerate(names) if c != ECG_CHANNEL]
+    return {m: _bcg_and_filter(x.copy(), sfreq, names, eeg_idx, s0, dict(qc), hb, m,
+                               l_freq, h_freq, n_template, obs_n_pc)
+            for m in bcg_methods}
+
+
+def _gradient_stage(vhdr: Path, n_template: int):
     raw = read_raw(vhdr)
     if raw.info["sfreq"] != SFREQ_RAW:
         raise ValueError(f"{vhdr.name}: expected {SFREQ_RAW} Hz, got {raw.info['sfreq']}")
@@ -154,15 +176,23 @@ def clean_run(vhdr: str | Path, l_freq: float = 1.0, h_freq: float = 10.0,
         alt = eeg_clean.detect_heartbeats(x[names.index(FALLBACK_HEART_CHANNEL)], sfreq)
         if alt["fraction_rr_implausible"] < hb["fraction_rr_implausible"]:
             hb = {**alt, "channel": FALLBACK_HEART_CHANNEL}
-    eeg_idx = [i for i, c in enumerate(names) if c != ECG_CHANNEL]
+    return x, sfreq, names, s0, qc, hb
+
+
+def _bcg_and_filter(x, sfreq, names, eeg_idx, s0, qc, hb, bcg_method, l_freq, h_freq,
+                    n_template, obs_n_pc) -> CleanRun:
     qc["bcg_evoked_rms_uv_before"] = _heartbeat_rms(x[eeg_idx], hb["peaks"], sfreq)
     var_before = float(x[eeg_idx].var(axis=1).mean())
-    if bcg_method == "aas":
+    corrected = np.ones(len(hb["peaks"]), bool)
+    if bcg_method in ("aas", "aas_ica"):
         x[eeg_idx], corrected = eeg_clean.bcg_correct(x[eeg_idx], hb["peaks"], sfreq,
                                                       hb["median_rr_s"], n_template)
-    else:
+    elif bcg_method == "obs":
         x[eeg_idx], corrected = eeg_clean.bcg_correct_obs(x[eeg_idx], hb["peaks"], sfreq,
                                                           hb["median_rr_s"], obs_n_pc)
+    if bcg_method in ("ica", "aas_ica"):
+        x[eeg_idx], qc["ica"] = eeg_clean.ica_remove_cardiac(x[eeg_idx], hb["peaks"], sfreq,
+                                                            hb["median_rr_s"])
     qc["bcg_method"] = bcg_method
     qc["bcg_variance_removed_fraction"] = 1 - float(x[eeg_idx].var(axis=1).mean()) / var_before
     qc["heartbeat"] = {k: v for k, v in hb.items() if k != "peaks"}
@@ -182,7 +212,7 @@ def clean_run(vhdr: str | Path, l_freq: float = 1.0, h_freq: float = 10.0,
     qc.update(bad_channels=bad, band=[l_freq, h_freq], sfreq=sfreq,
               filter="causal Butterworth (one-pass)",
               median_channel_sd_uv=float(np.median(x[good, settle:].std(axis=1))))
-    return CleanRun(x, sfreq, names, s0, bad, qc)
+    return CleanRun(x, sfreq, names, s0, bad, qc, heartbeat_peaks=np.asarray(hb["peaks"]))
 
 
 def epoch(run: CleanRun, raw_samples, tmin: float, tmax: float) -> tuple[np.ndarray, np.ndarray]:
@@ -213,6 +243,13 @@ def run_epochs(run: CleanRun, trials: pd.DataFrame, markers: pd.DataFrame) -> di
         ptp = np.nanmax(np.ptp(stim[:, good], axis=2), axis=1)
     t["eeg_epoch_ptp_uv"] = ptp  # rejection is decided per subject: reject_epochs()
     t["eeg_has_response"] = ~np.isnan(resp_raw)
+    if run.heartbeat_peaks is not None:
+        f = SFREQ_RAW / run.sfreq
+        hb = eeg_clean.cardiac_trial_features(
+            run.heartbeat_peaks, (stim_raw - run.first_sample_raw) / f,
+            (resp_raw - run.first_sample_raw) / f, run.sfreq)
+        for k, v in hb.items():
+            t[k] = v
     return {"trials": t, "stim": stim, "stim_times": st_times, "resp": resp,
             "resp_times": rs_times, "alignment": summary}
 
@@ -233,12 +270,23 @@ def reject_epochs(t: pd.DataFrame, robust_z: float = REJECT_ROBUST_Z,
 
 
 def preprocess_subject(bids_root: str | Path, subject: str, trials: pd.DataFrame,
-                       out_dir: str | Path, **clean_kwargs) -> dict:
+                       out_dir: str | Path, bcg_method: str = "aas", **clean_kwargs) -> dict:
     """Pair, clean and epoch every EEG run of one subject; write epochs and QC.
 
     Writes ``<out_dir>/<subject>_epochs.npz`` (stimulus- and response-locked epochs),
-    ``<subject>_trials.csv`` (one row per epoch, with alignment and rejection columns)
-    and returns a QC dict.
+    ``<subject>_trials.csv`` (one row per epoch, with alignment, rejection and per-trial
+    cardiac columns) and returns a QC dict.
+    """
+    return preprocess_subject_methods(bids_root, subject, trials, {bcg_method: out_dir},
+                                      **clean_kwargs)[bcg_method]
+
+
+def preprocess_subject_methods(bids_root: str | Path, subject: str, trials: pd.DataFrame,
+                               out_dirs: dict, **clean_kwargs) -> dict:
+    """:func:`preprocess_subject` for several BCG methods ({method: out_dir}) in one pass.
+
+    The gradient correction and heartbeat detection run once per EEG run and are shared.
+    Returns {method: QC dict}.
     """
     import re
 
@@ -254,43 +302,49 @@ def preprocess_subject(bids_root: str | Path, subject: str, trials: pd.DataFrame
     markers = {r: read_vmrk(p.with_suffix(".vmrk"), read_vhdr_sampling_rate(p))
                for r, p in vhdrs.items()}
     pairs = pair_runs(markers, sub_trials)
-    parts, stim, resp, runs_qc = [], [], [], []
+    methods = list(out_dirs)
+    acc = {m: {"parts": [], "stim": [], "resp": [], "runs": []} for m in methods}
     for row in pairs.itertuples(index=False):
         rq = {"eeg_run": row.eeg_run, "events_run": row.events_run, "status": row.status}
         if row.events_run is None or row.status != "verified":
-            rq["used"] = False
-            runs_qc.append(rq)
+            for m in methods:
+                acc[m]["runs"].append({**rq, "used": False})
             continue
-        cr = clean_run(vhdrs[row.eeg_run], **clean_kwargs)
-        ep = run_epochs(cr, sub_trials[sub_trials["run"] == row.events_run],
-                        markers[row.eeg_run])
-        t = ep["trials"].assign(eeg_run=row.eeg_run,
-                                eeg_bad_channels=";".join(cr.bad_channels))
-        parts.append(t)
-        stim.append(ep["stim"])
-        resp.append(ep["resp"])
-        rq.update(used=True, **cr.qc, n_trials=len(t))
-        runs_qc.append(rq)
-        del cr
-    if not parts:
+        cleaned = clean_run_methods(vhdrs[row.eeg_run], methods, **clean_kwargs)
+        for m, cr in cleaned.items():
+            ep = run_epochs(cr, sub_trials[sub_trials["run"] == row.events_run],
+                            markers[row.eeg_run])
+            t = ep["trials"].assign(eeg_run=row.eeg_run,
+                                    eeg_bad_channels=";".join(cr.bad_channels))
+            acc[m]["parts"].append(t)
+            acc[m]["stim"].append(ep["stim"])
+            acc[m]["resp"].append(ep["resp"])
+            acc[m]["runs"].append({**rq, "used": True, **cr.qc, "n_trials": len(t)})
+            acc[m]["times"] = (ep["stim_times"], ep["resp_times"])
+        del cleaned
+    if not acc[methods[0]]["parts"]:
         raise ValueError(f"{subject}: no verified EEG run")
-    out = Path(out_dir)
-    out.mkdir(parents=True, exist_ok=True)
-    table = reject_epochs(pd.concat(parts, ignore_index=True))
-    for rq in runs_qc:
-        if rq.get("used"):
-            m = table["eeg_run"] == rq["eeg_run"]
-            rq.update(n_rejected=int(table.loc[m, "eeg_rejected"].sum()),
-                      n_valid_kept=int((table.loc[m, "valid_trial"]
-                                        & ~table.loc[m, "eeg_rejected"]).sum()))
-    table.to_csv(out / f"{subject}_trials.csv", index=False)
-    np.savez_compressed(out / f"{subject}_epochs.npz", stim=np.concatenate(stim),
-                        resp=np.concatenate(resp), stim_times=ep["stim_times"],
-                        resp_times=ep["resp_times"], ch_names=np.array(ep_channel_names(vhdrs)))
-    return {"subject": subject, "n_eeg_runs": len(vhdrs),
-            "n_runs_used": int(sum(r["used"] for r in runs_qc)),
-            "n_epochs": len(table), "n_rejected": int(table["eeg_rejected"].sum()),
-            "runs": runs_qc, "pairing": pairs.to_dict(orient="records")}
+    ch_names = np.array(ep_channel_names(vhdrs))
+    result = {}
+    for m, a in acc.items():
+        out = Path(out_dirs[m])
+        out.mkdir(parents=True, exist_ok=True)
+        table = reject_epochs(pd.concat(a["parts"], ignore_index=True))
+        for rq in a["runs"]:
+            if rq.get("used"):
+                sel = table["eeg_run"] == rq["eeg_run"]
+                rq.update(n_rejected=int(table.loc[sel, "eeg_rejected"].sum()),
+                          n_valid_kept=int((table.loc[sel, "valid_trial"]
+                                            & ~table.loc[sel, "eeg_rejected"]).sum()))
+        table.to_csv(out / f"{subject}_trials.csv", index=False)
+        np.savez_compressed(out / f"{subject}_epochs.npz", stim=np.concatenate(a["stim"]),
+                            resp=np.concatenate(a["resp"]), stim_times=a["times"][0],
+                            resp_times=a["times"][1], ch_names=ch_names)
+        result[m] = {"subject": subject, "bcg_method": m, "n_eeg_runs": len(vhdrs),
+                     "n_runs_used": int(sum(r["used"] for r in a["runs"])),
+                     "n_epochs": len(table), "n_rejected": int(table["eeg_rejected"].sum()),
+                     "runs": a["runs"], "pairing": pairs.to_dict(orient="records")}
+    return result
 
 
 def ep_channel_names(vhdrs: dict) -> list[str]:
@@ -329,21 +383,29 @@ TARGET_COLUMNS = {"choice_side": "choice_side", "accuracy": "accuracy",
                   "confidence": "confidence_raw"}
 
 
-def _target(t: pd.DataFrame, name: str) -> np.ndarray:
-    col = TARGET_COLUMNS[name]
+def _target(t: pd.DataFrame, spec: dict) -> np.ndarray:
+    name = spec.get("target", spec["_name"])
+    if spec.get("column"):  # any trial-table column, e.g. a cardiac timing variable
+        return t[spec["column"]].to_numpy(float)
     if name == "choice_side":
-        return (t[col] == "right").to_numpy(float)
-    return t[col].to_numpy(float)
+        return (t[TARGET_COLUMNS[name]] == "right").to_numpy(float)
+    return t[TARGET_COLUMNS[name]].to_numpy(float)
 
 
 def _analysis_inputs(t, ep, chans, condition, window, spec, bin_s, windows=None):
     from ..eeg_decoding import window_features
 
     rows = decoding_trials(t, condition, window, windows)
+    # Trials missing the target column, a covariate or a required column are dropped
+    # (e.g. cardiac features are NaN where a heartbeat interval was implausible).
+    need = (list(spec.get("covariates", [])) + list(spec.get("require_columns", []))
+            + ([spec["column"]] if spec.get("column") else []))
+    if need:
+        rows = rows & t[need].notna().all(axis=1).to_numpy()
     data, times, tmin, tmax = window_data(ep, window, windows)
     X = window_features(data[rows][:, chans], times, tmin, tmax, bin_s)
     tt = t[rows]
-    y = _target(tt, spec.get("target", spec["_name"]))
+    y = _target(tt, spec)
     cov = (tt[spec["covariates"]].to_numpy(float) if spec.get("covariates") else None)
     return X, y, tt["run"].to_numpy(), cov
 
@@ -356,6 +418,10 @@ def run_decoding(cfg: dict) -> dict:
     without it, pairwise transfer between subjects; ``confirmatory_subjects`` with
     ``min_runs`` / ``min_trials`` for across-subject tests (:func:`eeg_decoding.group_test`),
     Holm-corrected over the targets marked ``primary``.
+
+    Target spec keys: ``task``, ``target`` (a name in ``TARGET_COLUMNS``) or ``column``
+    (any trial-table column), ``covariates``, ``require_columns`` (drop trials where these
+    are missing, e.g. to compare on the same trials as a covariate analysis), ``primary``.
 
     ``exclude_channels`` drops further channels for every subject; ``channels`` uses
     exactly the listed channels (e.g. ``[ECG]`` as a cardiac control). ``custom_windows`` ({name: [lock, tmin, tmax]}, lock "stimulus" or "response") adds
@@ -482,3 +548,56 @@ def run_decoding(cfg: dict) -> dict:
             "windows": {w: windows[w] for w in cfg["windows"]},
             "score_mode": mode, "within_subject": within, "cross_subject": cross,
             "group": pd.DataFrame(group)}
+
+
+CARDIAC_MEASURES = ("hb_post_response_change_s", "hb_ibi_resp1_s", "hb_prev_rpeak_s",
+                    "hb_next_rpeak_s")
+
+
+def cardiac_behavior(epochs_dir: str | Path, subjects, confirmatory_subjects=None,
+                     conditions=("active", "observed"), behaviors=("confidence", "accuracy"),
+                     measures=CARDIAC_MEASURES, min_trials: int = 40, min_runs: int = 3,
+                     seed: int = 0) -> dict:
+    """Within-subject association of per-trial cardiac measures with behaviour.
+
+    Per subject and condition: valid trials with a response marker and a finite measure
+    (EEG epoch rejection is not applied; the heartbeat does not depend on it). Run means
+    are removed from both variables (confidence drifts across runs), then Spearman's r.
+    Across the confirmatory subjects with >= ``min_trials`` trials in >= ``min_runs``
+    runs: two-sided Wilcoxon of r against 0, with a bootstrap CI, Holm-corrected over
+    all cells. Returns {"per_subject": DataFrame, "group": DataFrame}.
+    """
+    from scipy.stats import spearmanr
+
+    from ..eeg_decoding import group_test, holm
+
+    cols = {"confidence": "confidence_raw", "accuracy": "accuracy"}
+    rows = []
+    for s in subjects:
+        t = pd.read_csv(Path(epochs_dir, f"{s}_trials.csv"))
+        base = t["valid_trial"].astype(bool) & t["eeg_has_response"].astype(bool)
+        for c in conditions:
+            for b in behaviors:
+                for m in measures:
+                    tt = t[base & (t["condition"] == c)
+                           & t[m].notna() & t[cols[b]].notna()]
+                    y = tt[m] - tt.groupby("run")[m].transform("mean")
+                    x = tt[cols[b]] - tt.groupby("run")[cols[b]].transform("mean")
+                    ok = len(tt) >= 3 and x.std() > 0 and y.std() > 0
+                    rows.append({"subject": s, "condition": c, "behavior": b, "measure": m,
+                                 "n_trials": len(tt), "n_runs": tt["run"].nunique(),
+                                 "r": float(spearmanr(x, y)[0]) if ok else np.nan})
+    per = pd.DataFrame(rows)
+    conf = set(confirmatory_subjects or subjects)
+    elig = per[per["subject"].isin(conf) & (per["n_trials"] >= min_trials)
+               & (per["n_runs"] >= min_runs)]
+    group = []
+    for (c, b, m), g in elig.groupby(["condition", "behavior", "measure"], sort=False):
+        group.append({"condition": c, "behavior": b, "measure": m,
+                      **group_test(g["r"], 0.0, seed=seed, alternative="two-sided")})
+    group = pd.DataFrame(group)
+    if not group.empty:
+        group["p_holm"] = np.nan
+        tested = group["p_wilcoxon"].notna()
+        group.loc[tested, "p_holm"] = holm(group.loc[tested, "p_wilcoxon"])
+    return {"per_subject": per, "group": group}

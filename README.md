@@ -109,7 +109,7 @@ ldm ds002158 align-eeg --events <..._events.tsv> --vmrk <..._eeg.vmrk>
 | `datasets.ds007474` | ds007474 adapter: OSF behavior CSV to trial table, OSF-to-BIDS subject mapping, event timing from the `.mat` files cross-checked against the behavior |
 | `datasets.ds002158_fmri` | ds002158 fMRI raw/derivative inventory, header audit and realignment-parameter (FD) summary |
 | `datasets.ds002158_eeg` | ds002158 raw EEG: run pairing by marker timing, in-scanner cleaning pipeline, stimulus- and response-locked epochs, analysis windows, decoding runner |
-| `eeg_clean` | Sliding-window template subtraction (MR gradient, BCG), optimal-basis-set (OBS) BCG removal, heartbeat detection (MNE), causal band-pass and decimation |
+| `eeg_clean` | Sliding-window template subtraction (MR gradient, BCG), optimal-basis-set (OBS) and ICA-based BCG removal, heartbeat detection (MNE), per-trial heart period and R-peak timing, causal band-pass and decimation |
 | `eeg_decoding` | Binned window features; leave-one-run-out and cross-subject decoding (logistic / ridge, regularisation tuned inside training folds), training-fold-only residualisation on covariates, within-run permutation tests, Holm correction |
 | `fmri_design` | Design diagnostics from event timing (nilearn): single-trial VIF under LSA/LSS, neighbouring-trial correlation, separability of stimulus / response / post-decision regressors |
 | `io.nifti` | NIfTI-1 header summary from a byte prefix (nibabel) |
@@ -145,7 +145,7 @@ Details and evidence: [audit](docs/ds002158-audit.md) · [EEG](docs/ds002158-eeg
   - **Positive control passes in 17/17 new subjects:** response side decodes at the response (AUC 0.73) and after it (0.93), also in left-out subjects (0.69 / 0.82), and is at chance before the decision.
   - **Confidence (pre-registered on the 17 new subjects):** decodable from EEG 0.1–0.6 s after one's own response: r = 0.16 within subject (16/17 subjects > 0, Holm p = 0.0009) and r = 0.10 in left-out subjects (Holm p = 0.005). Not before the decision; not reliably for observed decisions (Holm p = 0.18).
   - **Mostly shared with behavior:** after removing what accuracy, response latency and evidence explain, r = 0.08 within subject (uncorrected p = 0.013) and ≈ 0 across subjects. This is a post-decision signal, not a prospective prediction.
-  - **Robustness (post hoc):** the within-subject effect survives a different heartbeat-artifact method (OBS: r = 0.12, Holm p = 0.028); the transfer to new subjects does not (r = 0.04, Holm p = 0.36), so the cross-subject result is method-dependent. A time course (exploratory) places the signal from ~0.2 to ~0.6 s after the response, with nothing before it.
+  - **Robustness (post hoc):** the within-subject effect survives a different heartbeat-artifact method (OBS: r = 0.12, Holm p = 0.028); the transfer to new subjects does not (r = 0.04, Holm p = 0.36), so the cross-subject result is method-dependent. Heartbeat timing does not explain the effect: it is unrelated to confidence, regressing it out leaves the decoding unchanged (r = 0.16 within subject, Holm p = 0.005), and after template subtraction ICA finds no heartbeat-locked component left. A time course (exploratory) places the signal from ~0.2 to ~0.6 s after the response, with nothing before it.
 - **fMRI derivative:** it is SPM DARTEL-normalised to MNI-152, 1.5 mm isotropic and 5 mm FWHM smoothed; the image headers say so, although the dataset docs do not.
   - Its headers store TR = 0; use 1.28 s.
   - sub-20 run-007's derivative was moved to a `reject/` folder, but its raw data and behavior were not.
@@ -194,6 +194,7 @@ Contributor rules are in [`AGENTS.md`](AGENTS.md); the research plan is in [`doc
 
 ## Changelog
 
+- **2026-11-20:** EEG cardiac controls: `eeg_clean.ica_remove_cardiac` and `cardiac_trial_features`; `eeg-preprocess --bcg-method` accepts several methods in one pass (`aas`, `obs`, `ica`, `aas_ica`) and writes per-trial heart-period and R-peak-timing columns; new `ldm ds002158 eeg-cardiac`; decoding targets can name any trial column (`column`, `require_columns`). Results for ds002158 in `docs/ds002158-eeg.md`.
 - **2026-11-19:** EEG follow-ups: `eeg_clean.obs_subtract` (optimal-basis-set BCG removal) and `eeg-preprocess --bcg-method obs`; decoding configs accept `custom_windows`, `holm_by`, `channels` and `exclude_channels`; group tests use only leave-one-subject-out results. Time-resolved decoding, OBS sensitivity and an ECG-only control for ds002158.
 - **2026-11-19:** ds002158 EEG, confirmatory analysis on 17 new subjects (pre-registered plan `configs/ds002158_eeg_decoding_confirmatory.yaml`): per-run scoring, group Wilcoxon tests, leave-one-subject-out decoding. Volume grid cropped on the modal trigger phase.
 - **2026-11-19:** ds002158 EEG (two subjects):

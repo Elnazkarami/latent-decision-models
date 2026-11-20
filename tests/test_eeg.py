@@ -395,3 +395,115 @@ def test_run_decoding_custom_windows_time_course(tmp_path):
     assert g.loc["mid", "p_holm_by"] < 0.05 and g.loc["late", "p_holm_by"] < 0.05
     assert g.loc["pre", "p_wilcoxon"] > 0.05
     assert (g["p_holm_by"] >= g["p_wilcoxon"]).all()
+
+
+def test_cardiac_trial_features_known_answers():
+    sf = 100.0
+    peaks = np.array([0, 100, 200, 300, 400, 500, 600, 700])  # 1.0 s beats
+    peaks[5:] += 20  # IBI 4 -> 1.2 s (plausible), later beats shifted
+    stim = np.array([150.0, 150.0, np.nan])
+    resp = np.array([330.0, 330.0, 330.0])
+    f = eeg_clean.cardiac_trial_features(peaks, stim, resp, sf)
+    assert f["hb_ibi_base_s"][0] == pytest.approx(1.0)       # 0-100, before the stim IBI
+    assert f["hb_ibi_resp0_s"][0] == pytest.approx(1.0)      # 300-400 contains 330
+    assert f["hb_ibi_resp1_s"][0] == pytest.approx(1.2)      # 400-520
+    assert f["hb_ibi_resp2_s"][0] == pytest.approx(1.0)      # 520-620
+    assert f["hb_post_response_change_s"][0] == pytest.approx(0.1)
+    assert f["hb_prev_rpeak_s"][0] == pytest.approx(0.3)
+    assert f["hb_next_rpeak_s"][0] == pytest.approx(0.7)
+    assert np.isnan(f["hb_ibi_base_s"][2]) and np.isnan(f["hb_post_response_change_s"][2])
+    # A missed beat (2 s interval) makes every feature that uses it NaN.
+    gap = np.array([0, 100, 200, 300, 500, 600, 700, 800])
+    g = eeg_clean.cardiac_trial_features(gap, np.array([150.0]), np.array([330.0]), sf)
+    assert np.isnan(g["hb_ibi_resp0_s"][0]) and np.isnan(g["hb_next_rpeak_s"][0])
+    assert g["hb_ibi_base_s"][0] == pytest.approx(1.0)
+
+
+def test_ica_removes_heartbeat_component_and_keeps_other_sources():
+    pytest.importorskip("mne")
+    rng = np.random.default_rng(3)
+    fs, n, n_ch = 250.0, 40_000, 8
+    peaks = 100 + np.cumsum(rng.integers(190, 211, 200))
+    peaks = peaks[peaks < n - 300]
+    art = np.zeros(n)
+    for p in peaks:
+        art[p - 30:p + 70] += np.hanning(100) * 30
+    sources = eeg_clean.causal_bandpass(rng.laplace(size=(n_ch - 1, n)) * 5, fs, 1.0, 30.0)
+    mixing = rng.standard_normal((n_ch, n_ch - 1))
+    brain = mixing @ sources
+    x = brain + rng.standard_normal(n_ch)[:, None] * art[None]
+    out, info = eeg_clean.ica_remove_cardiac(x, peaks, fs, 0.8, n_components=n_ch - 1)
+    inner = slice(2000, n - 2000)
+    err_before = np.sqrt(np.mean((x - brain)[:, inner] ** 2))
+    err_after = np.sqrt(np.mean((out - brain)[:, inner] ** 2))
+    assert 1 <= info["n_excluded"] <= 2
+    assert err_after < 0.25 * err_before
+    assert np.corrcoef(out[:, inner].ravel(), brain[:, inner].ravel())[0, 1] > 0.95
+
+
+def test_run_decoding_column_target_drops_missing_rows(tmp_path):
+    rng = np.random.default_rng(2)
+    subs = [f"sub-{i:02d}" for i in range(1, 7)]
+    for s in subs:
+        _write_fake_subject(tmp_path, s, rng, effect=1.0)
+        t = pd.read_csv(tmp_path / f"{s}_trials.csv")
+        t["hb_next_rpeak_s"] = np.where(np.arange(len(t)) % 3 == 0, np.nan, rng.random(len(t)))
+        t.to_csv(tmp_path / f"{s}_trials.csv", index=False)
+    cfg = {"epochs_dir": str(tmp_path), "subjects": subs, "conditions": ["active"],
+           "windows": ["post_decision"], "score_mode": "per_group", "n_perm": 0,
+           "loso": False, "n_jobs": 1,
+           "targets": {"rpeak": {"task": "regression", "column": "hb_next_rpeak_s"},
+                       "confidence": {"task": "regression"},
+                       "confidence_same_trials": {"task": "regression", "target": "confidence",
+                                                  "require_columns": ["hb_next_rpeak_s"]},
+                       "confidence_beyond_rpeak": {"task": "regression", "target": "confidence",
+                                                   "covariates": ["hb_next_rpeak_s"]}}}
+    w = e.run_decoding(cfg)["within_subject"].set_index(["subject", "target"])
+    n = w["n_trials"].xs("sub-01")
+    assert n["confidence"] == 60
+    assert n["rpeak"] == n["confidence_same_trials"] == n["confidence_beyond_rpeak"] == 40  # 20 of 60 NaN
+    assert w["score"].xs("confidence_beyond_rpeak", level="target").mean() > 0.3
+
+
+def test_cardiac_behavior_finds_planted_association_and_ignores_run_drift(tmp_path):
+    rng = np.random.default_rng(4)
+    subs = [f"sub-{i:02d}" for i in range(1, 11)]
+    for s in subs:
+        n = 160
+        run = np.repeat([f"run-00{i}" for i in range(1, 5)], n // 4)
+        drift = np.repeat(np.arange(4), n // 4) * 0.5  # shared run drift: not an effect
+        conf = rng.random(n) + drift
+        cond = np.tile(["active", "observed"], n // 2)
+        change = rng.standard_normal(n) * 0.02 + drift * 0.05
+        change += np.where(cond == "active", 0.03 * (conf - drift - 0.5), 0.0)
+        pd.DataFrame({"run": run, "condition": cond, "valid_trial": True,
+                      "eeg_has_response": True, "confidence_raw": conf,
+                      "accuracy": rng.integers(0, 2, n),
+                      "hb_post_response_change_s": change}).to_csv(
+            tmp_path / f"{s}_trials.csv", index=False)
+    res = e.cardiac_behavior(tmp_path, subs, measures=("hb_post_response_change_s",))
+    g = res["group"].set_index(["condition", "behavior"])
+    assert g.loc[("active", "confidence"), "p_holm"] < 0.01
+    assert g.loc[("active", "confidence"), "mean"] > 0.2
+    assert g.loc[("observed", "confidence"), "p_wilcoxon"] > 0.05  # drift alone: no effect
+    assert abs(g.loc[("observed", "confidence"), "mean"]) < 0.1
+
+
+def test_group_test_two_sided():
+    neg = [-0.2, -0.1, -0.3, -0.15, -0.25, -0.05]
+    assert eeg_decoding.group_test(neg, 0.0)["p_wilcoxon"] > 0.9
+    assert eeg_decoding.group_test(neg, 0.0, alternative="two-sided")["p_wilcoxon"] < 0.05
+
+
+def test_cli_several_bcg_methods_need_a_method_placeholder(tmp_path, monkeypatch):
+    import sys
+
+    from latent_decision_models import cli
+
+    pd.DataFrame({"subject": []}).to_csv(tmp_path / "t.csv", index=False)
+    monkeypatch.setattr(sys, "argv", [
+        "ldm", "ds002158", "eeg-preprocess", "--bids-root", str(tmp_path), "--trials",
+        str(tmp_path / "t.csv"), "--subjects", "sub-01", "--bcg-method", "aas", "obs",
+        "--out-dir", str(tmp_path / "out")])
+    with pytest.raises(SystemExit, match="method"):
+        cli.main()

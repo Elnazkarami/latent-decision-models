@@ -159,11 +159,12 @@ def transfer(X_train, y_train, X_test, y_test, task: str, cov_train=None, cov_te
             "p_value": float((1 + np.sum(null >= obs)) / (1 + n_perm)) if n_perm else None}
 
 
-def group_test(scores, chance: float, n_boot: int = 10_000, seed: int = 0) -> dict:
+def group_test(scores, chance: float, n_boot: int = 10_000, seed: int = 0,
+               alternative: str = "greater") -> dict:
     """Across-subject test of per-subject scores against chance.
 
-    One-sided Wilcoxon signed-rank (scores > chance), mean with a subject-bootstrap 95% CI,
-    and the number of subjects above chance.
+    Wilcoxon signed-rank (one-sided, scores > chance, by default; ``alternative`` as in
+    SciPy), mean with a subject-bootstrap 95% CI, and the number of subjects above chance.
     """
     from scipy.stats import wilcoxon
 
@@ -176,7 +177,7 @@ def group_test(scores, chance: float, n_boot: int = 10_000, seed: int = 0) -> di
     return {"n_subjects": len(x), "mean": float(x.mean()), "median": float(np.median(x)),
             "ci95": [float(np.percentile(boots, 2.5)), float(np.percentile(boots, 97.5))],
             "n_above_chance": int((x > chance).sum()),
-            "p_wilcoxon": float(wilcoxon(x - chance, alternative="greater").pvalue)}
+            "p_wilcoxon": float(wilcoxon(x - chance, alternative=alternative).pvalue)}
 
 
 def holm(pvalues) -> np.ndarray:
