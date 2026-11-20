@@ -81,12 +81,13 @@ def _ds002158_eeg_preprocess(args):
         raise SystemExit("with several --bcg-method values, --out-dir and --report must "
                          "contain {method}")
     trials = pd.read_csv(args.trials)
-    reports = {m: {"band_hz": [args.l_freq, args.h_freq], "bcg_method": m, "subjects": []}
+    reports = {m: {"band_hz": [args.l_freq, args.h_freq], "bcg_method": m,
+                   **({"obs_n_pc": args.obs_n_pc} if m == "obs" else {}), "subjects": []}
                for m in methods}
     for s in args.subjects:
         res = e.preprocess_subject_methods(
             args.bids_root, s, trials, {m: args.out_dir.format(method=m) for m in methods},
-            l_freq=args.l_freq, h_freq=args.h_freq)
+            l_freq=args.l_freq, h_freq=args.h_freq, obs_n_pc=args.obs_n_pc)
         for m in methods:
             reports[m]["subjects"].append(res[m])
     if args.report:
@@ -97,6 +98,30 @@ def _ds002158_eeg_preprocess(args):
     _write_json({m: [{k: r[k] for k in ("subject", "n_eeg_runs", "n_runs_used", "n_epochs",
                                         "n_rejected")} for r in report["subjects"]]
                  for m, report in reports.items()})
+
+
+def _ds002158_eeg_bcg_retention(args):
+    from .datasets import ds002158_eeg as e
+
+    rows = []
+    for s in args.subjects:
+        rows += e.bcg_retention_subject(args.bids_root, s, args.epochs_dir,
+                                        amplitude_uv=args.amplitude_uv, seed=args.seed)
+    per_run = pd.DataFrame(rows)
+    per_subject = (per_run.groupby(["subject", "waveform", "method"], sort=False)
+                   [["gain", "trial_r"]].mean().reset_index())
+    summary = (per_subject.groupby(["waveform", "method"], sort=False)
+               .agg(n_subjects=("subject", "nunique"), gain_median=("gain", "median"),
+                    gain_min=("gain", "min"), gain_max=("gain", "max"),
+                    trial_r_median=("trial_r", "median"), trial_r_min=("trial_r", "min"))
+               .reset_index())
+    if args.out:
+        Path(args.out).parent.mkdir(parents=True, exist_ok=True)
+        Path(args.out).write_text(json.dumps(
+            {"amplitude_uv": args.amplitude_uv, "seed": args.seed,
+             "summary": _records(summary), "per_subject": _records(per_subject),
+             "per_run": _records(per_run)}, indent=1, default=_json_default) + "\n")
+    print(summary.round(3).to_string(index=False))
 
 
 def _ds002158_eeg_cardiac(args):
@@ -520,6 +545,8 @@ def main():
                          "optimal basis set (obs), heartbeat-locked ICA components (ica), or "
                          "aas followed by ica (aas_ica). Several values share one gradient "
                          "pass; --out-dir and --report then need a {method} placeholder")
+    ep.add_argument("--obs-n-pc", type=int, default=4,
+                    help="principal components per heartbeat for obs (default 4, Niazy 2005)")
     ep.add_argument("--out-dir", required=True)
     ep.add_argument("--report", help="JSON QC report")
     ep.add_argument("--l-freq", type=float, default=1.0)
@@ -529,6 +556,16 @@ def main():
     ed.add_argument("--config", required=True)
     ed.add_argument("--epochs-dir", help="override the config's epochs_dir (e.g. an external drive)")
     ed.add_argument("--out")
+    eb = dsub.add_parser("eeg-bcg-retention", help="Plant a response-locked signal in real "
+                         "gradient-corrected EEG and measure how much each heartbeat-artifact "
+                         "method keeps")
+    eb.add_argument("--bids-root", required=True)
+    eb.add_argument("--epochs-dir", required=True, help="preprocessed trial tables (response "
+                    "times and the runs used)")
+    eb.add_argument("--subjects", nargs="+", required=True)
+    eb.add_argument("--amplitude-uv", type=float, default=2.0)
+    eb.add_argument("--seed", type=int, default=0)
+    eb.add_argument("--out")
     ec = dsub.add_parser("eeg-cardiac", help="Within-subject association of per-trial "
                          "heart period and R-peak timing with confidence and accuracy")
     ec.add_argument("--config", required=True, help="decoding config (subjects, "
@@ -607,7 +644,7 @@ def main():
         {"fetch-metadata": _ds002158_fetch, "trials": _ds002158_trials,
          "align-eeg": _ds002158_align, "fetch-eeg": _ds002158_fetch_eeg,
          "eeg-preprocess": _ds002158_eeg_preprocess, "eeg-decode": _ds002158_eeg_decode,
-         "eeg-cardiac": _ds002158_eeg_cardiac, "fmri-audit": _ds002158_fmri_audit,
+         "eeg-cardiac": _ds002158_eeg_cardiac, "eeg-bcg-retention": _ds002158_eeg_bcg_retention, "fmri-audit": _ds002158_fmri_audit,
          "fmri-design": _ds002158_fmri_design}[args.ds_cmd](args)
 
 

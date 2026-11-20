@@ -307,3 +307,45 @@ def band_power(x: np.ndarray, sfreq: float, freqs) -> dict:
     """Median-over-channels Welch power (uV^2/Hz) at the given frequencies (QC)."""
     f, p = welch(x, sfreq, nperseg=int(min(x.shape[1], 4 * sfreq)))
     return {float(hz): float(np.median(p[:, np.argmin(np.abs(f - hz))])) for hz in freqs}
+
+
+def planted_signal_retention(x: np.ndarray, clean, onsets: np.ndarray, waveform: np.ndarray,
+                             pattern: np.ndarray, amplitudes: np.ndarray, sfreq: float,
+                             band: tuple = (1.0, 10.0), settle_s: float = 10.0) -> dict:
+    """How much of a planted event-locked signal survives an artifact-removal step.
+
+    ``s = sum_i amplitudes[i] * pattern ⊗ waveform`` starting at ``onsets[i]`` is added to
+    real data ``x``; ``clean`` (a function of the data array) is applied to ``x`` and to
+    ``x + s``, and the difference ``d = clean(x + s) - clean(x)`` is the part of ``s`` that
+    survives (exact for linear methods such as template subtraction; for data-dependent
+    methods such as OBS it also includes the method's reaction to ``s``). Both ``d`` and
+    ``s`` are causally band-passed to ``band``. Returns:
+
+    * ``gain`` - regression of ``d`` on ``s`` (1 = fully kept, 0 = removed);
+    * ``trial_r`` / ``trial_slope`` - single-trial amplitudes recovered from ``d`` (projection
+      on the band-passed unit response) vs the planted ``amplitudes``: what a decoder of
+      trial-to-trial variation could still use.
+    """
+    x = np.asarray(x, np.float32)
+    n_samp = x.shape[1]
+    onsets = np.asarray(onsets, int)
+    L = len(waveform)
+    keep = (onsets >= int(settle_s * sfreq)) & (onsets + 4 * L < n_samp)
+    onsets, amplitudes = onsets[keep], np.asarray(amplitudes, float)[keep]
+    trace = np.zeros(n_samp, np.float32)
+    for o, a in zip(onsets, amplitudes, strict=True):
+        trace[o:o + L] += a * waveform
+    s = np.asarray(pattern, np.float32)[:, None] * trace[None]
+    d = clean(x + s) - clean(x)
+    sb = causal_bandpass(s, sfreq, *band)
+    db = causal_bandpass(d, sfreq, *band)
+    t0 = int(settle_s * sfreq)
+    gain = float(np.sum(db[:, t0:] * sb[:, t0:]) / np.sum(sb[:, t0:] ** 2))
+    # Band-passed response to one unit event (the filter is linear and time-invariant).
+    unit = np.zeros(4 * L, np.float32)
+    unit[:L] = waveform
+    k = np.asarray(pattern, float)[:, None] * causal_bandpass(unit[None], sfreq, *band)[0][None]
+    est = np.array([np.sum(db[:, o:o + 4 * L] * k) for o in onsets]) / np.sum(k ** 2)
+    r = float(np.corrcoef(est, amplitudes)[0, 1]) if len(onsets) > 2 else float("nan")
+    slope = float(np.polyfit(amplitudes, est, 1)[0]) if len(onsets) > 2 else float("nan")
+    return {"gain": gain, "trial_r": r, "trial_slope": slope, "n_events": len(onsets)}

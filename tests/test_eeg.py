@@ -507,3 +507,34 @@ def test_cli_several_bcg_methods_need_a_method_placeholder(tmp_path, monkeypatch
         "--out-dir", str(tmp_path / "out")])
     with pytest.raises(SystemExit, match="method"):
         cli.main()
+
+
+def test_planted_signal_retention_known_answers():
+    rng = np.random.default_rng(6)
+    sf, n = 250.0, 30_000
+    x = rng.standard_normal((4, n)).astype(np.float32)
+    w = e.planted_waveforms(sf)["slow"]
+    onsets = np.arange(3000, n - 1000, 700)
+    pattern = np.array([1.0, -1.0, 0.5, -0.5])
+    amps = rng.standard_normal(len(onsets))
+    keep = eeg_clean.planted_signal_retention(x, lambda y: y, onsets, w, pattern, amps, sf)
+    assert keep["gain"] == pytest.approx(1.0, abs=1e-4)
+    assert keep["trial_r"] == pytest.approx(1.0, abs=1e-4)
+    drop = eeg_clean.planted_signal_retention(x, lambda y: y * 0, onsets, w, pattern, amps, sf)
+    assert drop["gain"] == pytest.approx(0.0, abs=1e-4)
+    half = eeg_clean.planted_signal_retention(x, lambda y: 0.5 * y, onsets, w, pattern, amps, sf)
+    assert half["gain"] == pytest.approx(0.5, abs=1e-4)
+    assert half["trial_slope"] == pytest.approx(0.5, abs=1e-4)
+    # Template subtraction locked to the planted events removes their mean, not their
+    # trial-to-trial variation.
+    aas = eeg_clean.planted_signal_retention(
+        x, lambda y: eeg_clean.template_subtract(y, onsets, 0, len(w), 21)[0],
+        onsets, w, pattern, amps + 3.0, sf)
+    assert aas["trial_r"] > 0.95 and aas["gain"] < 0.5
+
+
+def test_planted_waveforms_sit_in_the_post_decision_window():
+    sf = 250.0
+    for w in e.planted_waveforms(sf).values():
+        t = np.arange(len(w)) / sf
+        assert np.all(w[(t < 0.1) | (t >= 0.6)] == 0) and np.abs(w).max() > 0.9

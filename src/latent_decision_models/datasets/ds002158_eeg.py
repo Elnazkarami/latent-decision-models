@@ -27,6 +27,7 @@ Nothing here uses trial labels, so it can run before any train/test split.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from functools import partial
 from pathlib import Path
 
 import numpy as np
@@ -601,3 +602,58 @@ def cardiac_behavior(epochs_dir: str | Path, subjects, confirmatory_subjects=Non
         tested = group["p_wilcoxon"].notna()
         group.loc[tested, "p_holm"] = holm(group.loc[tested, "p_wilcoxon"])
     return {"per_subject": per, "group": group}
+
+
+def _first(fn, args, y):
+    return fn(y, *args)[0]
+
+
+def planted_waveforms(sfreq: float) -> dict[str, np.ndarray]:
+    """Unit response-locked test signals for :func:`bcg_retention_subject` (0-0.7 s).
+
+    ``slow``: a Hann-shaped deflection from 0.1 to 0.6 s after the response (the
+    post-decision window). ``theta``: the same envelope carrying a 5 Hz oscillation.
+    """
+    t = np.arange(round(0.7 * sfreq)) / sfreq
+    env = np.where((t >= 0.1) & (t < 0.6), np.sin(np.pi * (t - 0.1) / 0.5) ** 2, 0.0)
+    return {"slow": env.astype(np.float32),
+            "theta": (env * np.cos(2 * np.pi * 5 * (t - 0.1))).astype(np.float32)}
+
+
+def bcg_retention_subject(bids_root: str | Path, subject: str, epochs_dir: str | Path,
+                          amplitude_uv: float = 2.0, obs_n_pcs=(1, 2, 3, 4),
+                          seed: int = 0) -> list[dict]:
+    """Planted-signal test of heartbeat-artifact removal on real data, per run.
+
+    For every run used in ``epochs_dir`` (its trial table gives the response times), the
+    gradient-corrected EEG (real heartbeat artifacts included) receives a signal at each
+    trial's response: :func:`planted_waveforms` x a fixed zero-mean scalp pattern x a random
+    amplitude per trial (N(0, 1) x ``amplitude_uv``). Template subtraction and OBS with each
+    number of components in ``obs_n_pcs`` are scored with
+    :func:`eeg_clean.planted_signal_retention`. No trial label is used.
+    """
+    t = pd.read_csv(Path(epochs_dir, f"{subject}_trials.csv"))
+    eeg_dir = Path(bids_root, subject, "ses-001", "eeg")
+    rows = []
+    for run, tr in t.groupby("eeg_run"):
+        vhdr = eeg_dir / f"{subject}_ses-001_task-main_{run}_eeg.vhdr"
+        x, sfreq, names, s0, _, hb = _gradient_stage(vhdr, 21)
+        eeg = [i for i, c in enumerate(names) if c != ECG_CHANNEL]
+        x = x[eeg]
+        resp_raw = (tr["eeg_stimulus_sample"] + tr["eeg_response_latency_seconds"]
+                    * SFREQ_RAW).dropna().to_numpy()
+        onsets = np.round((resp_raw - s0) / (SFREQ_RAW / sfreq)).astype(int)
+        rng = np.random.default_rng([seed, int(subject[4:]), int(run[4:])])
+        pattern = rng.standard_normal(len(eeg))
+        pattern = (pattern - pattern.mean()) / pattern.std()
+        amps = rng.standard_normal(len(onsets)) * amplitude_uv
+        args = (hb["peaks"], sfreq, hb["median_rr_s"])
+        methods = {"aas": partial(_first, eeg_clean.bcg_correct, args)}
+        for k in obs_n_pcs:
+            methods[f"obs{k}"] = partial(_first, eeg_clean.bcg_correct_obs, (*args, k))
+        for wname, w in planted_waveforms(sfreq).items():
+            for mname, fn in methods.items():
+                r = eeg_clean.planted_signal_retention(x, fn, onsets, w, pattern, amps, sfreq)
+                rows.append({"subject": subject, "eeg_run": run, "waveform": wname,
+                             "method": mname, **r})
+    return rows

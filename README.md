@@ -194,6 +194,7 @@ Contributor rules are in [`AGENTS.md`](AGENTS.md); the research plan is in [`doc
 
 ## Changelog
 
+- **2026-11-20:** Planted-signal test of heartbeat-artifact removal (`eeg_clean.planted_signal_retention`, `ldm ds002158 eeg-bcg-retention`) and `eeg-preprocess --obs-n-pc`. On ds002158, OBS with 4 components keeps a median 54% (30–81%) of a slow response-locked signal; template subtraction keeps 96%.
 - **2026-11-20:** EEG cardiac controls: `eeg_clean.ica_remove_cardiac` and `cardiac_trial_features`; `eeg-preprocess --bcg-method` accepts several methods in one pass (`aas`, `obs`, `ica`, `aas_ica`) and writes per-trial heart-period and R-peak-timing columns; new `ldm ds002158 eeg-cardiac`; decoding targets can name any trial column (`column`, `require_columns`). Results for ds002158 in `docs/ds002158-eeg.md`.
 - **2026-11-19:** EEG follow-ups: `eeg_clean.obs_subtract` (optimal-basis-set BCG removal) and `eeg-preprocess --bcg-method obs`; decoding configs accept `custom_windows`, `holm_by`, `channels` and `exclude_channels`; group tests use only leave-one-subject-out results. Time-resolved decoding, OBS sensitivity and an ECG-only control for ds002158.
 - **2026-11-19:** ds002158 EEG, confirmatory analysis on 17 new subjects (pre-registered plan `configs/ds002158_eeg_decoding_confirmatory.yaml`): per-run scoring, group Wilcoxon tests, leave-one-subject-out decoding. Volume grid cropped on the modal trigger phase.
