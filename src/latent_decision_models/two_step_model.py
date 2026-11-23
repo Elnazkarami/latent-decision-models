@@ -25,6 +25,12 @@ Extensions (motivated by the posterior-predictive misfit of ``hybrid``):
   ``wsls_mb`` favours the ship that commonly reaches the planet just rewarded: repeat
   after a win via a common transition or a loss via a rare one, otherwise switch;
 * ``hybrid_2lr_wsls``: both.
+* ``hybrid_wsls_arbitration``: ``hybrid_wsls`` whose MB weight varies trial by trial with the
+  conditions just experienced (the authors' ``isPost_*`` terms):
+  ``w_t = expit(logit(w) + arb_reliable * x_reliable + arb_high * x_high)``, where
+  ``x_reliable`` is +0.5 if the previous trial had reliable pads (P = 0.9, low state
+  uncertainty) and -0.5 if not (P = 0.5), and ``x_high`` is +0.5 / -0.5 for a high / low
+  reward-magnitude block on the previous trial (0 on a run's first trial).
 No-response trials neither update values nor enter the likelihood; the stickiness term
 refers to the last choice actually made. Trials with RT below ``min_rt`` update values
 (their outcome was shown) but are not scored.
@@ -52,13 +58,17 @@ MODELS: dict[str, tuple[str, ...]] = {
     "hybrid_2lr": ("alpha_mf", "alpha_mb", "beta", "w", "stick"),
     "hybrid_wsls": ("alpha", "beta", "w", "stick", "wsls_mf", "wsls_mb"),
     "hybrid_2lr_wsls": ("alpha_mf", "alpha_mb", "beta", "w", "stick", "wsls_mf", "wsls_mb"),
+    "hybrid_wsls_arbitration": ("alpha", "beta", "w", "stick", "wsls_mf", "wsls_mb",
+                                "arb_reliable", "arb_high"),
 }
 _UNIT = {"alpha", "alpha_mf", "alpha_mb", "w", "w_stimulus", "w_state"}
 _POSITIVE = {"beta"}
 RECOVERY_RANGES = {"alpha": (0.1, 0.9), "alpha_mf": (0.1, 0.9), "alpha_mb": (0.1, 0.9),
                    "beta": (1.0, 10.0), "w": (0.0, 1.0), "w_stimulus": (0.0, 1.0),
                    "w_state": (0.0, 1.0), "stick": (-0.5, 1.5), "wsls_mf": (-1.0, 1.0),
-                   "wsls_mb": (-1.0, 1.0)}
+                   "wsls_mb": (-1.0, 1.0), "arb_reliable": (-1.0, 1.0),
+                   "arb_high": (-1.0, 1.0)}
+HIGH_MAGNITUDE = 0.25  # magnitude scale: high blocks U(0.30, 1.00), low blocks U(0.10, 0.19)
 
 
 # --------------------------------------------------------------------------- parameters
@@ -78,12 +88,17 @@ def from_theta(theta: np.ndarray, model: str) -> dict:
     return p
 
 
-def _weights(params: dict, model: str, contingency: np.ndarray) -> np.ndarray:
+def _weights(params: dict, model: str, contingency: np.ndarray, x_reliable=None,
+             x_high=None) -> np.ndarray:
     """Per-sequence MB weight for the current trial (contingency: 0 stimulus, 1 state)."""
     if model == "mf":
         return np.zeros(contingency.shape)
     if model == "mb":
         return np.ones(contingency.shape)
+    if "arb_reliable" in params:
+        z = (logit(np.clip(params["w"], 1e-6, 1 - 1e-6))
+             + params["arb_reliable"] * x_reliable + params["arb_high"] * x_high)
+        return expit(z)
     if "w" in params:
         return np.full(contingency.shape, params["w"])
     return np.where(contingency == 1, params["w_state"], params["w_stimulus"])
@@ -96,7 +111,9 @@ class TwoStepData:
 
     ``choice``: 0 left / 1 right / -1 none; ``planet``: 0/1/-1; ``reward``: learning signal;
     ``win``: binary outcome shown; ``rare``: rare first-stage transition; ``contingency``:
-    0 stimulus / 1 state; ``scored``: enters the likelihood.
+    0 stimulus / 1 state; ``scored``: enters the likelihood; ``x_reliable`` / ``x_high``:
+    the previous trial's pad reliability and magnitude block, +-0.5 (see
+    :func:`lagged_conditions`).
     """
 
     choice: np.ndarray
@@ -108,6 +125,8 @@ class TwoStepData:
     scored: np.ndarray
     subject: np.ndarray
     run: np.ndarray
+    x_reliable: np.ndarray
+    x_high: np.ndarray
 
     def subset(self, rows) -> TwoStepData:
         rows = np.asarray(rows)
@@ -130,10 +149,25 @@ class Schedule:
     responds: np.ndarray  # (n, T) a response is made (replays real no-response trials)
     subject: np.ndarray
     run: np.ndarray
+    reliability: np.ndarray  # (n, T) P(common pad | planet): 0.5 or 0.9
 
     def subset(self, rows) -> Schedule:
         rows = np.asarray(rows)
         return Schedule(**{k: getattr(self, k)[rows] for k in self.__dataclass_fields__})
+
+
+def lagged_conditions(reliability: np.ndarray, magnitude: np.ndarray,
+                      present: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
+    """Previous trial's conditions, coded +-0.5 (0 on each run's first trial).
+
+    ``x_reliable``: +0.5 after a reliable-pad trial (P = 0.9), -0.5 after P = 0.5.
+    ``x_high``: +0.5 after a high-magnitude trial (scale >= 0.25), -0.5 after a low one.
+    """
+    rel = np.where(present, np.where(reliability > 0.7, 0.5, -0.5), 0.0)
+    high = np.where(present, np.where(magnitude >= HIGH_MAGNITUDE, 0.5, -0.5), 0.0)
+    x_rel, x_high = np.zeros(rel.shape), np.zeros(high.shape)
+    x_rel[:, 1:], x_high[:, 1:] = rel[:, :-1], high[:, :-1]
+    return x_rel, x_high
 
 
 def _runs(trials: pd.DataFrame, runs) -> list[tuple[tuple[str, str], pd.DataFrame]]:
@@ -161,7 +195,7 @@ def prepare(trials: pd.DataFrame, reward: str = "binary", min_rt: float | None =
     if not groups:
         raise ValueError(f"no trials in runs {runs}")
     cols: dict[str, list] = {k: [] for k in ("choice", "planet", "reward", "win", "rare",
-                                             "contingency", "scored")}
+                                             "contingency", "scored", "rel", "mag")}
     for _, g in groups:
         ok = g["choice"].notna().to_numpy()
         cols["choice"].append(np.where(ok, g["choice"].fillna(1).to_numpy() - 1, -1))
@@ -173,18 +207,26 @@ def prepare(trials: pd.DataFrame, reward: str = "binary", min_rt: float | None =
         cols["contingency"].append((g["reward_contingency"] == "state").to_numpy(int))
         fast = (g["response_time_seconds"] < min_rt).to_numpy() if min_rt else 0
         cols["scored"].append(ok & ~fast)
+        cols["rel"].append(g["pad_transition_probability"].to_numpy(float)
+                           if "pad_transition_probability" in g else np.full(len(g), 0.9))
+        cols["mag"].append(g["magnitude_scale"].to_numpy(float)
+                           if "magnitude_scale" in g else np.ones(len(g)))
     fills = {"choice": (-1, int), "planet": (-1, int), "reward": (0.0, float),
              "win": (0.0, float), "rare": (0, int), "contingency": (0, int),
-             "scored": (False, bool)}
+             "scored": (False, bool), "rel": (0.9, float), "mag": (1.0, float)}
     arrays = {k: _pad(v, *fills[k]) for k, v in cols.items()}
+    present = _pad([np.ones(len(v), bool) for v in cols["rel"]], False, bool)
+    x_rel, x_high = lagged_conditions(arrays.pop("rel"), arrays.pop("mag"), present)
     return TwoStepData(**arrays, subject=np.array([k[0] for k, _ in groups]),
-                       run=np.array([k[1] for k, _ in groups]))
+                       run=np.array([k[1] for k, _ in groups]), x_reliable=x_rel,
+                       x_high=x_high)
 
 
 def schedule_from_trials(trials: pd.DataFrame, runs=("run-1", "run-2")) -> Schedule:
     groups = _runs(trials, runs)
-    pad_if, draws, cont, mag, resp = [], [], [], [], []
+    pad_if, draws, cont, mag, resp, rel = [], [], [], [], [], []
     for _, g in groups:
+        rel.append(g["pad_transition_probability"].to_numpy(float))
         pad_if.append(g[["pad_if_left", "pad_if_right"]].to_numpy(int) - 1)
         draws.append(g[[f"reward_draw_pad{k}" for k in range(1, 5)]].to_numpy(float))
         cont.append((g["reward_contingency"] == "state").to_numpy(int))
@@ -195,7 +237,7 @@ def schedule_from_trials(trials: pd.DataFrame, runs=("run-1", "run-2")) -> Sched
                     contingency=_pad(cont, 0, int), magnitude=_pad(mag, 0.0, float),
                     present=present, responds=_pad(resp, False, bool) & present,
                     subject=np.array([k[0] for k, _ in groups]),
-                    run=np.array([k[1] for k, _ in groups]))
+                    run=np.array([k[1] for k, _ in groups]), reliability=_pad(rel, 0.9, float))
 
 
 def synthetic_schedule(n_runs: int = 2, n_trials: int = 77, seed: int = 0,
@@ -242,7 +284,8 @@ def synthetic_schedule(n_runs: int = 2, n_trials: int = 77, seed: int = 0,
                     contingency=cont.reshape(shape), magnitude=mag.reshape(shape),
                     present=np.ones(shape, bool), responds=np.ones(shape, bool),
                     subject=np.array([subject] * n_runs),
-                    run=np.array([f"run-{i + 1}" for i in range(n_runs)]))
+                    run=np.array([f"run-{i + 1}" for i in range(n_runs)]),
+                    reliability=reliable.reshape(shape))
 
 
 def outcome(schedule: Schedule, t: int, choice: np.ndarray) -> tuple[np.ndarray, ...]:
@@ -268,11 +311,11 @@ class _Agent:
         self.prev_win = np.zeros(n)
         self.prev_rare = np.zeros(n, bool)
 
-    def logits(self, contingency: np.ndarray) -> np.ndarray:
+    def logits(self, contingency: np.ndarray, x_reliable=None, x_high=None) -> np.ndarray:
         """log P(right) - log P(left) for the current trial."""
         p, v = self.p, self.v
         qmb = P_COMMON * v + (1 - P_COMMON) * v[:, ::-1]
-        w = _weights(p, self.model, contingency)[:, None]
+        w = _weights(p, self.model, contingency, x_reliable, x_high)[:, None]
         q = w * qmb + (1 - w) * self.qmf
         repeat = (self.prev == 1).astype(float) - (self.prev == 0).astype(float)
         dv = p["beta"] * (q[:, 1] - q[:, 0]) + p["stick"] * repeat
@@ -299,7 +342,7 @@ def sequence_loglik(params: dict, model: str, data: TwoStepData) -> np.ndarray:
     ll = np.zeros(n)
     for t in range(T):
         c = data.choice[:, t]
-        dv = agent.logits(data.contingency[:, t])
+        dv = agent.logits(data.contingency[:, t], data.x_reliable[:, t], data.x_high[:, t])
         lp = np.where(c == 1, log_expit(dv), log_expit(-dv))
         ll += np.where(data.scored[:, t], lp, 0.0)
         agent.update(c, data.planet[:, t], data.reward[:, t], data.win[:, t], c >= 0)
@@ -318,8 +361,10 @@ def simulate(schedule: Schedule, model: str, params: dict, seed: int = 0,
     agent = _Agent(params, model, n)
     out = {k: np.zeros((n, T), int) for k in ("choice", "planet", "rare")}
     out.update({k: np.zeros((n, T)) for k in ("reward", "win")})
+    x_rel, x_high = lagged_conditions(schedule.reliability, schedule.magnitude,
+                                      schedule.present)
     for t in range(T):
-        dv = agent.logits(schedule.contingency[:, t])
+        dv = agent.logits(schedule.contingency[:, t], x_rel[:, t], x_high[:, t])
         c = (rng.random(n) < expit(dv)).astype(int)
         _, planet, win = outcome(schedule, t, c)
         r = win if reward == "binary" else np.round(win * schedule.magnitude[:, t] * 100) / 100
@@ -332,7 +377,7 @@ def simulate(schedule: Schedule, model: str, params: dict, seed: int = 0,
         out["rare"][:, t] = (planet != c).astype(int)
     return TwoStepData(**out, contingency=schedule.contingency.copy(),
                        scored=schedule.responds.copy(), subject=schedule.subject.copy(),
-                       run=schedule.run.copy())
+                       run=schedule.run.copy(), x_reliable=x_rel, x_high=x_high)
 
 
 # --------------------------------------------------------------------------- fitting
@@ -638,6 +683,118 @@ def contingency_effect_recovery(schedules: list[Schedule], effect: float, seed: 
             **contingency_contrast(fits, trials, n_boot, seed, first_run=runs[0], runs=runs)}
 
 
+ARBITRATION_TERMS = ("arb_reliable", "arb_high")
+
+
+def arbitration_summary(fits: pd.DataFrame, n_boot: int = 2000, seed: int = 0,
+                        model: str = "hybrid_wsls_arbitration") -> dict | None:
+    """Group summary of per-subject arbitration weights (logit units of the MB weight).
+
+    For each term: mean with a subject-bootstrap 95% CI, median, number of subjects > 0,
+    two-sided Wilcoxon signed-rank test against 0, and Holm over the terms. MAP estimates
+    are shrunk towards 0 by the prior, so the means are conservative.
+    """
+    from scipy.stats import wilcoxon
+
+    f = fits[fits["model"] == model]
+    if f.empty:
+        return None
+    rng = np.random.default_rng(seed)
+    out, pvals = {}, []
+    for k in ARBITRATION_TERMS:
+        x = f[k].to_numpy(float)
+        boot = [x[rng.integers(0, len(x), len(x))].mean() for _ in range(n_boot)]
+        p = float(wilcoxon(x).pvalue) if len(x) >= 5 and np.any(x != 0) else float("nan")
+        pvals.append(p)
+        out[k] = {"n": len(x), "mean": float(x.mean()), "median": float(np.median(x)),
+                  "ci95": np.percentile(boot, [2.5, 97.5]).tolist(),
+                  "n_positive": int((x > 0).sum()), "wilcoxon_p": p}
+    order = np.argsort(pvals)
+    running = 0.0
+    for rank, i in enumerate(order):
+        running = max(running, min(1.0, (len(pvals) - rank) * pvals[i]))
+        out[ARBITRATION_TERMS[i]]["wilcoxon_p_holm"] = running
+    return out
+
+
+def _arbitration_one(sched, i, effects, seed, n_starts, prior_sd, ranges, reward):
+    rng = np.random.default_rng([seed, 7000 + i])
+    p = {**sample_params("hybrid_wsls_arbitration", rng, ranges), **effects}
+    data = simulate(sched, "hybrid_wsls_arbitration", p, seed=int(rng.integers(2**31)),
+                    reward=reward)
+    est = fit(data, "hybrid_wsls_arbitration", n_starts=n_starts, seed=seed,
+              prior_sd=prior_sd)
+    return {"subject": f"sim{i}", "model": "hybrid_wsls_arbitration", **est["params"]}
+
+
+def arbitration_effect_recovery(schedules: list[Schedule], effects: dict, seed: int = 0,
+                                n_starts: int = 3, prior_sd: float = 2.5,
+                                ranges: dict | None = None, reward: str = "binary",
+                                n_boot: int = 2000, n_jobs: int = 1) -> dict:
+    """Known-answer check of :func:`arbitration_summary`: one simulated subject per schedule,
+    every subject with the planted arbitration weights ``effects`` (other parameters drawn
+    from ``ranges``), refitted and summarised."""
+    from joblib import Parallel, delayed
+
+    fits = pd.DataFrame(Parallel(n_jobs=n_jobs)(
+        delayed(_arbitration_one)(s, i, effects, seed, n_starts, prior_sd, ranges, reward)
+        for i, s in enumerate(schedules)))
+    return {"true_effects": effects, "n_subjects": len(schedules),
+            **arbitration_summary(fits, n_boot, seed)}
+
+
+def _arbitration_null_rep(fits, schedule, rep, seed, n_starts, prior_sd, reward):
+    rows = []
+    for i, (s, r) in enumerate(_subject_rows(schedule).items()):
+        p = fits[(fits["subject"] == s) & (fits["model"] == "hybrid_wsls")]
+        params = {k: float(p.iloc[0][k]) for k in MODELS["hybrid_wsls"]}
+        data = simulate(schedule.subset(r), "hybrid_wsls", params,
+                        seed=int(np.random.default_rng([seed, rep, i]).integers(2**31)),
+                        reward=reward)
+        est = fit(data, "hybrid_wsls_arbitration", n_starts=n_starts, seed=seed,
+                  prior_sd=prior_sd)["params"]
+        rows.append([est[k] for k in ARBITRATION_TERMS])
+    return np.mean(rows, axis=0)
+
+
+def arbitration_null(fits: pd.DataFrame, schedule: Schedule, n_reps: int = 200,
+                     seed: int = 0, n_starts: int = 3, prior_sd: float = 2.5,
+                     reward: str = "binary", n_jobs: int = 1) -> np.ndarray:
+    """Parametric-bootstrap null for the group-mean arbitration weights.
+
+    Each replicate simulates every subject from their own fitted ``hybrid_wsls`` (no
+    arbitration) on their own schedule, refits ``hybrid_wsls_arbitration`` and records
+    the group means. Returns ``(n_reps, 2)`` (columns: :data:`ARBITRATION_TERMS`). This
+    calibrates the group test for any bias of the estimator on the real schedules.
+    """
+    from joblib import Parallel, delayed
+
+    return np.array(Parallel(n_jobs=n_jobs)(
+        delayed(_arbitration_null_rep)(fits, schedule, k, seed, n_starts, prior_sd, reward)
+        for k in range(n_reps)))
+
+
+def calibrated_arbitration_test(summary: dict, null: np.ndarray) -> dict:
+    """Two-sided test of each observed group mean against the bootstrap null: empirical
+    p = (1 + #|null - null mean| >= |obs - null mean|) / (1 + n), Holm over the terms."""
+    out, pvals = {}, []
+    for j, k in enumerate(ARBITRATION_TERMS):
+        x = null[:, j]
+        obs = summary[k]["mean"]
+        dev = np.abs(x - x.mean())
+        p = float((1 + np.sum(dev >= abs(obs - x.mean()))) / (1 + len(x)))
+        pvals.append(p)
+        out[k] = {"observed_mean": obs, "null_mean": float(x.mean()), "null_sd": float(x.std()),
+                  "null_95": np.percentile(x, [2.5, 97.5]).tolist(),
+                  "bias_corrected_mean": float(obs - x.mean()), "p_calibrated": p}
+    order = np.argsort(pvals)
+    running = 0.0
+    for rank, i in enumerate(order):
+        running = max(running, min(1.0, (len(pvals) - rank) * pvals[i]))
+        out[ARBITRATION_TERMS[i]]["p_calibrated_holm"] = running
+    return {"n_reps": len(null), **out}
+
+
 def _delta_summary(wide: pd.DataFrame, n: pd.Series, models, reference, n_boot, rng) -> dict:
     out = {}
     for m in models:
@@ -668,9 +825,17 @@ def session_heldout(fits: pd.DataFrame, data: TwoStepData, models) -> pd.DataFra
     return pd.DataFrame(rows)
 
 
-def _fit_contingency_only(data, n_starts, seed, prior_sd):
-    f = fit(data, "hybrid_contingency", n_starts=n_starts, seed=seed, prior_sd=prior_sd)
-    return {"subject": data.subject[0], "model": "hybrid_contingency", **f["params"]}
+def _fit_contingency_only(data, n_starts, seed, prior_sd, model="hybrid_contingency"):
+    f = fit(data, model, n_starts=n_starts, seed=seed, prior_sd=prior_sd)
+    return {"subject": data.subject[0], "model": model, **f["params"]}
+
+
+def _calibrated(fits, sched, models, n_reps, seed, n_starts, prior_sd, reward, n_jobs,
+                n_boot):
+    if not n_reps or not {"hybrid_wsls", "hybrid_wsls_arbitration"} <= set(models):
+        return None
+    null = arbitration_null(fits, sched, n_reps, seed, n_starts, prior_sd, reward, n_jobs)
+    return calibrated_arbitration_test(arbitration_summary(fits, n_boot, seed), null)
 
 
 def compare(trials: pd.DataFrame, models=tuple(MODELS), reference: str = "hybrid",
@@ -678,7 +843,7 @@ def compare(trials: pd.DataFrame, models=tuple(MODELS), reference: str = "hybrid
             max_missed_fraction: float | None = 0.10, exclude_subjects=(),
             n_starts: int = 4, prior_sd: float = 2.5, n_folds: int = 5, n_boot: int = 2000,
             n_rep: int = 20, seed: int = 0, n_jobs: int = 1,
-            replication_run: str | None = None) -> dict:
+            replication_run: str | None = None, arbitration_null_reps: int = 0) -> dict:
     """Fit every model per subject; compare by held-out log-likelihood (runs and subjects).
 
     With ``replication_run`` (e.g. ``"structural"``), the parameters fitted on the
@@ -711,7 +876,15 @@ def compare(trials: pd.DataFrame, models=tuple(MODELS), reference: str = "hybrid
         rep_fits = pd.DataFrame(Parallel(n_jobs=n_jobs)(
             delayed(_fit_contingency_only)(rep_data.subset(r), n_starts, seed, prior_sd)
             for r in _subject_rows(rep_data).values()))
+        rep_arbitration = None
+        if "hybrid_wsls_arbitration" in models:
+            arb_fits = pd.DataFrame(Parallel(n_jobs=n_jobs)(
+                delayed(_fit_contingency_only)(rep_data.subset(r), n_starts, seed, prior_sd,
+                                               "hybrid_wsls_arbitration")
+                for r in _subject_rows(rep_data).values()))
+            rep_arbitration = arbitration_summary(arb_fits, n_boot, seed)
         replication = {
+            "arbitration": rep_arbitration,
             "run": replication_run, "n_subjects": len(rw), "n_scored_trials": rep_data.n_scored,
             "session_heldout": _delta_summary(rw, rn, models, reference, n_boot, rng),
             "contingency_contrast": contingency_contrast(rep_fits, keep, n_boot, seed,
@@ -739,6 +912,9 @@ def compare(trials: pd.DataFrame, models=tuple(MODELS), reference: str = "hybrid
         "parameter_medians": {m: g[list(MODELS[m])].median().to_dict() for m, g in params},
         "stay_probabilities": ppc.to_dict(orient="records"),
         "contingency_contrast": contrast,
+        "arbitration": arbitration_summary(fits, n_boot, seed),
+        "arbitration_calibrated": _calibrated(fits, sched, models, arbitration_null_reps, seed,
+                                              n_starts, prior_sd, reward, n_jobs, n_boot),
         "replication": replication,
         "fits": fits,
     }

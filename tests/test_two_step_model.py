@@ -116,7 +116,8 @@ def _fake_trials(n_subjects=4, seed=0):
                 "response_time_seconds": 0.5, "valid_trial": ok,
                 "pad_if_left": s.pad_if[r, :, 0] + 1, "pad_if_right": s.pad_if[r, :, 1] + 1,
                 **{f"reward_draw_pad{k + 1}": s.draws[r, :, k] for k in range(4)},
-                "magnitude_scale": s.magnitude[r]}))
+                "magnitude_scale": s.magnitude[r],
+                "pad_transition_probability": s.reliability[r]}))
     return pd.concat(frames, ignore_index=True)
 
 
@@ -224,3 +225,75 @@ def test_compare_with_replication_session():
                      reference="mf", n_starts=1, n_folds=2, n_boot=50, n_rep=2,
                      replication_run="structural")
     assert res["replication"]["contingency_contrast"]["insufficient_subjects"]
+
+
+
+def test_lagged_conditions_use_the_previous_trial():
+    rel = np.array([[0.5, 0.5, 0.9, 0.9, 0.5]])
+    mag = np.array([[0.5, 0.15, 0.15, 0.8, 0.8]])
+    present = np.array([[True, True, True, True, False]])
+    x_rel, x_high = ts.lagged_conditions(rel, mag, present)
+    assert x_rel.tolist() == [[0.0, -0.5, -0.5, 0.5, 0.5]]
+    assert x_high.tolist() == [[0.0, 0.5, -0.5, -0.5, 0.5]]
+
+
+def test_arbitration_weight_follows_conditions_and_reduces_to_hybrid_wsls():
+    p = {"alpha": 0.5, "beta": 4.0, "w": 0.5, "stick": 0.2, "wsls_mf": 0.3, "wsls_mb": 0.3}
+    w = ts._weights({**p, "arb_reliable": 2.0, "arb_high": -1.0}, "hybrid_wsls_arbitration",
+                    np.zeros(3), np.array([0.5, -0.5, 0.0]), np.array([0.0, 0.0, 0.5]))
+    assert w[0] > 0.5 > w[1] and w[2] < 0.5 and w[0] == pytest.approx(1 / (1 + np.exp(-1)))
+    s = ts.synthetic_schedule(seed=3)
+    d = ts.simulate(s, "hybrid_wsls", p, seed=1)
+    zero = {**p, "arb_reliable": 0.0, "arb_high": 0.0}
+    assert ts.loglik(zero, "hybrid_wsls_arbitration", d) == pytest.approx(
+        ts.loglik(p, "hybrid_wsls", d))
+
+
+def test_arbitration_parameters_are_recovered_from_simulated_choices():
+    # Pooled over 30 synthetic subjects (one parameter set), planted arbitration effects
+    # are recovered with the right sign; with none planted, the estimates stay near 0.
+    scheds = [ts.synthetic_schedule(seed=100 + i, subject=f"S{i}") for i in range(30)]
+    sched = ts.Schedule(**{k: np.concatenate([getattr(x, k) for x in scheds])
+                           for k in ts.Schedule.__dataclass_fields__})
+    base = {"alpha": 0.6, "beta": 6.0, "w": 0.5, "stick": 0.2, "wsls_mf": 0.2,
+            "wsls_mb": 0.2}
+    for planted in ({"arb_reliable": 1.5, "arb_high": -1.5},
+                    {"arb_reliable": 0.0, "arb_high": 0.0}):
+        d = ts.simulate(sched, "hybrid_wsls_arbitration", {**base, **planted}, seed=2)
+        est = ts.fit(d, "hybrid_wsls_arbitration", n_starts=2)["params"]
+        for k, v in planted.items():
+            assert abs(est[k] - v) < 0.6, (k, est[k], v)
+
+
+def test_arbitration_summary_known_answers():
+    rng = np.random.default_rng(0)
+    fits = pd.DataFrame({"model": "hybrid_wsls_arbitration",
+                         "arb_reliable": rng.normal(0.5, 0.3, 40),
+                         "arb_high": rng.normal(0.0, 0.3, 40)})
+    s = ts.arbitration_summary(fits)
+    assert s["arb_reliable"]["wilcoxon_p_holm"] < 0.001
+    assert s["arb_reliable"]["ci95"][0] > 0.3
+    assert s["arb_high"]["wilcoxon_p"] > 0.05
+    assert s["arb_high"]["wilcoxon_p_holm"] >= s["arb_high"]["wilcoxon_p"]
+    assert ts.arbitration_summary(fits.assign(model="hybrid")) is None
+
+
+def test_calibrated_arbitration_test_removes_a_known_bias():
+    rng = np.random.default_rng(1)
+    null = np.column_stack([rng.normal(0.13, 0.05, 400), rng.normal(0.0, 0.05, 400)])
+    biased_null = {"arb_reliable": {"mean": 0.14}, "arb_high": {"mean": 0.0}}
+    t = ts.calibrated_arbitration_test(biased_null, null)
+    assert t["arb_reliable"]["p_calibrated"] > 0.5  # the bias alone is not an effect
+    real = {"arb_reliable": {"mean": 0.40}, "arb_high": {"mean": -0.3}}
+    t = ts.calibrated_arbitration_test(real, null)
+    assert t["arb_reliable"]["p_calibrated_holm"] < 0.01
+    assert t["arb_reliable"]["bias_corrected_mean"] == pytest.approx(0.27, abs=0.02)
+    assert t["arb_high"]["p_calibrated"] < 0.01
+
+
+def test_arbitration_null_shape_and_compare_hook():
+    trials = _fake_trials(3)
+    data = ts.prepare(trials)
+    fits = ts.fit_subjects(data, ["hybrid_wsls"], n_starts=1)
+    null = ts.arbitration_null(fits, ts.schedule_from_trials(trials), n_reps=2, n_starts=1)
+    assert null.shape == (2, 2) and np.isfinite(null).all()

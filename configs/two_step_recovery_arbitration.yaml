@@ -1,0 +1,35 @@
+# Recovery for trial-wise arbitration (hybrid_wsls_arbitration), before any real-data fit
+# of that model. Real ds007474 schedules (functional runs), simulated choices. Ranges:
+# the fitted range of the real hybrid_wsls fits (as in
+# configs/two_step_recovery_extended_fitted_range.yaml) plus arbitration weights of up to
+# +-1 logit unit (around w = 0.5, +-1 moves w by about +-0.12 between conditions).
+#  * parameter recovery of all 8 parameters;
+#  * model recovery hybrid_wsls vs hybrid_wsls_arbitration (held-out runs; groups of 10):
+#    false positives (arbitration selected when absent) and sensitivity;
+#  * known-answer check of the group test: every simulated subject with arbitration
+#    weights 0 / 0 and 0.5 / 0.5.
+output: reports/two_step_recovery_arbitration.json
+recovery_table: reports/two_step_recovery_arbitration_table.csv
+schedules: real
+osf_root: data/ds007474_osf
+models: [hybrid_wsls, hybrid_wsls_arbitration]
+reward: binary
+n_sims: 60
+n_model_sims: 100
+group_size: 10
+n_starts: 3
+prior_sd: 2.5
+seed: 0
+n_jobs: 8
+parameter_ranges:
+  alpha: [0.05, 0.9]
+  beta: [0.25, 10.8]
+  w: [0.17, 0.92]
+  stick: [-1.1, 1.8]
+  wsls_mf: [-0.6, 1.8]
+  wsls_mb: [-0.4, 2.4]
+  arb_reliable: [-1.0, 1.0]
+  arb_high: [-1.0, 1.0]
+arbitration_effects:
+  - {arb_reliable: 0.0, arb_high: 0.0}
+  - {arb_reliable: 0.5, arb_high: 0.5}

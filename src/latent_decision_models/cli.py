@@ -461,6 +461,8 @@ def _two_step_recovery(args):
                        .to_dict(orient="index") if len(group) else None)
     contrast = [ts.contingency_effect_recovery(schedules, e, **kw)
                 for e in cfg.get("contingency_effects", [])]
+    arbitration = [ts.arbitration_effect_recovery(schedules, e, **kw)
+                   for e in cfg.get("arbitration_effects", [])]
     if cfg.get("recovery_table"):
         Path(cfg["recovery_table"]).parent.mkdir(parents=True, exist_ok=True)
         pd.concat(rec.values()).to_csv(cfg["recovery_table"], index=False)
@@ -469,7 +471,8 @@ def _two_step_recovery(args):
                  "parameter_recovery": {m: ts.summarize_recovery(r, m) for m, r in rec.items()},
                  "model_recovery_confusion": confusion,
                  "group_model_recovery_confusion": group_confusion,
-                 "contingency_effect_recovery": contrast},
+                 "contingency_effect_recovery": contrast,
+                 "arbitration_effect_recovery": arbitration},
                 cfg.get("output"))
 
 
@@ -486,7 +489,8 @@ def _two_step_compare(args):
                      n_folds=cfg.get("n_folds", 5), n_boot=cfg.get("n_boot", 2000),
                      n_rep=cfg.get("n_rep", 20), seed=cfg.get("seed", 0),
                      n_jobs=cfg.get("n_jobs", 1),
-                     replication_run=cfg.get("replication_run"))
+                     replication_run=cfg.get("replication_run"),
+                     arbitration_null_reps=cfg.get("arbitration_null_reps", 0))
     fits = res.pop("fits")
     if cfg.get("fits_table"):
         fits.to_csv(cfg["fits_table"], index=False)

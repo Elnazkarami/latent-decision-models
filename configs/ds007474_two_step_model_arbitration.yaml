@@ -1,0 +1,54 @@
+# LDM-007 follow-up 2: trial-wise arbitration between model-free and model-based control.
+# Written 2026-11-23 and committed before any real-data fit of hybrid_wsls_arbitration.
+# Exploratory (the primary analysis and the first follow-up already used these data).
+#
+# Model: hybrid_wsls (the best model so far) with an MB weight that varies with the
+# conditions of the previous trial (the authors' isPost_* terms):
+#   w_t = expit(logit(w) + arb_reliable * x_reliable + arb_high * x_high)
+#   x_reliable = +0.5 after reliable pads (P = 0.9, low state uncertainty), -0.5 after P = 0.5
+#   x_high     = +0.5 after a high reward-magnitude trial, -0.5 after a low one
+# Both conditions alternate in ~26-trial blocks within each run, so leave-one-run-out
+# evaluation is valid (unlike the contingency question).
+#
+# Questions and decision rules (fixed now):
+#  1. Does arbitration improve prediction? Held-out runs, held-out subjects and, most
+#     importantly, the separate structural session (parameters from the functional runs).
+#     "Improves" = the summed Delta vs hybrid_wsls has a 95% CI above 0 in the other session.
+#  2. Group arbitration weights (functional runs), tested against 0 with Holm over the two
+#     terms (calibrated test and decision rule below).
+#     Directions suggested by prior work, not assumed by the tests: arb_reliable > 0
+#     (less state uncertainty -> more MB; Lee et al. 2014) and arb_high > 0 (higher stakes
+#     -> more MB; Kool et al. 2017).
+# Recovery first (configs/two_step_recovery_arbitration.yaml; read before this plan was
+# committed): per-subject arbitration weights recover poorly (r = 0.32 / 0.37); held-out
+# model comparison never selects the arbitration model, even when it generated the data
+# (0/10 groups), so question 1 cannot detect arbitration of this size and is reported as
+# uninformative; with no arbitration planted, the plain group test gave arb_reliable =
+# +0.13 [-0.00, 0.26], p = 0.046 (possible bias). Therefore:
+#  * PRIMARY inference for question 2 is calibrated: the observed group means are
+#    compared with a parametric-bootstrap null (100 replicates: every subject simulated
+#    from their own fitted hybrid_wsls on their own schedule, the arbitration model
+#    refitted; two_step_model.arbitration_null). Two-sided empirical p, Holm over the two
+#    terms. The plain Wilcoxon is reported but not used for decisions.
+#  * Decision rule: a term is called an effect only if its calibrated Holm p < 0.05 AND
+#    the mean from refitting the model on the structural session alone has the same sign
+#    as the bias-corrected functional mean (a weak check: no null is computed there).
+input: data/ds007474_trials.csv
+output: reports/ds007474_two_step_model_arbitration.json
+fits_table: reports/ds007474_two_step_model_arbitration_fits.csv
+data_kind: real_behavioral_openneuro_ds007474_v1.0.5_osf_ctfzd
+models: [hybrid, hybrid_wsls, hybrid_wsls_arbitration]
+reference: hybrid_wsls
+reward: binary
+min_rt: 0.15
+max_missed_fraction: 0.10
+exclude_subjects: []
+n_starts: 4
+prior_sd: 2.5
+n_folds: 5
+n_boot: 2000
+n_rep: 20
+seed: 0
+n_jobs: 8
+replication_run: structural
+arbitration_null_reps: 100
