@@ -1,0 +1,25 @@
+# Empirical-Bayes (hierarchical) fitting vs fixed-prior MAP: parameter recovery on the
+# real ds007474 schedules (one simulated subject per schedule, 189 subjects), before any
+# real-data EB fit. Ranges: the fitted range used in configs/two_step_recovery_arbitration.yaml.
+# Note: parameters are drawn uniformly within ranges, not from a Gaussian group
+# distribution, so this tests EB under a misspecified group prior (a conservative test).
+output: reports/two_step_eb_recovery.json
+schedules: real
+osf_root: data/ds007474_osf
+recovery_models: [hybrid_wsls, hybrid_wsls_arbitration]
+reward: binary
+n_starts: 2
+prior_sd: 2.5
+eb_n_iter: 30
+eb_tol: 0.01
+seed: 0
+n_jobs: 8
+parameter_ranges:
+  alpha: [0.05, 0.9]
+  beta: [0.25, 10.8]
+  w: [0.17, 0.92]
+  stick: [-1.1, 1.8]
+  wsls_mf: [-0.6, 1.8]
+  wsls_mb: [-0.4, 2.4]
+  arb_reliable: [-1.0, 1.0]
+  arb_high: [-1.0, 1.0]

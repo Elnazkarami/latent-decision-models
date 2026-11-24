@@ -398,24 +398,134 @@ def simulate(schedule: Schedule, model: str, params: dict, seed: int = 0,
 
 # --------------------------------------------------------------------------- fitting
 def fit(data: TwoStepData, model: str, n_starts: int = 4, seed: int = 0,
-        prior_sd: float = 2.5) -> dict:
-    """MAP fit (one parameter set for all runs in ``data``)."""
+        prior_sd=2.5, prior_mean=None) -> dict:
+    """MAP fit (one parameter set for all runs in ``data``).
+
+    The prior is independent Gaussian on the unconstrained parameters: mean ``prior_mean``
+    (default 0) and SD ``prior_sd`` (scalar or one per parameter; falsy = no prior).
+    """
     rng = np.random.default_rng(seed)
     k = len(MODELS[model])
+    mu = np.zeros(k) if prior_mean is None else np.asarray(prior_mean, float)
+    sd = None if prior_sd is None or np.all(np.asarray(prior_sd) == 0) else \
+        np.broadcast_to(np.asarray(prior_sd, float), (k,))
 
     def objective(theta):
         val = -loglik(from_theta(theta, model), model, data)
-        return val + 0.5 * float(theta @ theta) / prior_sd ** 2 if prior_sd else val
+        return val + 0.5 * float(np.sum(((theta - mu) / sd) ** 2)) if sd is not None else val
 
     best = None
     for i in range(n_starts):
-        start = np.zeros(k) if i == 0 else rng.normal(0, 1.0, k)
+        start = mu.copy() if i == 0 else mu + rng.normal(0, 1.0, k)
         res = minimize(objective, start, method="L-BFGS-B", bounds=[(-8, 8)] * k)
         if best is None or res.fun < best.fun:
             best = res
     params = from_theta(best.x, model)
     return {"model": model, "params": params, "loglik": loglik(params, model, data),
-            "n_trials": data.n_scored, "n_params": k, "converged": bool(best.success)}
+            "n_trials": data.n_scored, "n_params": k, "converged": bool(best.success),
+            "theta": best.x}
+
+
+# --------------------------------------------------------------------------- empirical Bayes
+def _neg_log_posterior(theta, model, data, mu, sd) -> float:
+    return (-loglik(from_theta(theta, model), model, data)
+            + 0.5 * float(np.sum(((theta - mu) / sd) ** 2)))
+
+
+def _hessian(f, x, h: float = 1e-3) -> np.ndarray:
+    """Central finite-difference Hessian of a scalar function."""
+    k = len(x)
+    H = np.zeros((k, k))
+    f0 = f(x)
+    for i in range(k):
+        ei = np.zeros(k)
+        ei[i] = h
+        H[i, i] = (f(x + ei) - 2 * f0 + f(x - ei)) / h ** 2
+        for j in range(i):
+            ej = np.zeros(k)
+            ej[j] = h
+            H[i, j] = H[j, i] = (f(x + ei + ej) - f(x + ei - ej) - f(x - ei + ej)
+                                 + f(x - ei - ej)) / (4 * h ** 2)
+    return H
+
+
+def _eb_subject(data, model, mu, sd, n_starts, seed):
+    f = fit(data, model, n_starts=n_starts, seed=seed, prior_sd=sd, prior_mean=mu)
+    theta = f["theta"]
+    H = _hessian(lambda t: _neg_log_posterior(t, model, data, mu, sd), theta)
+    try:
+        var = np.diag(np.linalg.inv(H))
+    except np.linalg.LinAlgError:
+        var = np.full(len(theta), np.nan)
+    # Fall back to the prior variance where the curvature is not positive (flat posterior).
+    var = np.where(np.isfinite(var) & (var > 0), np.minimum(var, sd ** 2), sd ** 2)
+    return theta, var
+
+
+def fit_empirical_bayes(data: TwoStepData, model: str, n_iter: int = 30, tol: float = 1e-2,
+                        n_starts: int = 2, seed: int = 0, init_sd: float = 2.5,
+                        min_sd: float = 0.05, n_jobs: int = 1) -> dict:
+    """Hierarchical fit by empirical Bayes (EM with a Laplace approximation; Huys et al. 2011).
+
+    The group prior is independent Gaussian on the unconstrained parameters, N(mu, sd^2),
+    starting from N(0, ``init_sd``^2) (the fixed prior of :func:`fit`). Each iteration
+    fits every subject's MAP under the current prior, takes the posterior variance from
+    the inverse Hessian, and sets ``mu = mean(theta)``, ``sd^2 = mean(theta^2 + var) -
+    mu^2`` (floored at ``min_sd``). Stops when mu and sd change by less than ``tol``.
+    Returns the group prior, per-subject parameters under the final prior, and the trace.
+    """
+    from joblib import Parallel, delayed
+
+    subs = _subject_rows(data)
+    k = len(MODELS[model])
+    mu, sd = np.zeros(k), np.full(k, float(init_sd))
+    trace, converged = [], False
+    for it in range(n_iter):
+        out = Parallel(n_jobs=n_jobs)(
+            delayed(_eb_subject)(data.subset(r), model, mu, sd, n_starts, seed)
+            for r in subs.values())
+        thetas = np.array([o[0] for o in out])
+        var = np.array([o[1] for o in out])
+        new_mu = thetas.mean(axis=0)
+        new_sd = np.sqrt(np.maximum((thetas ** 2 + var).mean(axis=0) - new_mu ** 2,
+                                    min_sd ** 2))
+        change = float(max(np.abs(new_mu - mu).max(), np.abs(new_sd - sd).max()))
+        mu, sd = new_mu, new_sd
+        trace.append({"iteration": it, "max_change": change})
+        if change < tol:
+            converged = True
+            break
+    final = Parallel(n_jobs=n_jobs)(
+        delayed(fit)(data.subset(r), model, n_starts, seed, sd, mu) for r in subs.values())
+    fits = pd.DataFrame([{"subject": s, "model": model, **f["params"]}
+                         for s, f in zip(subs, final, strict=True)])
+    return {"model": model, "prior_mean": mu.tolist(), "prior_sd": sd.tolist(),
+            "parameters": list(MODELS[model]), "n_iter": len(trace),
+            "converged": converged, "trace": trace, "fits": fits}
+
+
+def heldout_runs_eb(data: TwoStepData, model: str, **eb_kw) -> pd.DataFrame:
+    """Leave-one-run-out with an empirical-Bayes prior estimated on the training runs only.
+
+    For each run label (e.g. run-1), the group prior and every subject's parameters are
+    fitted on all subjects' *other* runs and score that subject's held-out run, so the
+    held-out data never inform the prior.
+    """
+    rows = []
+    for held in dict.fromkeys(data.run):
+        train = data.subset(np.flatnonzero(data.run != held))
+        test = data.subset(np.flatnonzero(data.run == held))
+        eb = fit_empirical_bayes(train, model, **eb_kw)
+        for _, f in eb["fits"].iterrows():
+            m = test.subject == f["subject"]
+            if not m.any():
+                continue
+            params = {k: float(f[k]) for k in MODELS[model]}
+            sub = test.subset(np.flatnonzero(m))
+            rows.append({"subject": f["subject"], "model": model, "heldout_run": held,
+                         "heldout_loglik": loglik(params, model, sub),
+                         "heldout_trials": sub.n_scored})
+    return pd.DataFrame(rows)
 
 
 def heldout_runs(data: TwoStepData, model: str, **fit_kw) -> dict:
@@ -952,3 +1062,103 @@ def compare(trials: pd.DataFrame, models=tuple(MODELS), reference: str = "hybrid
         "replication": replication,
         "fits": fits,
     }
+
+
+# --------------------------------------------------------------------------- EB studies
+def _simulate_population(model, schedules, seed, ranges, reward):
+    parts, true = [], []
+    for i, sched in enumerate(schedules):
+        rng = np.random.default_rng([seed, 9000 + i])
+        p = sample_params(model, rng, ranges)
+        sim = simulate(sched, model, p, seed=int(rng.integers(2**31)), reward=reward)
+        sim.subject = np.array([f"sim{i}"] * len(sim.subject))
+        parts.append(sim)
+        true.append({"subject": f"sim{i}", **p})
+    data = TwoStepData(**{k: np.concatenate([getattr(x, k) for x in parts])
+                          for k in TwoStepData.__dataclass_fields__})
+    return data, pd.DataFrame(true)
+
+
+def empirical_bayes_recovery(model: str, schedules: list[Schedule], seed: int = 0,
+                             ranges: dict | None = None, reward: str = "binary",
+                             n_starts: int = 2, prior_sd: float = 2.5, n_jobs: int = 1,
+                             **eb_kw) -> dict:
+    """Parameter recovery of fixed-prior MAP vs empirical Bayes on one simulated population
+    (one subject per schedule, parameters drawn from ``ranges``)."""
+    data, true = _simulate_population(model, schedules, seed, ranges, reward)
+    fixed = fit_subjects(data, [model], n_starts=n_starts, seed=seed, prior_sd=prior_sd,
+                         n_jobs=n_jobs).set_index("subject")
+    eb = fit_empirical_bayes(data, model, n_starts=n_starts, seed=seed, n_jobs=n_jobs,
+                             **eb_kw)
+    est = eb["fits"].set_index("subject")
+    t = true.set_index("subject")
+    out = {}
+    for k in MODELS[model]:
+        out[k] = {"r_fixed": float(np.corrcoef(t[k], fixed.loc[t.index, k])[0, 1]),
+                  "r_eb": float(np.corrcoef(t[k], est.loc[t.index, k])[0, 1]),
+                  "mae_fixed": float((t[k] - fixed.loc[t.index, k]).abs().median()),
+                  "mae_eb": float((t[k] - est.loc[t.index, k]).abs().median())}
+    return {"model": model, "n_subjects": len(t), "eb_converged": eb["converged"],
+            "eb_n_iter": eb["n_iter"], "prior_mean": eb["prior_mean"],
+            "prior_sd": eb["prior_sd"], "parameters": out}
+
+
+def compare_empirical_bayes(trials: pd.DataFrame, models, min_rt: float | None = 0.15,
+                            max_missed_fraction: float | None = 0.10, n_starts: int = 2,
+                            prior_sd: float = 2.5, seed: int = 0, n_boot: int = 2000,
+                            n_jobs: int = 1, replication_run: str | None = "structural",
+                            **eb_kw) -> dict:
+    """Fixed-prior MAP vs empirical Bayes on real data, per model.
+
+    Held-out runs: both methods leave one run out (EB estimates its prior on the
+    training runs only, :func:`heldout_runs_eb`). Other session: parameters fitted on
+    the functional runs (fixed prior, or EB with the prior from all functional data)
+    score ``replication_run``. Deltas are EB minus fixed, summed over subjects, with a
+    subject-bootstrap CI.
+    """
+    miss = missed_fraction(trials)
+    excluded = sorted(miss[miss > max_missed_fraction].index) if max_missed_fraction else []
+    keep = trials[~trials["subject"].isin(excluded)]
+    data = prepare(keep, min_rt=min_rt)
+    rep_data = prepare(keep, min_rt=min_rt, runs=(replication_run,)) if replication_run \
+        else None
+    rng = np.random.default_rng(seed)
+
+    def delta(a, b):
+        d = (a - b).to_numpy()
+        boot = [d[rng.integers(0, len(d), len(d))].sum() for _ in range(n_boot)]
+        return {"delta_eb_minus_fixed": float(d.sum()),
+                "ci95": np.percentile(boot, [2.5, 97.5]).tolist(),
+                "subjects_better_with_eb": int((d > 0).sum())}
+
+    out = {"n_subjects": int(len(set(data.subject))), "excluded_subjects": excluded,
+           "models": {}}
+    for m in models:
+        fixed = fit_subjects(data, [m], n_starts=n_starts, seed=seed, prior_sd=prior_sd,
+                             n_jobs=n_jobs)
+        fx_runs = fixed.set_index("subject")["heldout_loglik"]
+        eb_runs = (heldout_runs_eb(data, m, n_starts=n_starts, seed=seed, n_jobs=n_jobs,
+                                   **eb_kw).groupby("subject")["heldout_loglik"].sum())
+        n_runs = int(fixed["heldout_trials"].sum())
+        eb = fit_empirical_bayes(data, m, n_starts=n_starts, seed=seed, n_jobs=n_jobs, **eb_kw)
+        res = {"prior_mean": dict(zip(MODELS[m], eb["prior_mean"], strict=True)),
+               "prior_sd": dict(zip(MODELS[m], eb["prior_sd"], strict=True)),
+               "eb_converged": eb["converged"], "eb_n_iter": eb["n_iter"],
+               "medians_fixed": fixed[list(MODELS[m])].median().to_dict(),
+               "medians_eb": eb["fits"][list(MODELS[m])].median().to_dict(),
+               "heldout_runs": {"per_trial_fixed": float(fx_runs.sum() / n_runs),
+                                "per_trial_eb": float(eb_runs.sum() / n_runs),
+                                **delta(eb_runs.reindex(fx_runs.index), fx_runs)}}
+        if rep_data is not None:
+            fx_s = session_heldout(fixed, rep_data, [m]).set_index("subject")["heldout_loglik"]
+            eb_s = session_heldout(eb["fits"], rep_data, [m]).set_index("subject")
+            n_s = int(eb_s["heldout_trials"].sum())
+            eb_s = eb_s["heldout_loglik"]
+            res["other_session"] = {"per_trial_fixed": float(fx_s.sum() / n_s),
+                                    "per_trial_eb": float(eb_s.sum() / n_s),
+                                    **delta(eb_s.reindex(fx_s.index), fx_s)}
+        if m.endswith("_arbitration"):
+            res["arbitration_eb_group_mean"] = {k: res["prior_mean"][k]
+                                                for k in ARBITRATION_TERMS}
+        out["models"][m] = res
+    return out

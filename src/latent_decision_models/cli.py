@@ -500,6 +500,32 @@ def _two_step_compare(args):
                 cfg.get("output"))
 
 
+def _two_step_eb(args):
+    from . import two_step_model as ts
+
+    cfg = yaml.safe_load(Path(args.config).read_text())
+    eb_kw = {"n_iter": cfg.get("eb_n_iter", 30), "tol": cfg.get("eb_tol", 0.01)}
+    common = {"seed": cfg.get("seed", 0), "n_starts": cfg.get("n_starts", 2),
+              "prior_sd": cfg.get("prior_sd", 2.5), "n_jobs": cfg.get("n_jobs", 1)}
+    out = {"config": cfg}
+    if cfg.get("recovery_models"):
+        schedules, kind = _two_step_schedules(cfg)
+        ranges = {k: tuple(v) for k, v in (cfg.get("parameter_ranges") or {}).items()}
+        out["recovery"] = {"data_kind": f"simulated_agents_on_{kind}", "results": [
+            ts.empirical_bayes_recovery(m, schedules, ranges=ranges, **common, **eb_kw)
+            for m in cfg["recovery_models"]]}
+    if cfg.get("models"):
+        out["real_data"] = {"data_kind": cfg.get("data_kind", "unspecified"),
+                            **ts.compare_empirical_bayes(
+                                pd.read_csv(cfg["input"]), cfg["models"],
+                                min_rt=cfg.get("min_rt", 0.15),
+                                max_missed_fraction=cfg.get("max_missed_fraction", 0.10),
+                                n_boot=cfg.get("n_boot", 2000),
+                                replication_run=cfg.get("replication_run", "structural"),
+                                **common, **eb_kw)}
+    _write_json(out, cfg.get("output"))
+
+
 def main():
     p = argparse.ArgumentParser(prog="ldm", description="Decision modeling research tools")
     sub = p.add_subparsers(dest="cmd", required=True)
@@ -608,6 +634,9 @@ def main():
                      ).add_argument("--config", required=True)
     tssub.add_parser("compare", help="Per-subject fits; held-out run and subject comparison"
                      ).add_argument("--config", required=True)
+    tssub.add_parser("eb", help="Empirical-Bayes (hierarchical) fitting vs fixed-prior MAP: "
+                     "recovery and real-data held-out comparison").add_argument(
+        "--config", required=True)
     d7 = sub.add_parser("ds007474", help="OpenNeuro ds007474 two-step task (experimental)")
     d7sub = d7.add_subparsers(dest="d7_cmd", required=True)
     f7 = d7sub.add_parser("fetch-behavior",
@@ -644,7 +673,8 @@ def main():
         {"recovery": _confidence_model_recovery,
          "compare": _confidence_model_compare}[args.cm_cmd](args)
     elif args.cmd == "two-step-model":
-        {"recovery": _two_step_recovery, "compare": _two_step_compare}[args.ts_cmd](args)
+        {"recovery": _two_step_recovery, "compare": _two_step_compare,
+         "eb": _two_step_eb}[args.ts_cmd](args)
     elif args.cmd == "ds007474":
         {"fetch-behavior": _ds007474_fetch, "trials": _ds007474_trials}[args.d7_cmd](args)
     elif args.cmd == "ds002158":

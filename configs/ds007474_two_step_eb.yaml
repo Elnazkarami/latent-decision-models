@@ -1,0 +1,30 @@
+# LDM-007: empirical-Bayes (hierarchical) fitting vs fixed-prior MAP on real data.
+# Written 2026-11-24 and committed before any real-data EB fit. Methodological question,
+# not a new behavioral claim.
+#
+# Recovery (configs/two_step_eb_recovery.yaml, read before this plan): EB recovers every
+# parameter of hybrid_wsls and hybrid_wsls_arbitration better than the fixed N(0, 2.5^2)
+# prior (r +0.01 to +0.14), even with a uniform (non-Gaussian) generating distribution;
+# the arbitration weights stay poorly recovered (r ~ 0.35).
+#
+# Question: does EB also predict held-out data better?
+#  * held-out runs: EB prior estimated on the training runs only (no leakage);
+#  * other session (structural): parameters from the functional runs.
+# Decision: EB is called better (or worse) for a model only if the summed Delta
+# (EB - fixed) has a 95% subject-bootstrap CI above (or below) 0 in the other session;
+# held-out runs are secondary. Group means of the arbitration weights under EB are
+# reported descriptively (follow-up 3 showed they depend on the learning signal).
+input: data/ds007474_trials.csv
+output: reports/ds007474_two_step_eb.json
+data_kind: real_behavioral_openneuro_ds007474_v1.0.5_osf_ctfzd
+models: [hybrid_wsls, hybrid_wsls_arbitration]
+min_rt: 0.15
+max_missed_fraction: 0.10
+replication_run: structural
+n_starts: 2
+prior_sd: 2.5
+eb_n_iter: 30
+eb_tol: 0.01
+n_boot: 2000
+seed: 0
+n_jobs: 8

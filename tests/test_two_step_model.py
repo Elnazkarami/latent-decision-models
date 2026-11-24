@@ -314,3 +314,46 @@ def test_magmf_model_free_learns_from_points():
     d = ts.simulate(s, "hybrid_wsls_magmf", p, seed=2)
     assert (d.points <= d.win).all() and (d.points < d.win).any()
     assert ts.loglik(p, "hybrid_wsls_magmf", d) != pytest.approx(ts.loglik(p, "hybrid_wsls", d))
+
+
+def test_fit_with_prior_mean_and_vector_sd_matches_the_default():
+    d = ts.simulate(ts.synthetic_schedule(seed=8), "hybrid",
+                    {"alpha": 0.5, "beta": 5.0, "w": 0.6, "stick": 0.3}, seed=1)
+    a = ts.fit(d, "hybrid", n_starts=1)
+    b = ts.fit(d, "hybrid", n_starts=1, prior_sd=np.full(4, 2.5), prior_mean=np.zeros(4))
+    assert a["loglik"] == pytest.approx(b["loglik"])
+    tight = ts.fit(d, "hybrid", n_starts=1, prior_sd=0.05, prior_mean=ts.to_theta(
+        {"alpha": 0.2, "beta": 2.0, "w": 0.3, "stick": 0.0}, "hybrid"))
+    assert tight["params"]["alpha"] == pytest.approx(0.2, abs=0.02)
+
+
+def test_hessian_of_a_quadratic():
+    A = np.array([[2.0, 0.5], [0.5, 1.0]])
+    H = ts._hessian(lambda x: 0.5 * x @ A @ x, np.array([0.3, -0.2]))
+    assert np.allclose(H, A, atol=1e-4)
+
+
+def test_empirical_bayes_recovers_the_group_distribution_and_shrinks():
+    # 40 subjects whose alpha (logit) ~ N(0.5, 0.3^2): the EB prior should find a mean
+    # near 0.5 and an SD far below the fixed prior's 2.5, and EB estimates should be at
+    # least as close to the truth as fixed-prior MAP estimates.
+    rng = np.random.default_rng(9)
+    parts, true = [], []
+    for i in range(40):
+        a = float(ts.expit(rng.normal(0.5, 0.3)))
+        p = {"alpha": a, "beta": 4.0, "w": 0.5, "stick": 0.2}
+        sim = ts.simulate(ts.synthetic_schedule(seed=200 + i, subject=f"S{i}"), "hybrid", p,
+                          seed=i)
+        parts.append(sim)
+        true.append(a)
+    d = ts.TwoStepData(**{k: np.concatenate([getattr(x, k) for x in parts])
+                          for k in ts.TwoStepData.__dataclass_fields__})
+    eb = ts.fit_empirical_bayes(d, "hybrid", n_iter=15, n_starts=1)
+    j = eb["parameters"].index("alpha")
+    assert abs(eb["prior_mean"][j] - 0.5) < 0.4 and eb["prior_sd"][j] < 1.0
+    fixed = ts.fit_subjects(d, ["hybrid"], n_starts=1).set_index("subject")["alpha"]
+    est = eb["fits"].set_index("subject")["alpha"]
+    t = pd.Series(true, index=[f"S{i}" for i in range(40)])
+    assert (est - t).abs().mean() <= (fixed - t).abs().mean()
+    ho = ts.heldout_runs_eb(d, "hybrid", n_iter=5, n_starts=1)
+    assert len(ho) == 80 and set(ho["heldout_run"]) == {"run-1", "run-2"}
