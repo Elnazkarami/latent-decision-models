@@ -42,3 +42,4 @@ outputs/
 !reports/ds002158-eeg-decoding-cardiac-control-*.json
 !reports/confidence_model_recovery*.json
 !reports/two_step_recovery*.json
+!reports/two_step_eb_recovery.json

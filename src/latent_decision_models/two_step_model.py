@@ -1131,7 +1131,7 @@ def compare_empirical_bayes(trials: pd.DataFrame, models, min_rt: float | None =
                 "ci95": np.percentile(boot, [2.5, 97.5]).tolist(),
                 "subjects_better_with_eb": int((d > 0).sum())}
 
-    out = {"n_subjects": int(len(set(data.subject))), "excluded_subjects": excluded,
+    out = {"n_subjects": len(set(data.subject)), "excluded_subjects": excluded,
            "models": {}}
     for m in models:
         fixed = fit_subjects(data, [m], n_starts=n_starts, seed=seed, prior_sd=prior_sd,
