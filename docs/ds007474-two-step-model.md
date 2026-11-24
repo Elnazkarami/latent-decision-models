@@ -22,6 +22,7 @@
   - **a separate session:** +318 [194, 454].
 
   Separate MF/MB learning rates add nothing. See "Follow-up".
+- **Follow-up 2 (trial-wise arbitration, plan committed before fitting):** after a high-stakes trial the model-based weight is *lower* (−0.27 logit units [−0.44, −0.10]). This passes a bootstrap-calibrated test (Holm p = 0.02) and replicates in sign and size in the separate session (−0.25). State uncertainty has no effect. The arbitration model does not predict better out of sample, and a magnitude-sensitive model-free account is not excluded. See "Follow-up 2".
 
 These are descriptive model comparisons on one dataset; they are not new claims about the brain.
 
@@ -247,12 +248,52 @@ The win-stay/lose-shift terms remove most of the misfit: the shift after unrewar
 - **Two sessions disagree slightly in direction.** The structural session points weakly toward more model-based weighting under state contingency; the scanner session points slightly the other way (−0.012 [−0.047, 0.023]). Neither CI excludes 0.
 - **Conclusion:** no reliable contingency effect on the MB weight. Effects as large as 0.15 are unlikely in either session.
 
+## Follow-up 2: trial-wise arbitration (exploratory)
+
+**Question.** Does the model-based weight shift trial by trial with the conditions just experienced, as the authors' `isPost_*` terms assume? Two conditions alternate in ~26-trial blocks within every run:
+- **state uncertainty:** pads within a planet are reliable (P = 0.9) or not (P = 0.5);
+- **stakes:** high (magnitude scale 0.30–1.00) or low (0.10–0.19) reward magnitude.
+
+**Model** (`hybrid_wsls_arbitration`): `hybrid_wsls` with `w_t = expit(logit(w) + arb_reliable · x_reliable + arb_high · x_high)`, where x = ±0.5 codes the previous trial's condition. Because both conditions change within runs, held-out runs are a valid test here, unlike for the contingency question. Prior work suggests both weights are positive (less state uncertainty, or higher stakes, → more model-based control; Lee et al. 2014, Kool et al. 2017); the tests are two-sided.
+
+**Recovery first** ([report](../reports/two_step_recovery_arbitration.json); real schedules, fitted range of `hybrid_wsls`, arbitration weights up to ±1 logit unit):
+
+| Check | Result |
+| --- | --- |
+| Per-subject arbitration weights, true vs fitted r | `arb_reliable` 0.32, `arb_high` 0.37 (other parameters 0.54–0.90) |
+| Model comparison on held-out runs, groups of 10 | arbitration model selected in **0/10** groups when it generated the data (and 0/10 when it did not) |
+| Group test, nothing planted | `arb_reliable` +0.13 [−0.00, 0.26], p = 0.046; `arb_high` −0.05, p = 0.60 |
+| Group test, 0.5 / 0.5 planted | `arb_reliable` +0.34 [0.21, 0.48]; `arb_high` +0.18 [0.03, 0.33] (prior shrinkage) |
+
+Three consequences, all fixed in the plan ([`configs/ds007474_two_step_model_arbitration.yaml`](../configs/ds007474_two_step_model_arbitration.yaml), committed in `59f17ee` before any real-data fit of this model):
+- Only group-level summaries are interpretable.
+- Model comparison cannot detect arbitration of this size; it is reported but cannot count as evidence either way.
+- The plain group test may be biased on these schedules. The primary test is therefore **calibrated**: the observed group means are compared with a parametric-bootstrap null. For each of 100 replicates, every subject is simulated from their own fitted `hybrid_wsls` (no arbitration) on their own schedule and the arbitration model refitted (`two_step_model.arbitration_null`). An effect is claimed only if its calibrated Holm p < 0.05 and a refit on the separate structural session gives the same sign.
+
+**Results** (181 subjects, 26,853 scored trials; real-data outputs regenerated locally, not versioned).
+
+| Arbitration weight (logit units of w) | State uncertainty, `arb_reliable` | Stakes, `arb_high` |
+| --- | --- | --- |
+| Group mean, functional runs [95% CI] | +0.00 [−0.16, 0.16] (94/181 > 0) | **−0.27 [−0.44, −0.10]** (78/181 > 0) |
+| Bootstrap null, mean (SD) | −0.004 (0.085) | +0.015 (0.071) |
+| **Calibrated p (Holm)** | 0.93 (0.93) | **0.010 (0.020)**: beyond all 100 null replicates |
+| Refit on the structural session alone | +0.02 [−0.14, 0.17], p = 0.84 | **−0.25 [−0.43, −0.06], p = 0.007** |
+
+- **Stakes: an effect by the pre-registered rule, in the unexpected direction.** After a high-magnitude trial, the model-based weight is lower, not higher. Around w = 0.5, −0.27 logit units is about 0.07 less model-based weight. The separate session shows the same sign and size.
+- **State uncertainty: no effect.**
+- **No estimator bias on the real fits.** The bootstrap null is centred near 0 for both terms, so the +0.13 in the recovery run was chance.
+
+**Prediction does not improve** (Δ vs `hybrid_wsls`, summed log-likelihood): held-out runs −762 [−1,047, −510]; other session −151 [−227, −87]; held-out subjects −0.579 vs −0.580 per trial. Recovery showed that this comparison cannot detect arbitration of this size; the two extra, poorly identified parameters cost more out of sample than the effect contributes.
+
+**Reading.** One alternative is not excluded. The models learn from win/no-win, so any extra tendency to repeat a choice after a high-points win, a magnitude-sensitive model-free effect, also appears here as "less model-based weight after high stakes". This is therefore a robust behavioural regularity (two sessions, calibrated test), not evidence for a particular arbitration mechanism. A model whose model-free learning scales with points would be the next test.
+
+
 ## Limitations
 
 - **Fixed, instructed transitions, and no learned pad transitions.** The authors' model learns these. Win-stay/lose-shift terms and separate learning rates were tested in the follow-up.
 - **The follow-up is exploratory.** It was motivated by the primary analysis's misfit. The other-session test is its strongest safeguard, because nothing was tuned on that session.
 - **Contingency and time are confounded by design.** Only the across-subject counterbalancing of order separates them.
-- **Trial-wise arbitration is not modelled.** The authors' `isPost_*` sign-flip terms are not tested.
+- **Trial-wise arbitration** is tested only as a shift of the MB weight with the previous trial's conditions (follow-up 2), not with the authors' exact sign-flip parameterisation.
 - **Behavior only.** No fMRI derivative supports trial-level neural analysis (see the audit).
 
 ## Reproduce
@@ -271,4 +312,7 @@ ldm two-step-model recovery --config configs/two_step_recovery_extended.yaml    
 ldm two-step-model recovery --config configs/two_step_recovery_extended_fitted_range.yaml  # ~6 min
 ldm two-step-model recovery --config configs/two_step_recovery_structural.yaml             # ~1 min
 ldm two-step-model compare --config configs/ds007474_two_step_model_extended.yaml          # ~11 min
+# follow-up 2: arbitration (keep the machine awake: caffeinate on macOS)
+ldm two-step-model recovery --config configs/two_step_recovery_arbitration.yaml            # ~6 min
+ldm two-step-model compare --config configs/ds007474_two_step_model_arbitration.yaml       # ~2.5 h, 8 cores (bootstrap null)
 ```

@@ -9,7 +9,7 @@
 
 ## Option A: further LDM-007 extensions (no approval needed, lower priority)
 The misfit is addressed: hybrid + win-stay/lose-shift is best, including on a separate session.
-1. Learned pad transitions and trial-wise arbitration (the authors' `isPost_*` terms), each with recovery first.
+1. Done: trial-wise arbitration (recovery and plan first). Less model-based weight after high-stakes trials (−0.27, calibrated Holm p = 0.02; replicates in the structural session); none for state uncertainty. Next test: model-free learning that scales with points (would explain the same pattern without arbitration). Learned pad transitions are low value here (pads of a planet share their win probability).
 2. Hierarchical (empirical-Bayes) fitting, to tighten per-subject estimates at 154 trials.
 
 ## Option B: LDM-003 follow-ups (no approval needed; data already on external storage)
