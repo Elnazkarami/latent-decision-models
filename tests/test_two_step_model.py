@@ -297,3 +297,20 @@ def test_arbitration_null_shape_and_compare_hook():
     fits = ts.fit_subjects(data, ["hybrid_wsls"], n_starts=1)
     null = ts.arbitration_null(fits, ts.schedule_from_trials(trials), n_reps=2, n_starts=1)
     assert null.shape == (2, 2) and np.isfinite(null).all()
+
+
+def test_magmf_equals_hybrid_wsls_when_every_magnitude_is_one():
+    s = ts.synthetic_schedule(seed=4)
+    s.magnitude[:] = 1.0  # points = win, so model-free and model-based signals coincide
+    p = {"alpha": 0.5, "beta": 4.0, "w": 0.5, "stick": 0.2, "wsls_mf": 0.3, "wsls_mb": 0.3}
+    d = ts.simulate(s, "hybrid_wsls_magmf", p, seed=1)
+    assert np.allclose(d.points, d.win)
+    assert ts.loglik(p, "hybrid_wsls_magmf", d) == pytest.approx(ts.loglik(p, "hybrid_wsls", d))
+
+
+def test_magmf_model_free_learns_from_points():
+    s = ts.synthetic_schedule(seed=5)
+    p = {"alpha": 0.5, "beta": 4.0, "w": 0.0, "stick": 0.0, "wsls_mf": 0.0, "wsls_mb": 0.0}
+    d = ts.simulate(s, "hybrid_wsls_magmf", p, seed=2)
+    assert (d.points <= d.win).all() and (d.points < d.win).any()
+    assert ts.loglik(p, "hybrid_wsls_magmf", d) != pytest.approx(ts.loglik(p, "hybrid_wsls", d))

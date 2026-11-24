@@ -1,0 +1,34 @@
+# Recovery for the magnitude-based model-free variants (hybrid_wsls_magmf,
+# hybrid_wsls_magmf_arbitration), before any real-data fit of them. Real ds007474
+# schedules (functional runs), simulated choices; ranges as in
+# configs/two_step_recovery_arbitration.yaml.
+#  * can held-out runs tell binary from points-based model-free learning
+#    (hybrid_wsls vs hybrid_wsls_magmf)?
+#  * parameter recovery and a known-answer check (0 / 0 and 0.5 / 0.5) of the
+#    arbitration weights when model-free learning uses points.
+output: reports/two_step_recovery_magmf.json
+recovery_table: reports/two_step_recovery_magmf_table.csv
+schedules: real
+osf_root: data/ds007474_osf
+models: [hybrid_wsls, hybrid_wsls_magmf, hybrid_wsls_magmf_arbitration]
+arbitration_model: hybrid_wsls_magmf_arbitration
+reward: binary
+n_sims: 60
+n_model_sims: 100
+group_size: 10
+n_starts: 3
+prior_sd: 2.5
+seed: 0
+n_jobs: 8
+parameter_ranges:
+  alpha: [0.05, 0.9]
+  beta: [0.25, 10.8]
+  w: [0.17, 0.92]
+  stick: [-1.1, 1.8]
+  wsls_mf: [-0.6, 1.8]
+  wsls_mb: [-0.4, 2.4]
+  arb_reliable: [-1.0, 1.0]
+  arb_high: [-1.0, 1.0]
+arbitration_effects:
+  - {arb_reliable: 0.0, arb_high: 0.0}
+  - {arb_reliable: 0.5, arb_high: 0.5}

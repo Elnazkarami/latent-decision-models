@@ -461,8 +461,9 @@ def _two_step_recovery(args):
                        .to_dict(orient="index") if len(group) else None)
     contrast = [ts.contingency_effect_recovery(schedules, e, **kw)
                 for e in cfg.get("contingency_effects", [])]
-    arbitration = [ts.arbitration_effect_recovery(schedules, e, **kw)
-                   for e in cfg.get("arbitration_effects", [])]
+    arbitration = [ts.arbitration_effect_recovery(
+        schedules, e, **kw, model=cfg.get("arbitration_model", "hybrid_wsls_arbitration"))
+        for e in cfg.get("arbitration_effects", [])]
     if cfg.get("recovery_table"):
         Path(cfg["recovery_table"]).parent.mkdir(parents=True, exist_ok=True)
         pd.concat(rec.values()).to_csv(cfg["recovery_table"], index=False)
@@ -490,7 +491,8 @@ def _two_step_compare(args):
                      n_rep=cfg.get("n_rep", 20), seed=cfg.get("seed", 0),
                      n_jobs=cfg.get("n_jobs", 1),
                      replication_run=cfg.get("replication_run"),
-                     arbitration_null_reps=cfg.get("arbitration_null_reps", 0))
+                     arbitration_null_reps=cfg.get("arbitration_null_reps", 0),
+                     arbitration_tests=cfg.get("arbitration_tests", []) or [])
     fits = res.pop("fits")
     if cfg.get("fits_table"):
         fits.to_csv(cfg["fits_table"], index=False)

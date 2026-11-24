@@ -1,0 +1,54 @@
+# LDM-007 follow-up 3: is "less model-based weight after high stakes" arbitration, or
+# model-free learning that scales with the points shown?
+# Written 2026-11-23 and committed before any real-data fit of the magmf models.
+# Exploratory and post hoc: motivated by follow-up 2
+# (configs/ds007474_two_step_model_arbitration.yaml), whose effect it tries to explain.
+#
+# Follow-up 2 found arb_high = -0.27 [-0.44, -0.10] with model-free and model-based
+# values both learning from win / no win. If model-free values instead learn from points
+# (high-magnitude blocks pay ~4x more points per win), a win in a high block moves the
+# model-free value more, and a binary-reward model can only express that as "less
+# model-based weight after high stakes". The authors' model learns model-free values from
+# points and model-based values from wins (magMF_binMB); hybrid_wsls_magmf does the same.
+#
+# Questions and decision rules (fixed now):
+#  1. Can points-based model-free learning alone produce the effect? Null: every subject
+#     simulated from their own fitted hybrid_wsls_magmf (no arbitration), then
+#     hybrid_wsls_arbitration fitted (binary learning, as in follow-up 2); 50 replicates.
+#     If the observed arb_high (-0.27) lies inside this null (calibrated p >= 0.05), the
+#     learning signal is a sufficient explanation and follow-up 2 is not evidence of
+#     arbitration. If it lies outside, this explanation is insufficient.
+#  2. Does arbitration remain when model-free learning uses points? hybrid_wsls_magmf_
+#     arbitration, calibrated against a null from hybrid_wsls_magmf (50 replicates), Holm
+#     over the two terms; an effect needs Holm p < 0.05 and the same sign in a refit on
+#     the structural session alone.
+#  3. Which learning signal predicts better? hybrid_wsls_magmf vs hybrid_wsls on held-out
+#     runs and, decisively, on the other session (95% CI of the summed Delta excludes 0).
+# Recovery first (configs/two_step_recovery_magmf.yaml; read before this plan was
+# committed): groups simulated with binary model-free learning are always recognised
+# (10/10), points-based ones only 6/10 (4 -> binary). So for question 3 a preference for
+# points-based learning is informative; a preference for binary learning is not. With
+# points-based learning and nothing planted, the plain group test gave arb_high = +0.18
+# [0.03, 0.34] (possible bias), and per-subject arb_high recovers poorly (r = 0.17):
+# only the calibrated group tests above are used for decisions.
+input: data/ds007474_trials.csv
+output: reports/ds007474_two_step_model_magmf.json
+fits_table: reports/ds007474_two_step_model_magmf_fits.csv
+data_kind: real_behavioral_openneuro_ds007474_v1.0.5_osf_ctfzd
+models: [hybrid_wsls, hybrid_wsls_arbitration, hybrid_wsls_magmf, hybrid_wsls_magmf_arbitration]
+reference: hybrid_wsls
+reward: binary
+min_rt: 0.15
+max_missed_fraction: 0.10
+exclude_subjects: []
+n_starts: 4
+prior_sd: 2.5
+n_folds: 5
+n_boot: 2000
+n_rep: 20
+seed: 0
+n_jobs: 8
+replication_run: structural
+arbitration_tests:
+  - {generator: hybrid_wsls_magmf, fitted: hybrid_wsls_arbitration, reps: 50}
+  - {generator: hybrid_wsls_magmf, fitted: hybrid_wsls_magmf_arbitration, reps: 50}
