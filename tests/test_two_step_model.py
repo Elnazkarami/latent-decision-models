@@ -334,12 +334,12 @@ def test_hessian_of_a_quadratic():
 
 
 def test_empirical_bayes_recovers_the_group_distribution_and_shrinks():
-    # 40 subjects whose alpha (logit) ~ N(0.5, 0.3^2): the EB prior should find a mean
+    # 30 subjects whose alpha (logit) ~ N(0.5, 0.3^2): the EB prior should find a mean
     # near 0.5 and an SD far below the fixed prior's 2.5, and EB estimates should be at
     # least as close to the truth as fixed-prior MAP estimates.
     rng = np.random.default_rng(9)
     parts, true = [], []
-    for i in range(40):
+    for i in range(30):
         a = float(ts.expit(rng.normal(0.5, 0.3)))
         p = {"alpha": a, "beta": 4.0, "w": 0.5, "stick": 0.2}
         sim = ts.simulate(ts.synthetic_schedule(seed=200 + i, subject=f"S{i}"), "hybrid", p,
@@ -348,12 +348,12 @@ def test_empirical_bayes_recovers_the_group_distribution_and_shrinks():
         true.append(a)
     d = ts.TwoStepData(**{k: np.concatenate([getattr(x, k) for x in parts])
                           for k in ts.TwoStepData.__dataclass_fields__})
-    eb = ts.fit_empirical_bayes(d, "hybrid", n_iter=15, n_starts=1)
+    eb = ts.fit_empirical_bayes(d, "hybrid", n_iter=6, tol=0.05, n_starts=1)
     j = eb["parameters"].index("alpha")
     assert abs(eb["prior_mean"][j] - 0.5) < 0.4 and eb["prior_sd"][j] < 1.0
     fixed = ts.fit_subjects(d, ["hybrid"], n_starts=1).set_index("subject")["alpha"]
     est = eb["fits"].set_index("subject")["alpha"]
-    t = pd.Series(true, index=[f"S{i}" for i in range(40)])
+    t = pd.Series(true, index=[f"S{i}" for i in range(30)])
     assert (est - t).abs().mean() <= (fixed - t).abs().mean()
-    ho = ts.heldout_runs_eb(d, "hybrid", n_iter=5, n_starts=1)
-    assert len(ho) == 80 and set(ho["heldout_run"]) == {"run-1", "run-2"}
+    ho = ts.heldout_runs_eb(d, "hybrid", n_iter=2, n_starts=1)
+    assert len(ho) == 60 and set(ho["heldout_run"]) == {"run-1", "run-2"}

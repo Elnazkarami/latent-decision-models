@@ -451,7 +451,7 @@ def test_run_decoding_column_target_drops_missing_rows(tmp_path):
         t.to_csv(tmp_path / f"{s}_trials.csv", index=False)
     cfg = {"epochs_dir": str(tmp_path), "subjects": subs, "conditions": ["active"],
            "windows": ["post_decision"], "score_mode": "per_group", "n_perm": 0,
-           "loso": False, "n_jobs": 1,
+           "loso": False, "pairwise_transfer": False, "n_jobs": 1,
            "targets": {"rpeak": {"task": "regression", "column": "hb_next_rpeak_s"},
                        "confidence": {"task": "regression"},
                        "confidence_same_trials": {"task": "regression", "target": "confidence",
