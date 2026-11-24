@@ -25,7 +25,8 @@ def lss_weights(onsets, conditions, n_volumes: int, tr: float, confounds=None,
                 hrf_model: str = "glover", high_pass: float = 1 / 128):
     """Rows of the LSS pseudo-inverses, one per trial: ``betas = W @ Y``.
 
-    Returns ``(W, condition_numbers)``; ``W`` has shape (n_trials, n_volumes).
+    Returns ``(W, condition_numbers)``; ``W`` has shape (n_trials, n_volumes) and the
+    condition numbers are of each design with unit-norm columns.
     ``confounds`` (n_volumes x k) are demeaned and added to every design.
     """
     onsets = np.asarray(onsets, float)
@@ -49,7 +50,9 @@ def lss_weights(onsets, conditions, n_volumes: int, tr: float, confounds=None,
         A = X.to_numpy(float)
         if conf is not None:
             A = np.column_stack([A, conf])
-        cond_numbers[i] = np.linalg.cond(A)
+        # Collinearity, not column scale (stick regressors peak near 0.01, rotations are
+        # in radians): condition number of the design with unit-norm columns.
+        cond_numbers[i] = np.linalg.cond(A / np.linalg.norm(A, axis=0))
         W[i] = np.linalg.pinv(A)[X.columns.get_loc("target")]
     return W, cond_numbers
 

@@ -37,6 +37,7 @@ def test_lss_is_exact_for_equal_amplitudes_with_nuisance_in_the_design():
     y = 100 + _signal(onsets, np.full(len(onsets), 0.7), n_vol) + motion @ rng.normal(size=6)
     W, cn = fmri_lss.lss_weights(onsets, cond, n_vol, TR, confounds=motion)
     assert W.shape == (len(onsets), n_vol) and np.isfinite(cn).all()
+    assert cn.max() < 100  # trials 9 s apart: well conditioned once columns are scaled
     np.testing.assert_allclose(W @ y, 0.7, atol=1e-8)
     # Linearity: weights applied to two columns give two sets of betas.
     B = W @ np.column_stack([y, 2 * y])
