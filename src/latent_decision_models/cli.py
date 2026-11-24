@@ -38,38 +38,51 @@ def _ds002158_fetch(args):
     _write_json({k: v for k, v in out.items() if k != "files"})
 
 
-def _ds002158_fetch_eeg(args):
-    """Raw BrainVision EEG for named subjects: signal data, needs an approved budget."""
+def _fetch_signal(args, pattern: str, kind: str):
+    """Download signal files of named subjects within an approved budget (EEG or fMRI)."""
     from .datasets import ds002158 as d
     from .io import openneuro
 
     files = openneuro.snapshot_files(d.DATASET_ID, args.tag)
     subjects = set(args.subjects)
-    sel = [f for f in files
-           if re.fullmatch(r"(sub-\d+)/ses-001/eeg/\1_ses-001_task-main_run-\d+_eeg\."
-                           r"(eeg|vhdr|vmrk)", f["filename"])
-           and f["filename"].split("/")[0] in subjects]
-    found = {f["filename"].split("/")[0] for f in sel}
+    sel = [f for f in files if re.fullmatch(pattern, f["filename"])
+           and re.search(r"sub-\d+", f["filename"]).group(0) in subjects]
+    found = {re.search(r"sub-\d+", f["filename"]).group(0) for f in sel}
     if found != subjects:
-        raise SystemExit(f"no EEG files for {sorted(subjects - found)}")
+        raise SystemExit(f"no {kind} files for {sorted(subjects - found)}")
     total = sum(f["size"] for f in sel)
     if args.dry_run:
         _write_json({"subjects": sorted(subjects), "n_files": len(sel), "total_bytes": total})
         return
     manifest = openneuro.fetch_signal_files(sel, args.dest, int(args.approved_gb * 1e9),
                                              min_free_bytes=int(args.min_free_gb * 1e9))
-    # One manifest per destination, accumulated over calls (one entry per file).
-    mpath = Path(args.dest, "eeg_fetch_manifest.json")
+    # One manifest per destination and kind, accumulated over calls (one entry per file).
+    mpath = Path(args.dest, f"{kind}_fetch_manifest.json")
     prev = json.loads(mpath.read_text())["files"] if mpath.exists() else []
     files_by_path = {m["path"]: m for m in prev} | {m["path"]: m for m in manifest}
     all_files = sorted(files_by_path.values(), key=lambda m: m["path"])
     out = {"dataset_id": d.DATASET_ID, "snapshot": args.tag,
-           "subjects": sorted({m["path"].split("/")[0] for m in all_files}),
+           "subjects": sorted({re.search(r"sub-\d+", m["path"]).group(0) for m in all_files}),
            "n_files": len(all_files), "total_bytes": sum(m["bytes"] for m in all_files),
            "files": all_files}
     mpath.write_text(json.dumps(out, indent=1) + "\n")
     _write_json({"fetched_subjects": sorted(subjects), "n_files": len(manifest),
                  "bytes": total, "manifest_total_bytes": out["total_bytes"]})
+
+
+def _ds002158_fetch_eeg(args):
+    """Raw BrainVision EEG for named subjects: signal data, needs an approved budget."""
+    _fetch_signal(args, r"(sub-\d+)/ses-001/eeg/\1_ses-001_task-main_run-\d+_eeg\."
+                        r"(eeg|vhdr|vmrk)", "eeg")
+
+
+def _ds002158_fetch_fmri(args):
+    """Published derivative BOLD (preproc.nii) + realignment parameters for named subjects.
+
+    Runs in the derivative's reject/rejected folders are never selected.
+    """
+    _fetch_signal(args, r"derivatives/fmriprep/(sub-\d+)/ses-001/func/\1_ses-001_task-main_"
+                        r"run-\d+_(preproc\.nii|headmove\.txt)", "fmri")
 
 
 def _ds002158_eeg_preprocess(args):
@@ -569,6 +582,18 @@ def main():
                     help="refuse to download if less than this would stay free on the "
                          "destination disk (default 20)")
     fe.add_argument("--dry-run", action="store_true", help="only report what would be fetched")
+    ff = dsub.add_parser("fetch-fmri", help="Download the published derivative BOLD "
+                         "(preproc.nii, ~3.2 GB/run) and realignment parameters for named "
+                         "subjects (signal data: needs an approved size budget)")
+    ff.add_argument("--subjects", nargs="+", required=True)
+    ff.add_argument("--dest", required=True)
+    ff.add_argument("--tag", default="1.0.2")
+    ff.add_argument("--approved-gb", type=float, required=True,
+                    help="approved download budget in GB; the request fails if it is exceeded")
+    ff.add_argument("--min-free-gb", type=float, default=20.0,
+                    help="refuse to download if less than this would stay free on the "
+                         "destination disk (default 20)")
+    ff.add_argument("--dry-run", action="store_true", help="only report what would be fetched")
     ep = dsub.add_parser("eeg-preprocess", help="Clean raw in-scanner EEG (gradient + BCG "
                          "subtraction, causal filter) and cut trial epochs")
     ep.add_argument("--bids-root", required=True)
@@ -682,6 +707,7 @@ def main():
     elif args.cmd == "ds002158":
         {"fetch-metadata": _ds002158_fetch, "trials": _ds002158_trials,
          "align-eeg": _ds002158_align, "fetch-eeg": _ds002158_fetch_eeg,
+         "fetch-fmri": _ds002158_fetch_fmri,
          "eeg-preprocess": _ds002158_eeg_preprocess, "eeg-decode": _ds002158_eeg_decode,
          "eeg-cardiac": _ds002158_eeg_cardiac, "eeg-bcg-retention": _ds002158_eeg_bcg_retention, "fmri-audit": _ds002158_fmri_audit,
          "fmri-design": _ds002158_fmri_design}[args.ds_cmd](args)

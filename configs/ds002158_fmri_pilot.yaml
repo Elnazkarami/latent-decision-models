@@ -1,0 +1,65 @@
+# LDM-004 pilot: trial-level fMRI from the published ds002158 derivative, 2 subjects.
+# Written 2026-11-24 and committed before any image was opened (download approved the
+# same day; only the event timing, motion files and headers had been read).
+#
+# Purpose: check that single-trial estimates from the derivative are usable, before
+# deciding whether to download more subjects (19 GB each). Two subjects cannot support any
+# group or cross-subject claim; everything below is per subject.
+#
+# Subjects, chosen by a rule on inventory and motion only (no outcome data): the two
+# lowest subject IDs with 6 derivative runs, none rejected or missing, no run with > 20%
+# of volumes above FD 0.5 mm, and not sub-20 -> sub-02, sub-04.
+#
+# Features (docs/ds002158-fmri-audit.md): whole-trial measures, never pre-decision.
+#  * Single-trial betas by LSS (Mumford et al. 2012): per trial, a GLM with the target
+#    trial, all other active trials, all other observed trials (stick functions at
+#    stimulus onset, Glover HRF), 6 realignment parameters, cosine drift (1/128 Hz) and
+#    an intercept. All trials enter the design, including author-flagged ones (they
+#    happened); only valid trials are analysed.
+#  * ROIs: Harvard-Oxford cortical (thr25, 2 mm, split left/right) + subcortical grey
+#    matter (thalamus, caudate, putamen, pallidum, hippocampus, amygdala, accumbens, each
+#    side; brain stem), resampled (nearest) to the derivative grid. ROI time series =
+#    mean over voxels finite and non-constant in that run; LSS is linear, so this equals
+#    the ROI mean of voxel betas.
+#
+# Decisions (fixed now):
+#  1. Quality, per run: ROI temporal SNR, motion summary, and the condition number of
+#     each LSS design. Reported, no threshold.
+#  2. Positive controls (expected from the task; each must hold in both subjects for the
+#     pipeline to be called usable):
+#     a. Visual response: mean single-trial beta (valid trials, both conditions) > 0 in
+#        occipital cortex (mean of Harvard-Oxford occipital pole, lateral occipital
+#        superior + inferior, intracalcarine, supracalcarine, lingual, occipital fusiform,
+#        cuneal; both sides). Test: one-sided t over the 6 run means.
+#     b. Movement: active trials (button press) > observed trials (no movement; presses
+#        there are excluded) in precentral + postcentral gyrus, both sides, as the mean
+#        of per-run differences. One-sided t over the 6 runs.
+#     If either fails in a subject, stop and investigate before any confidence analysis.
+#  3. Exploratory confidence decoding (only if 2 passes): within subject, leave one run
+#     out, ridge regression on all ROI betas (scaling fitted on training runs), active
+#     valid trials; score = Spearman r per held-out run, averaged; within-run label
+#     permutation (1000). Targets: confidence; confidence beyond accuracy, latency and
+#     evidence (residualised within the training runs). Same for observed trials.
+#     Reported per subject with no group test and no claim: with 2 subjects this only
+#     shows whether a whole-trial signal is plausibly large enough to justify more data.
+input_trials: data/ds002158_trials.csv
+bids_root: data/ds002158             # override with --bids-root (images on external disk)
+out_dir: data/derivatives/ldm-fmri   # override with --out-dir
+subjects: [sub-02, sub-04]
+tr: 1.28
+hrf_model: glover
+high_pass_hz: 0.0078125
+atlas: harvard_oxford_cort_sub_thr25_2mm
+controls:
+  visual: {rois: occipital}
+  movement: {rois: sensorimotor, contrast: [active, observed]}
+decoding:
+  conditions: [active, observed]
+  n_perm: 1000
+  seed: 0
+  targets:
+    confidence: {task: regression}
+    confidence_beyond_behavior:
+      task: regression
+      target: confidence
+      covariates: [accuracy, response_latency_seconds, evidence_dots_difference]
