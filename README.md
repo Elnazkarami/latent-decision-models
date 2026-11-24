@@ -182,7 +182,7 @@ Details: [audit](docs/ds007474-audit.md) · [JSON](reports/ds007474-audit.json) 
   - It improves prediction of held-out runs (+400 [61, 721]) and of a **separate behavioral session** scored with parameters fitted on the scanner session (+318 [194, 454]).
   - Recovery shows this selection makes no false positives.
   - Separate MF/MB learning rates add nothing.
-- **Trial-wise arbitration (exploratory; plan committed before fitting):** after a high-stakes trial, the model-based weight is *lower* (−0.27 logit units [−0.44, −0.10]). This survives a bootstrap-calibrated test (Holm p = 0.02) and replicates in a separate session (−0.25). State uncertainty has no effect. The arbitration model does not predict better out of sample, and a magnitude-sensitive model-free account is not ruled out, so no mechanism is claimed.
+- **Trial-wise arbitration (exploratory; plans committed before fitting): no evidence for it.** Whether the model-based weight shifts after high-stakes trials depends on what model-free learning is assumed to learn from. With win/no-win it is lower (−0.27, calibrated Holm p = 0.02); with points it is higher (+0.56, Holm p = 0.04); both replicate in a separate session. The stakes effect therefore cannot be separated from the magnitude sensitivity of learning in this design. State uncertainty has no effect either way.
 
 ## Principles
 
@@ -196,6 +196,7 @@ Contributor rules are in [`AGENTS.md`](AGENTS.md); the research plan is in [`doc
 
 ## Changelog
 
+- **2026-11-24:** Two-step model: points-based model-free variants (`hybrid_wsls_magmf`, `hybrid_wsls_magmf_arbitration`) and bootstrap nulls for any generating/fitted model pair. ds007474: the sign of the stakes "arbitration" effect reverses with points-based learning, so it is not interpreted as arbitration.
 - **2026-11-23:** Two-step model: trial-wise arbitration (`hybrid_wsls_arbitration`, `lagged_conditions`), a parametric-bootstrap null with a calibrated group test (`arbitration_null`, `calibrated_arbitration_test`), and recovery on real schedules. ds007474: less model-based weight after high-stakes trials, in two sessions.
 - **2026-11-20:** Cross-condition decoding (`eeg_decoding.cross_decode`; `cross_condition`, `condition_contrasts` and `pairwise_transfer` config keys). ds002158: the own-decision confidence signal does not transfer to observed decisions.
 - **2026-11-20:** ds002158 EEG: OBS with 1 component (chosen on planted-signal retention) restores cross-subject confidence decoding, as predicted before decoding.

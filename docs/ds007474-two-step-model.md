@@ -22,7 +22,10 @@
   - **a separate session:** +318 [194, 454].
 
   Separate MF/MB learning rates add nothing. See "Follow-up".
-- **Follow-up 2 (trial-wise arbitration, plan committed before fitting):** after a high-stakes trial the model-based weight is *lower* (−0.27 logit units [−0.44, −0.10]). This passes a bootstrap-calibrated test (Holm p = 0.02) and replicates in sign and size in the separate session (−0.25). State uncertainty has no effect. The arbitration model does not predict better out of sample, and a magnitude-sensitive model-free account is not excluded. See "Follow-up 2".
+- **Follow-ups 2 and 3 (trial-wise arbitration; plans committed before fitting):** no evidence for arbitration by stakes or by state uncertainty.
+  - With win-based model-free learning, the model-based weight is lower after high-stakes trials (−0.27 [−0.44, −0.10]; calibrated Holm p = 0.02; −0.25 in the other session).
+  - With points-based model-free learning, the same weight is *higher* (+0.56, Holm p = 0.04; +0.49 in the other session).
+  - The sign depends on the assumed learning signal, so the stakes effect cannot be separated from how strongly model-free learning scales with points. State uncertainty has no effect under either assumption. See "Follow-up 3".
 
 These are descriptive model comparisons on one dataset; they are not new claims about the brain.
 
@@ -279,6 +282,8 @@ Three consequences, all fixed in the plan ([`configs/ds007474_two_step_model_arb
 | **Calibrated p (Holm)** | 0.93 (0.93) | **0.010 (0.020)**: beyond all 100 null replicates |
 | Refit on the structural session alone | +0.02 [−0.14, 0.17], p = 0.84 | **−0.25 [−0.43, −0.06], p = 0.007** |
 
+> **Superseded by follow-up 3:** with points-based model-free learning, the sign of this effect reverses, so it is not interpreted as arbitration.
+
 - **Stakes: an effect by the pre-registered rule, in the unexpected direction.** After a high-magnitude trial, the model-based weight is lower, not higher. Around w = 0.5, −0.27 logit units is about 0.07 less model-based weight. The separate session shows the same sign and size.
 - **State uncertainty: no effect.**
 - **No estimator bias on the real fits.** The bootstrap null is centred near 0 for both terms, so the +0.13 in the recovery run was chance.
@@ -286,6 +291,44 @@ Three consequences, all fixed in the plan ([`configs/ds007474_two_step_model_arb
 **Prediction does not improve** (Δ vs `hybrid_wsls`, summed log-likelihood): held-out runs −762 [−1,047, −510]; other session −151 [−227, −87]; held-out subjects −0.579 vs −0.580 per trial. Recovery showed that this comparison cannot detect arbitration of this size; the two extra, poorly identified parameters cost more out of sample than the effect contributes.
 
 **Reading.** One alternative is not excluded. The models learn from win/no-win, so any extra tendency to repeat a choice after a high-points win, a magnitude-sensitive model-free effect, also appears here as "less model-based weight after high stakes". This is therefore a robust behavioural regularity (two sessions, calibrated test), not evidence for a particular arbitration mechanism. A model whose model-free learning scales with points would be the next test.
+
+
+## Follow-up 3: arbitration or points-based model-free learning? (exploratory)
+
+**Question.** Follow-up 2's effect (less model-based weight after high stakes) has a simpler possible cause. All models so far learn from win/no-win. If model-free values actually learn from the points shown, a win in a high-magnitude block (about 4× more points) moves them more. A binary-reward model can only express that as "less model-based weight after high stakes". The authors' model learns model-free values from points and model-based values from wins; `hybrid_wsls_magmf` does the same, and `hybrid_wsls_magmf_arbitration` adds the arbitration terms.
+
+**Plan** ([`configs/ds007474_two_step_model_magmf.yaml`](../configs/ds007474_two_step_model_magmf.yaml), committed in `8a808b9` before any real-data fit of these models; post hoc to follow-up 2):
+1. **Can points-based learning alone produce the effect?** Simulate every subject from their own fitted `hybrid_wsls_magmf` (no arbitration), fit `hybrid_wsls_arbitration` as in follow-up 2, 50 replicates. If the observed −0.27 lies inside this null, the learning signal is a sufficient explanation.
+2. **Does arbitration remain with points-based learning?** `hybrid_wsls_magmf_arbitration`, calibrated against a null from `hybrid_wsls_magmf`, same decision rule as follow-up 2.
+3. **Which learning signal predicts better?** Held-out runs and the other session.
+
+**Recovery** ([report](../reports/two_step_recovery_magmf.json)):
+
+| Check | Result |
+| --- | --- |
+| Binary vs points-based model-free learning, groups of 10 | binary groups recognised 10/10; points-based 6/10 (4 → binary) |
+| Arbitration with points-based learning, nothing planted | `arb_reliable` +0.08, p = 0.48; `arb_high` +0.18 [0.03, 0.34], p = 0.046 |
+| Same, 0.5 / 0.5 planted | +0.24 [0.10, 0.38]; +0.35 [0.19, 0.51] |
+| Per-subject `arb_high`, true vs fitted r | 0.17 |
+
+So a real preference for points-based learning would be informative, but a preference for binary learning would not; and only the calibrated tests decide.
+
+**Results** (181 subjects; real-data outputs regenerated locally, not versioned).
+
+| Stakes weight `arb_high` | Model-free learns from wins (follow-up 2) | Model-free learns from points |
+| --- | --- | --- |
+| Real data, functional runs [95% CI] | −0.27 [−0.44, −0.10] | **+0.56 [0.39, 0.73]** |
+| Null from each subject's fitted points-based model (no arbitration), 50 replicates: mean [95%] | −0.62 [−0.73, −0.50] | +0.19 [0.06, 0.31] |
+| Calibrated p (Holm over the two terms) | 0.020 (0.039) | 0.020 (0.039) |
+| Refit on the structural session alone | −0.25 [−0.43, −0.06] | +0.49 [0.33, 0.66] |
+
+`arb_reliable` (state uncertainty) is ≈ 0 in every analysis (|mean| ≤ 0.05, all p ≥ 0.39).
+
+- **Question 1.** A learner whose model-free values follow points, fitted with win-based learning, shows an even more negative stakes weight (−0.62) than the real data (−0.27). By the plan's rule, points-based learning alone is not a sufficient explanation. It produces the effect's sign but overshoots it.
+- **Question 2.** With points-based model-free learning, the stakes weight turns **positive** (+0.37 beyond its null) and keeps that sign in the other session. The rule is technically met, with the opposite sign to follow-up 2.
+- **Question 3.** The two learning signals predict equally well (Δ points vs wins: held-out runs −369 [−909, +44]; other session −47 [−119, +17]). Recovery showed this comparison cannot favour win-based learning informatively.
+
+**Reading.** The sign of the "arbitration" effect depends on what model-free learning is assumed to learn from: negative with wins, positive with points, and the data fall between the two nulls. The simplest account is that model-free learning is *partly* sensitive to reward magnitude. Each model absorbs the mismatch into the stakes term, with opposite signs. In this design, an effect of stakes on arbitration is therefore not separable from the magnitude sensitivity of learning. **Neither follow-up 2 nor this analysis is evidence for or against arbitration by stakes.** State uncertainty shows no effect under either assumption. A model with a graded magnitude sensitivity (for example, model-free reward = win × magnitude^γ) would estimate the two jointly; given the weak recovery of the arbitration weights, it may still not separate them.
 
 
 ## Limitations
@@ -315,4 +358,7 @@ ldm two-step-model compare --config configs/ds007474_two_step_model_extended.yam
 # follow-up 2: arbitration (keep the machine awake: caffeinate on macOS)
 ldm two-step-model recovery --config configs/two_step_recovery_arbitration.yaml            # ~6 min
 ldm two-step-model compare --config configs/ds007474_two_step_model_arbitration.yaml       # ~2.5 h, 8 cores (bootstrap null)
+# follow-up 3: points-based model-free learning
+ldm two-step-model recovery --config configs/two_step_recovery_magmf.yaml                  # ~10 min
+ldm two-step-model compare --config configs/ds007474_two_step_model_magmf.yaml             # ~2.7 h (two bootstrap nulls)
 ```
