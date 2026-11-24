@@ -26,6 +26,7 @@
   - With win-based model-free learning, the model-based weight is lower after high-stakes trials (−0.27 [−0.44, −0.10]; calibrated Holm p = 0.02; −0.25 in the other session).
   - With points-based model-free learning, the same weight is *higher* (+0.56, Holm p = 0.04; +0.49 in the other session).
   - The sign depends on the assumed learning signal, so the stakes effect cannot be separated from how strongly model-free learning scales with points. State uncertainty has no effect under either assumption. See "Follow-up 3".
+- **Follow-up 4 (hierarchical fitting):** empirical-Bayes fitting recovers parameters better than the fixed prior and predicts the separate session better (+97 [56, 141] for `hybrid_wsls`). The model ranking does not change. See "Follow-up 4".
 
 These are descriptive model comparisons on one dataset; they are not new claims about the brain.
 
@@ -331,6 +332,35 @@ So a real preference for points-based learning would be informative, but a prefe
 **Reading.** The sign of the "arbitration" effect depends on what model-free learning is assumed to learn from: negative with wins, positive with points, and the data fall between the two nulls. The simplest account is that model-free learning is *partly* sensitive to reward magnitude. Each model absorbs the mismatch into the stakes term, with opposite signs. In this design, an effect of stakes on arbitration is therefore not separable from the magnitude sensitivity of learning. **Neither follow-up 2 nor this analysis is evidence for or against arbitration by stakes.** State uncertainty shows no effect under either assumption. A model with a graded magnitude sensitivity (for example, model-free reward = win × magnitude^γ) would estimate the two jointly; given the weak recovery of the arbitration weights, it may still not separate them.
 
 
+## Follow-up 4: hierarchical (empirical-Bayes) fitting
+
+**Method** (`two_step_model.fit_empirical_bayes`; `ldm two-step-model eb`). All earlier fits use a fixed, vague N(0, 2.5²) prior for every subject. Empirical Bayes estimates the group prior from the data instead (EM with a Laplace approximation; Huys et al. 2011):
+- fit each subject's MAP under the current group prior N(μ, σ²) on the unconstrained parameters;
+- take the posterior variance from the inverse Hessian;
+- update μ and σ² from all subjects, and repeat until they change by < 0.01.
+
+For held-out runs, the group prior is estimated on the training runs only, so held-out data never inform it.
+
+**Recovery first** ([report](../reports/two_step_eb_recovery.json); real schedules, 189 simulated subjects, parameters drawn *uniformly* over the fitted range, so the Gaussian group prior is misspecified):
+
+| r (true vs fitted), fixed → EB | α | β | w | stick | wsls_mf | wsls_mb | arb_reliable | arb_high |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| `hybrid_wsls` | 0.62 → 0.70 | 0.66 → 0.72 | 0.66 → 0.71 | 0.82 → 0.87 | 0.76 → 0.83 | 0.91 → 0.92 | – | – |
+| `hybrid_wsls_arbitration` | 0.66 → 0.74 | 0.55 → 0.69 | 0.59 → 0.68 | 0.80 → 0.88 | 0.78 → 0.86 | 0.91 → 0.92 | 0.32 → 0.35 | 0.32 → 0.34 |
+
+**Real data** (plan [`configs/ds007474_two_step_eb.yaml`](../configs/ds007474_two_step_eb.yaml), committed in `f6b3a4b` before any real-data EB fit; decision = other-session Δ CI excludes 0):
+
+| Summed Δ log-likelihood, EB − fixed [95% CI] (subjects better with EB) | `hybrid_wsls` | `hybrid_wsls_arbitration` |
+| --- | --- | --- |
+| **Other session** | **+97 [56, 141]** (117/181) | **+223 [151, 301]** (122/181) |
+| Held-out runs | +637 [421, 923] (126/181) | +1,261 [874, 1,724] (142/181) |
+| Per trial, other session: fixed → EB | −0.485 → −0.479 | −0.493 → −0.480 |
+
+- **EB predicts better for both models,** in held-out runs and in the separate session. The gain is largest for the model with the most weakly identified parameters.
+- **The model ranking does not change.** With EB, the arbitration model still predicts the other session no better than `hybrid_wsls` (−0.480 vs −0.479 per trial).
+- **Typical parameters shift** (`hybrid_wsls` medians, fixed → EB): α 0.64 → 0.79, β 2.6 → 2.4, w 0.52 → 0.65, stick 0.49 → 0.37, wsls_mf 0.24 → 0.18, wsls_mb 0.25 → 0.23. Per-subject estimates from the fixed prior are noisier, so their spread, and any correlation computed from them, is biased; EB estimates are preferable for per-subject analyses.
+- The EB group mean of the stakes weight in the arbitration model is −0.40 (logit units). It is reported only descriptively, since follow-up 3 showed that its sign depends on the assumed learning signal.
+
 ## Limitations
 
 - **Fixed, instructed transitions, and no learned pad transitions.** The authors' model learns these. Win-stay/lose-shift terms and separate learning rates were tested in the follow-up.
@@ -361,4 +391,7 @@ ldm two-step-model compare --config configs/ds007474_two_step_model_arbitration.
 # follow-up 3: points-based model-free learning
 ldm two-step-model recovery --config configs/two_step_recovery_magmf.yaml                  # ~10 min
 ldm two-step-model compare --config configs/ds007474_two_step_model_magmf.yaml             # ~2.7 h (two bootstrap nulls)
+# follow-up 4: hierarchical fitting
+ldm two-step-model eb --config configs/two_step_eb_recovery.yaml                           # ~20 min
+ldm two-step-model eb --config configs/ds007474_two_step_eb.yaml                           # ~1 h
 ```

@@ -183,6 +183,7 @@ Details: [audit](docs/ds007474-audit.md) · [JSON](reports/ds007474-audit.json) 
   - Recovery shows this selection makes no false positives.
   - Separate MF/MB learning rates add nothing.
 - **Trial-wise arbitration (exploratory; plans committed before fitting): no evidence for it.** Whether the model-based weight shifts after high-stakes trials depends on what model-free learning is assumed to learn from. With win/no-win it is lower (−0.27, calibrated Holm p = 0.02); with points it is higher (+0.56, Holm p = 0.04); both replicate in a separate session. The stakes effect therefore cannot be separated from the magnitude sensitivity of learning in this design. State uncertainty has no effect either way.
+- **Hierarchical fitting:** empirical-Bayes fitting recovers parameters better than a fixed vague prior and predicts a separate session better (+97 [56, 141] for the best model; plan committed before fitting). The model ranking is unchanged.
 
 ## Principles
 
@@ -196,6 +197,7 @@ Contributor rules are in [`AGENTS.md`](AGENTS.md); the research plan is in [`doc
 
 ## Changelog
 
+- **2026-11-24:** Two-step model: empirical-Bayes (hierarchical) fitting (`fit_empirical_bayes`, `heldout_runs_eb`, `ldm two-step-model eb`); `fit` accepts a per-parameter prior. ds007474: EB predicts held-out runs and a separate session better than the fixed prior.
 - **2026-11-24:** Two-step model: points-based model-free variants (`hybrid_wsls_magmf`, `hybrid_wsls_magmf_arbitration`) and bootstrap nulls for any generating/fitted model pair. ds007474: the sign of the stakes "arbitration" effect reverses with points-based learning, so it is not interpreted as arbitration.
 - **2026-11-23:** Two-step model: trial-wise arbitration (`hybrid_wsls_arbitration`, `lagged_conditions`), a parametric-bootstrap null with a calibrated group test (`arbitration_null`, `calibrated_arbitration_test`), and recovery on real schedules. ds007474: less model-based weight after high-stakes trials, in two sessions.
 - **2026-11-20:** Cross-condition decoding (`eeg_decoding.cross_decode`; `cross_condition`, `condition_contrasts` and `pairwise_transfer` config keys). ds002158: the own-decision confidence signal does not transfer to observed decisions.

@@ -10,7 +10,7 @@
 ## Option A: further LDM-007 extensions (no approval needed, lower priority)
 The misfit is addressed: hybrid + win-stay/lose-shift is best, including on a separate session.
 1. Done: trial-wise arbitration (recovery and plan first). Less model-based weight after high-stakes trials (−0.27, calibrated Holm p = 0.02; replicates in the structural session); none for state uncertainty. Follow-up 3 (points-based model-free learning, plan committed first): the stakes effect reverses sign (+0.56), so it is not separable from the magnitude sensitivity of learning; no arbitration claim. Possible next model: graded magnitude sensitivity (reward = win × magnitude^γ), though arbitration weights recover weakly. Learned pad transitions are low value here (pads of a planet share their win probability).
-2. Hierarchical (empirical-Bayes) fitting, to tighten per-subject estimates at 154 trials.
+2. Done: hierarchical (empirical-Bayes) fitting. Better recovery and better prediction of a separate session (+97 [56, 141]); ranking unchanged. Use EB estimates for any per-subject analysis.
 
 ## Option B: LDM-003 follow-ups (no approval needed; data already on external storage)
 Done: OBS sensitivity, ECG-only control, exploratory time course, cardiac-timing controls and ICA (see the EEG doc). Heartbeat timing does not explain the effect; ICA finds nothing heartbeat-locked after template subtraction and is inadequate alone. Open:
