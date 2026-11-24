@@ -17,15 +17,14 @@ Done: OBS sensitivity, ECG-only control, exploratory time course, cardiac-timing
 1. Done: the planted-signal test shows OBS (4 components) removes about half of a slow response-locked signal; OBS with 1 component restores the cross-subject transfer (r = 0.11), as predicted.
 2. Done: own-vs-observed cross-condition decoding (plan committed first): no transfer in either direction. Remaining EEG questions need new data (e.g. separating movement from commitment).
 
-## Option C: LDM-004 continued, ds002158 trial-level fMRI (needs explicit approval)
-Download published derivative images for a 2-subject pilot (6 runs each, about 38 GB; full set 374 GB). Then:
+## Option C: LDM-004 continued, ds002158 trial-level fMRI (in progress)
+Pilot approved 2026-11-24 (sub-02, sub-04; 38 GB on external storage; ~1 MB/s, so ~10 h). Plan committed first: `configs/ds002158_fmri_pilot.yaml`. Code done (`fetch-fmri`, `fmri-lss`, `fmri-pilot`). Next: run on the pilot, report QC and positive controls; if they pass, decide whether to download more subjects (19 GB each). Steps:
 1. LSS single-trial betas with 6 realignment regressors.
 2. Atlas ROI extraction on the MNI grid.
 3. A subject-disjoint confidence benchmark using these whole-trial features.
 
 ## Open questions for the PI
 - **ds002158 fMRI:**
-  - Approve the derivative-image pilot (about 38 GB)?
   - Exclude sub-20 from fMRI as well? It has the highest motion, a rejected run-007 derivative and unresolved EEG labels.
   - Accept that fMRI features are whole-trial, not pre-decision?
 - **ds007474 licensing:** the OSF project and the authors' code declare no license. Ask the authors to add one before any public derived release?

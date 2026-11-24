@@ -35,6 +35,7 @@
 #        there are excluded) in precentral + postcentral gyrus, both sides, as the mean
 #        of per-run differences. One-sided t over the 6 runs.
 #     If either fails in a subject, stop and investigate before any confidence analysis.
+#     "Holds" = one-sided p < 0.05 (added before the download finished; no image opened).
 #  3. Exploratory confidence decoding (only if 2 passes): within subject, leave one run
 #     out, ridge regression on all ROI betas (scaling fitted on training runs), active
 #     valid trials; score = Spearman r per held-out run, averaged; within-run label

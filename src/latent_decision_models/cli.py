@@ -288,6 +288,77 @@ def _ds002158_fmri_audit(args):
     }, args.out)
 
 
+def _ds002158_fmri_lss(args):
+    """Single-trial ROI betas (LSS) and per-run QC from the published derivative."""
+    import nibabel as nib
+    import numpy as np
+
+    from .datasets import ds002158_fmri as f
+
+    cfg = yaml.safe_load(Path(args.config).read_text())
+    bids_root = args.bids_root or cfg["bids_root"]
+    out_dir = Path(args.out_dir or cfg["out_dir"])
+    out_dir.mkdir(parents=True, exist_ok=True)
+    trials = pd.read_csv(cfg["input_trials"])
+    subjects = args.subjects or cfg["subjects"]
+    qc_rows = []
+    for subject in subjects:
+        t = trials[trials["subject"] == subject]
+        runs = sorted(r for r in t["run"].unique()
+                      if f.preproc_path(bids_root, subject, r).exists())
+        if not runs:
+            raise SystemExit(f"{subject}: no derivative images under {bids_root}")
+        ref = nib.load(f.preproc_path(bids_root, subject, runs[0]))
+        atlas = f.harvard_oxford_atlas(ref.affine, ref.shape)
+        parts = []
+        for run in runs:
+            img = nib.load(f.preproc_path(bids_root, subject, run))
+            if not np.allclose(img.affine, ref.affine) or img.shape[:3] != ref.shape[:3]:
+                raise SystemExit(f"{subject} {run}: grid differs from {runs[0]}")
+            b, qc = f.run_lss(bids_root, subject, run, t[t["run"] == run], atlas=atlas,
+                              tr=cfg["tr"], hrf_model=cfg["hrf_model"],
+                              high_pass=cfg["high_pass_hz"])
+            parts.append(b)
+            qc_rows.append(qc)
+            print(f"{subject} {run}: {len(b)} trials, ROI tSNR median "
+                  f"{qc['roi_tsnr_median']:.0f}", flush=True)
+        pd.concat(parts).to_csv(out_dir / f"{subject}_lss_roi_betas.csv", index=False)
+        pd.Series(atlas[1]).to_csv(out_dir / "atlas_labels.csv", header=["region"])
+    qc = pd.DataFrame(qc_rows)
+    qc.to_csv(out_dir / "lss_qc.csv", index=False)
+    _write_json({"config": args.config, "subjects": subjects, "n_runs": len(qc),
+                 "beta_units": "percent of the ROI's run-mean signal per unit nilearn "
+                               "regressor (Glover HRF, stick at stimulus onset)",
+                 "qc": _records(qc)}, args.report)
+
+
+def _ds002158_fmri_pilot(args):
+    """Pre-specified positive controls, then (only if all pass) exploratory decoding."""
+    from .datasets import ds002158_fmri as f
+
+    cfg = yaml.safe_load(Path(args.config).read_text())
+    betas_dir = Path(args.betas_dir or cfg["out_dir"])
+    trials = pd.read_csv(cfg["input_trials"])
+    names = pd.read_csv(betas_dir / "atlas_labels.csv", index_col=0)["region"].to_dict()
+    betas = pd.concat([pd.read_csv(betas_dir / f"{s}_lss_roi_betas.csv")
+                       for s in cfg["subjects"]])
+    controls = f.positive_controls(betas, trials, names)
+    passed = all(v["p_one_sided"] < 0.05 for c in controls.values() for v in c.values())
+    out = {"config": args.config, "data_kind": "real_fmri_openneuro_ds002158_v1.0.2_derivative",
+           "feature_window": "whole trial (stimulus, response and start of the confidence "
+                             "report are not separable; docs/ds002158-fmri-audit.md)",
+           "positive_controls": controls, "controls_passed": passed}
+    if passed:
+        dec = f.decode_pilot(betas, trials, cfg["decoding"])
+        out["decoding"] = _records(dec)
+        print(dec[["subject", "condition", "target", "score", "null_95", "p_value",
+                   "n_trials", "n_features"]].round(3).to_string(index=False))
+    else:
+        out["decoding"] = "not run: a positive control failed (plan, decision 2)"
+    print(json.dumps(controls, indent=1))
+    _write_json(out, args.out)
+
+
 def _ds002158_fmri_design(args):
     from joblib import Parallel, delayed
 
@@ -648,6 +719,18 @@ def main():
     fd.add_argument("--audit-table", default="reports/ds002158-fmri-audit.csv")
     fd.add_argument("--out", default="reports/ds002158-fmri-design.json")
     fd.add_argument("--n-jobs", type=int, default=8)
+    fl = dsub.add_parser("fmri-lss", help="Single-trial (LSS) ROI betas and QC from the "
+                         "published derivative images (see configs/ds002158_fmri_pilot.yaml)")
+    fl.add_argument("--config", required=True)
+    fl.add_argument("--bids-root", help="dataset root holding derivatives/fmriprep")
+    fl.add_argument("--out-dir")
+    fl.add_argument("--subjects", nargs="+")
+    fl.add_argument("--report", help="JSON report path (default: print)")
+    fp = dsub.add_parser("fmri-pilot", help="Positive controls and exploratory decoding on "
+                         "LSS ROI betas")
+    fp.add_argument("--config", required=True)
+    fp.add_argument("--betas-dir")
+    fp.add_argument("--out", help="JSON report path (default: print)")
     al = dsub.add_parser("align-eeg", help="Match one run's events to its BrainVision markers")
     al.add_argument("--events", required=True)
     al.add_argument("--vmrk", required=True)
@@ -710,7 +793,8 @@ def main():
          "fetch-fmri": _ds002158_fetch_fmri,
          "eeg-preprocess": _ds002158_eeg_preprocess, "eeg-decode": _ds002158_eeg_decode,
          "eeg-cardiac": _ds002158_eeg_cardiac, "eeg-bcg-retention": _ds002158_eeg_bcg_retention, "fmri-audit": _ds002158_fmri_audit,
-         "fmri-design": _ds002158_fmri_design}[args.ds_cmd](args)
+         "fmri-design": _ds002158_fmri_design,
+         "fmri-lss": _ds002158_fmri_lss, "fmri-pilot": _ds002158_fmri_pilot}[args.ds_cmd](args)
 
 
 if __name__ == "__main__":

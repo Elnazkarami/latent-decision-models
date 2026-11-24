@@ -93,3 +93,167 @@ def motion_summary(params: np.ndarray, fd_threshold: float = 0.5) -> dict:
             "max_abs_rotation_deg": float(np.degrees(np.abs(params[:, 3:]).max())),
             "mean_fd_mm": float(fd.mean()), "max_fd_mm": float(fd.max()),
             "fraction_fd_above_threshold": float((fd > fd_threshold).mean())}
+
+
+# --------------------------------------------------------------------------------------
+# Trial-level pilot (LDM-004): LSS betas on atlas ROIs from the published derivative.
+# --------------------------------------------------------------------------------------
+
+SUBCORTICAL = ("Thalamus", "Caudate", "Putamen", "Pallidum", "Hippocampus", "Amygdala",
+               "Accumbens")
+ROI_SETS = {
+    "occipital": ("Occipital Pole", "Lateral Occipital Cortex, superior division",
+                  "Lateral Occipital Cortex, inferior division", "Intracalcarine Cortex",
+                  "Supracalcarine Cortex", "Lingual Gyrus", "Occipital Fusiform Gyrus",
+                  "Cuneal Cortex"),
+    "sensorimotor": ("Precentral Gyrus", "Postcentral Gyrus"),
+}
+
+
+def harvard_oxford_atlas(target_affine, target_shape):
+    """Harvard-Oxford cortical (thr25, 2 mm, left/right) + subcortical grey matter.
+
+    Resampled (nearest neighbour) to the given grid. Returns ``(labels, names)`` with
+    ``names[k]`` the region of integer label ``k`` (``k >= 1``). nilearn downloads the
+    atlas (a few MB, FSL) on first use.
+    """
+    from nilearn import datasets, image
+
+    cort = datasets.fetch_atlas_harvard_oxford("cort-maxprob-thr25-2mm",
+                                               symmetric_split=True)
+    sub = datasets.fetch_atlas_harvard_oxford("sub-maxprob-thr25-2mm")
+
+    def grid(img):
+        return np.asarray(image.resample_img(
+            img, target_affine=target_affine, target_shape=tuple(target_shape[:3]),
+            interpolation="nearest", force_resample=True, copy_header=True).dataobj,
+            dtype=int)
+
+    c, s = grid(cort.maps), grid(sub.maps)
+    names = {k: str(n) for k, n in enumerate(cort.labels) if k > 0}
+    labels = c.copy()
+    offset = max(names) + 1
+    keep = [(k, str(n)) for k, n in enumerate(sub.labels)
+            if any(str(n).endswith(r) for r in SUBCORTICAL) or str(n) == "Brain-Stem"]
+    for j, (k, n) in enumerate(keep):
+        labels[(c == 0) & (s == k)] = offset + j
+        names[offset + j] = n
+    present = set(np.unique(labels)) - {0}
+    return labels, {k: v for k, v in names.items() if k in present}
+
+
+def roi_set_columns(names, roi_set: str) -> list[str]:
+    """Column names (``roi_<region>``) of a predefined ROI set, both hemispheres."""
+    wanted = ROI_SETS[roi_set]
+    cols = [f"roi_{n}" for n in names.values()
+            if any(n in (f"Left {w}", f"Right {w}") for w in wanted)]
+    if len(cols) != 2 * len(wanted):
+        raise ValueError(f"ROI set {roi_set}: found {len(cols)} of {2 * len(wanted)} regions")
+    return cols
+
+
+def preproc_path(bids_root, subject: str, run: str) -> Path:
+    return Path(bids_root, DERIV, subject, "ses-001", "func",
+                f"{subject}_ses-001_task-main_{run}_preproc.nii")
+
+
+def run_lss(bids_root, subject: str, run: str, trials: pd.DataFrame, atlas=None,
+            tr: float = TR_SECONDS, hrf_model: str = "glover", high_pass: float = 1 / 128):
+    """Single-trial ROI betas (% signal change) and QC for one run.
+
+    ``trials``: this run's rows of the trial table (all trials enter the design).
+    ``atlas``: ``(labels, names)`` on the derivative grid; built if None.
+    Returns ``(betas, qc)``; ``betas`` has the trial identifiers plus ``roi_*`` columns.
+    """
+    import nibabel as nib
+
+    from ..fmri_lss import lss_weights, percent_signal, roi_timeseries, tsnr
+
+    img = nib.load(preproc_path(bids_root, subject, run))
+    if atlas is None:
+        atlas = harvard_oxford_atlas(img.affine, img.shape)
+    labels, names = atlas
+    data = np.asarray(img.dataobj, dtype=np.float32)
+    n_vol = data.shape[3]
+    motion_file = preproc_path(bids_root, subject, run).with_name(
+        f"{subject}_ses-001_task-main_{run}_headmove.txt")
+    motion = read_motion(motion_file)
+    if len(motion) != n_vol:
+        raise ValueError(f"{subject} {run}: {len(motion)} motion rows != {n_vol} volumes")
+    Y, n_vox = roi_timeseries(data, labels, list(names))
+    del data
+    g = trials.sort_values("onset_seconds")
+    W, cond = lss_weights(g["onset_seconds"], g["condition"], n_vol, tr, confounds=motion,
+                          hrf_model=hrf_model, high_pass=high_pass)
+    B = W @ np.nan_to_num(percent_signal(Y))
+    B[:, np.isnan(Y).all(axis=0)] = np.nan
+    ids = g[["subject", "run", "trial_index", "condition"]].reset_index(drop=True)
+    betas = pd.concat([ids, pd.DataFrame(B, columns=[f"roi_{n}" for n in names.values()])],
+                      axis=1)
+    t = tsnr(Y)
+    qc = {"subject": subject, "run": run, "n_volumes": int(n_vol), "n_trials": len(g),
+          "last_onset_to_scan_end_s": float(n_vol * tr - g["onset_seconds"].max()),
+          "lss_condition_number_max": float(cond.max()),
+          "roi_tsnr_median": float(np.nanmedian(t)), "roi_tsnr_min": float(np.nanmin(t)),
+          "n_rois": len(names), "n_rois_empty": int(sum(v == 0 for v in n_vox.values())),
+          "voxels_per_roi_median": float(np.median(list(n_vox.values()))),
+          **motion_summary(motion)}
+    return betas, qc
+
+
+def _one_sided_t(x) -> dict:
+    from scipy.stats import ttest_1samp
+
+    x = np.asarray(x, float)
+    res = ttest_1samp(x, 0.0, alternative="greater")
+    return {"per_run": [round(float(v), 4) for v in x], "mean": float(x.mean()),
+            "t": float(res.statistic), "p_one_sided": float(res.pvalue), "n_runs": len(x)}
+
+
+def positive_controls(betas: pd.DataFrame, trials: pd.DataFrame, names) -> dict:
+    """The two pre-specified pipeline checks of configs/ds002158_fmri_pilot.yaml (per subject).
+
+    visual: mean beta of valid trials in occipital ROIs > 0 (t over run means).
+    movement: active - observed mean beta in pre/postcentral ROIs > 0 (t over runs).
+    """
+    keys = ["subject", "run", "trial_index"]
+    d = betas.merge(trials[keys + ["valid_trial"]], on=keys, how="left", validate="1:1")
+    d = d[d["valid_trial"].astype(bool)]
+    occ = d[roi_set_columns(names, "occipital")].mean(axis=1)
+    sm = d[roi_set_columns(names, "sensorimotor")].mean(axis=1)
+    out = {}
+    for subject, g in d.groupby("subject"):
+        vis = occ[g.index].groupby(g["run"]).mean()
+        s = sm[g.index]
+        diff = (s[g["condition"] == "active"].groupby(g["run"]).mean()
+                - s[g["condition"] == "observed"].groupby(g["run"]).mean()).dropna()
+        out[subject] = {"visual": _one_sided_t(vis), "movement": _one_sided_t(diff)}
+    return out
+
+
+def decode_pilot(betas: pd.DataFrame, trials: pd.DataFrame, cfg: dict) -> pd.DataFrame:
+    """Exploratory within-subject, leave-one-run-out decoding from ROI betas."""
+    from ..eeg_decoding import decode
+
+    keys = ["subject", "run", "trial_index"]
+    cols = ["valid_trial", "confidence_raw", "accuracy", "response_latency_seconds",
+            "evidence_dots_difference"]
+    d = betas.merge(trials[keys + cols], on=keys, how="left", validate="1:1")
+    d = d[d["valid_trial"].astype(bool)]
+    roi_cols = [c for c in d.columns if c.startswith("roi_") and d[c].notna().all()]
+    rows = []
+    for (subject, condition), g in d.groupby(["subject", "condition"]):
+        if condition not in cfg["conditions"]:
+            continue
+        for name, spec in cfg["targets"].items():
+            target = spec.get("target", name)
+            target = "confidence_raw" if target == "confidence" else target
+            covs = spec.get("covariates")
+            need = [target] + (covs or [])
+            h = g.dropna(subset=need)
+            res = decode(h[roi_cols].to_numpy(), h[target].to_numpy(), h["run"].to_numpy(),
+                         spec["task"], covariates=h[covs].to_numpy() if covs else None,
+                         n_perm=cfg.get("n_perm", 1000), seed=cfg.get("seed", 0),
+                         score_mode="per_group")
+            rows.append({"subject": subject, "condition": condition, "target": name, **res})
+    return pd.DataFrame(rows)

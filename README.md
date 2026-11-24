@@ -17,12 +17,13 @@ Python package `latent_decision_models` · CLI `ldm` · repository `latent-decis
 - **Fit model-free / model-based / hybrid reinforcement learning** to the two-step task. Agents can be replayed on each participant's real task schedule. Recovery studies, held-out-run and held-out-subject comparison, and posterior predictive stay-probability checks are included.
 - **Clean EEG recorded inside an MRI scanner and decode from it.** Gradient and heartbeat (BCG) artifacts are removed by template subtraction, with causal filters so that pre-decision features never contain later activity. Trial epochs are locked to verified markers, and decoding uses leave-one-run-out or cross-subject evaluation with within-run permutation tests.
 - **Audit fMRI data without downloading images.** It reads NIfTI headers through capped HTTP range requests, builds a raw/derivative run inventory, and summarises head motion. It also computes design diagnostics from event timing alone: single-trial VIF (LSA/LSS) and whether within-trial phases can be separated.
-- **Fetch files safely.** It downloads text metadata from pinned OpenNeuro snapshots (refusing signal files), and allow-listed, size-capped, SHA-256-checked files from OSF projects. Signal data (raw EEG) is fetched only by a separate command that needs an explicit size budget.
+- **Estimate single-trial fMRI responses** from published, normalised derivatives: least-squares-separate (LSS) betas with realignment confounds, averaged over atlas regions (Harvard-Oxford), with per-run QC (temporal SNR, design conditioning, motion) and pre-specified positive controls before any decoding.
+- **Fetch files safely.** It downloads text metadata from pinned OpenNeuro snapshots (refusing signal files), and allow-listed, size-capped, SHA-256-checked files from OSF projects. Signal data (raw EEG, fMRI images) is fetched only by separate commands that need an explicit size budget.
 
 **Limitations:**
-- EEG covers 19 ds002158 subjects (all with usable labels); fMRI signal processing and deep learning are not implemented yet.
+- EEG covers 19 ds002158 subjects (all with usable labels). fMRI uses the published derivative only (no preprocessing of raw BOLD) and so far a 2-subject pilot; deep learning is not implemented yet.
 - Dynamic (RT-based) and hierarchical confidence models are not implemented yet.
-- The two-step RL models use fixed, instructed transitions; trial-wise arbitration models are not implemented yet.
+- The two-step RL models use fixed, instructed transitions (no learned transition model).
 - Neural findings come from one dataset (ds002158; 17 subjects in the confirmatory test) and classical linear decoding only.
 
 ## Install
@@ -81,6 +82,17 @@ ldm ds002158 fmri-audit --dest data/ds002158 --out reports/ds002158-fmri-audit.j
 ldm ds002158 fmri-design --trials data/ds002158_trials.csv --audit-table reports/ds002158-fmri-audit.csv
 ```
 
+**ds002158 trial-level fMRI (published derivative images, about 3.2 GB per run, 19 GB per subject).** Download, single-trial ROI betas, then the pre-specified positive controls and (only if they pass) exploratory decoding:
+
+```bash
+ldm ds002158 fetch-fmri --subjects sub-02 sub-04 --dest data/ds002158 --approved-gb 38.1 --dry-run   # size first
+ldm ds002158 fetch-fmri --subjects sub-02 sub-04 --dest data/ds002158 --approved-gb 38.1
+ldm ds002158 fmri-lss --config configs/ds002158_fmri_pilot.yaml --report reports/ds002158-fmri-lss-qc.json
+ldm ds002158 fmri-pilot --config configs/ds002158_fmri_pilot.yaml --out reports/ds002158-fmri-pilot.json
+```
+
+Runs in the derivative's `reject/` folders are never downloaded. Single-trial features here are whole-trial measures (stimulus and response are 0.4 s apart), never pre-decision ones.
+
 **ds002158 EEG (raw signal data, about 2 GB per subject).** Pairing, in-scanner cleaning, epochs, then the pre-specified decoding plan:
 
 ```bash
@@ -107,11 +119,12 @@ ldm ds002158 align-eeg --events <..._events.tsv> --vmrk <..._eeg.vmrk>
 | `schema` | Generic trial-table validation (unique trial identity, onsets, RT) |
 | `datasets.ds002158` | Verified codebook and strict events parser for ds002158 (experimental). Aligns EEG markers by **timing**, never by row order or filename. |
 | `datasets.ds007474` | ds007474 adapter: OSF behavior CSV to trial table, OSF-to-BIDS subject mapping, event timing from the `.mat` files cross-checked against the behavior |
-| `datasets.ds002158_fmri` | ds002158 fMRI raw/derivative inventory, header audit and realignment-parameter (FD) summary |
+| `datasets.ds002158_fmri` | ds002158 fMRI raw/derivative inventory, header audit and realignment-parameter (FD) summary; Harvard-Oxford ROIs on the derivative grid, per-run LSS betas and QC, positive controls, within-subject decoding |
 | `datasets.ds002158_eeg` | ds002158 raw EEG: run pairing by marker timing, in-scanner cleaning pipeline, stimulus- and response-locked epochs, analysis windows, decoding runner |
 | `eeg_clean` | Sliding-window template subtraction (MR gradient, BCG), optimal-basis-set (OBS) and ICA-based BCG removal, heartbeat detection (MNE), per-trial heart period and R-peak timing, causal band-pass and decimation |
 | `eeg_decoding` | Binned window features; leave-one-run-out and cross-subject decoding (logistic / ridge, regularisation tuned inside training folds), training-fold-only residualisation on covariates, within-run permutation tests, Holm correction |
 | `fmri_design` | Design diagnostics from event timing (nilearn): single-trial VIF under LSA/LSS, neighbouring-trial correlation, separability of stimulus / response / post-decision regressors |
+| `fmri_lss` | Least-squares-separate single-trial weights (nilearn designs + confounds; betas of any signal are `W @ Y`), ROI averaging that skips non-finite or constant voxels, percent signal and temporal SNR |
 | `io.nifti` | NIfTI-1 header summary from a byte prefix (nibabel) |
 | `io.osf` | OSF listing and allow-listed, capped, SHA-256-verified downloads |
 | `io.openneuro` | Pinned OpenNeuro snapshots: metadata fetch (refuses signal files), header range reads, and budgeted signal downloads (whole request refused above the approved size) |
@@ -197,6 +210,7 @@ Contributor rules are in [`AGENTS.md`](AGENTS.md); the research plan is in [`doc
 
 ## Changelog
 
+- **2026-11-24:** Trial-level fMRI: `ldm ds002158 fetch-fmri` (budgeted download of derivative images), `fmri-lss` (single-trial LSS betas on Harvard-Oxford ROIs, per-run QC) and `fmri-pilot` (pre-specified positive controls, then exploratory within-subject decoding); new `fmri_lss` module. Pilot plan for 2 subjects committed before any image was opened (`configs/ds002158_fmri_pilot.yaml`).
 - **2026-11-24:** Fixes from a code review (no reported result changes): no p-value when a decoding score is undefined; Holm keeps untested (NaN) cells out of the family; cross-condition decoding, single-run subjects and empty stay-table cells no longer crash; the EB vs fixed comparison uses subjects scored by both; known-answer checks keep planted weights in range.
 - **2026-11-24:** Two-step model: empirical-Bayes (hierarchical) fitting (`fit_empirical_bayes`, `heldout_runs_eb`, `ldm two-step-model eb`); `fit` accepts a per-parameter prior. ds007474: EB predicts held-out runs and a separate session better than the fixed prior.
 - **2026-11-24:** Two-step model: points-based model-free variants (`hybrid_wsls_magmf`, `hybrid_wsls_magmf_arbitration`) and bootstrap nulls for any generating/fitted model pair. ds007474: the sign of the stakes "arbitration" effect reverses with points-based learning, so it is not interpreted as arbitration.
