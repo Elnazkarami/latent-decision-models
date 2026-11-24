@@ -137,7 +137,7 @@ class TwoStepData:
     points: np.ndarray  # points shown / 100 (model-free signal of the magmf models)
 
     def subset(self, rows) -> TwoStepData:
-        rows = np.asarray(rows)
+        rows = np.asarray(rows, dtype=int)
         return TwoStepData(**{k: getattr(self, k)[rows] for k in self.__dataclass_fields__})
 
     @property
@@ -160,7 +160,7 @@ class Schedule:
     reliability: np.ndarray  # (n, T) P(common pad | planet): 0.5 or 0.9
 
     def subset(self, rows) -> Schedule:
-        rows = np.asarray(rows)
+        rows = np.asarray(rows, dtype=int)
         return Schedule(**{k: getattr(self, k)[rows] for k in self.__dataclass_fields__})
 
 
@@ -529,7 +529,12 @@ def heldout_runs_eb(data: TwoStepData, model: str, **eb_kw) -> pd.DataFrame:
 
 
 def heldout_runs(data: TwoStepData, model: str, **fit_kw) -> dict:
-    """Leave-one-run-out: fit on the other runs of the same subject, score the held-out run."""
+    """Leave-one-run-out: fit on the other runs of the same subject, score the held-out run.
+
+    A subject with a single run cannot be evaluated: NaN log-likelihood, 0 trials.
+    """
+    if len(data.run) < 2:
+        return {"heldout_loglik": float("nan"), "heldout_trials": 0}
     total, n = 0.0, 0
     for i in range(len(data.run)):
         train = data.subset([j for j in range(len(data.run)) if j != i])
@@ -609,7 +614,8 @@ def stay_table(data: TwoStepData) -> pd.DataFrame:
 def stay_summary(data: TwoStepData) -> pd.DataFrame:
     """Group mean of per-subject stay probabilities and the reward x transition indices."""
     per = (stay_table(data).groupby(["subject", "contingency", "prev_win", "prev_rare"])
-           ["stay"].mean().unstack(["prev_win", "prev_rare"]))
+           ["stay"].mean().unstack(["prev_win", "prev_rare"])
+           .reindex(columns=pd.MultiIndex.from_tuples([(1, 0), (1, 1), (0, 0), (0, 1)])))
     out = pd.DataFrame({
         "rewarded_common": per[(1, 0)], "rewarded_rare": per[(1, 1)],
         "unrewarded_common": per[(0, 0)], "unrewarded_rare": per[(0, 1)]})
@@ -774,12 +780,19 @@ def contingency_contrast(fits: pd.DataFrame, trials: pd.DataFrame, n_boot: int =
     }
 
 
-def _contrast_one(sched, i, effect, seed, n_starts, prior_sd, ranges, reward):
-    rng = np.random.default_rng([seed, 5000 + i])
+def _planted_contingency_params(rng, effect, ranges):
+    """hybrid_contingency parameters with w_state - w_stimulus = effect, both weights
+    inside the w_state range for positive and negative effects."""
     p = sample_params("hybrid_contingency", rng, ranges)
     lo, hi = (ranges or {}).get("w_state", RECOVERY_RANGES["w_state"])
-    p["w_stimulus"] = float(rng.uniform(lo, hi - max(effect, 0)))
+    p["w_stimulus"] = float(rng.uniform(lo - min(effect, 0), hi - max(effect, 0)))
     p["w_state"] = p["w_stimulus"] + effect
+    return p
+
+
+def _contrast_one(sched, i, effect, seed, n_starts, prior_sd, ranges, reward):
+    rng = np.random.default_rng([seed, 5000 + i])
+    p = _planted_contingency_params(rng, effect, ranges)
     data = simulate(sched, "hybrid_contingency", p, seed=int(rng.integers(2**31)),
                     reward=reward)
     est = fit(data, "hybrid_contingency", n_starts=n_starts, seed=seed, prior_sd=prior_sd)
@@ -812,6 +825,18 @@ def contingency_effect_recovery(schedules: list[Schedule], effect: float, seed: 
 ARBITRATION_TERMS = ("arb_reliable", "arb_high")
 
 
+def _holm(pvals) -> list[float]:
+    """Holm-adjusted p-values; NaN stays NaN and is not counted in the family."""
+    p = np.asarray(pvals, float)
+    adj = np.full(len(p), np.nan)
+    ok = np.flatnonzero(np.isfinite(p))
+    running = 0.0
+    for rank, i in enumerate(ok[np.argsort(p[ok])]):
+        running = max(running, min(1.0, (len(ok) - rank) * p[i]))
+        adj[i] = running
+    return adj.tolist()
+
+
 def arbitration_summary(fits: pd.DataFrame, n_boot: int = 2000, seed: int = 0,
                         model: str = "hybrid_wsls_arbitration") -> dict | None:
     """Group summary of per-subject arbitration weights (logit units of the MB weight).
@@ -835,11 +860,8 @@ def arbitration_summary(fits: pd.DataFrame, n_boot: int = 2000, seed: int = 0,
         out[k] = {"n": len(x), "mean": float(x.mean()), "median": float(np.median(x)),
                   "ci95": np.percentile(boot, [2.5, 97.5]).tolist(),
                   "n_positive": int((x > 0).sum()), "wilcoxon_p": p}
-    order = np.argsort(pvals)
-    running = 0.0
-    for rank, i in enumerate(order):
-        running = max(running, min(1.0, (len(pvals) - rank) * pvals[i]))
-        out[ARBITRATION_TERMS[i]]["wilcoxon_p_holm"] = running
+    for k, ph in zip(ARBITRATION_TERMS, _holm(pvals), strict=True):
+        out[k]["wilcoxon_p_holm"] = ph
     return out
 
 
@@ -916,15 +938,15 @@ def calibrated_arbitration_test(summary: dict, null: np.ndarray) -> dict:
         out[k] = {"observed_mean": obs, "null_mean": float(x.mean()), "null_sd": float(x.std()),
                   "null_95": np.percentile(x, [2.5, 97.5]).tolist(),
                   "bias_corrected_mean": float(obs - x.mean()), "p_calibrated": p}
-    order = np.argsort(pvals)
-    running = 0.0
-    for rank, i in enumerate(order):
-        running = max(running, min(1.0, (len(pvals) - rank) * pvals[i]))
-        out[ARBITRATION_TERMS[i]]["p_calibrated_holm"] = running
+    for k, ph in zip(ARBITRATION_TERMS, _holm(pvals), strict=True):
+        out[k]["p_calibrated_holm"] = ph
     return {"n_reps": len(null), **out}
 
 
 def _delta_summary(wide: pd.DataFrame, n: pd.Series, models, reference, n_boot, rng) -> dict:
+    # Subjects without a held-out score for some model (e.g. a single run) are dropped.
+    wide = wide[list(dict.fromkeys([*models, reference]))].dropna()
+    n = n.reindex(wide.index)
     out = {}
     for m in models:
         d = (wide[m] - wide[reference]).to_numpy()
@@ -1103,7 +1125,8 @@ def empirical_bayes_recovery(model: str, schedules: list[Schedule], seed: int = 
             "prior_sd": eb["prior_sd"], "parameters": out}
 
 
-def compare_empirical_bayes(trials: pd.DataFrame, models, min_rt: float | None = 0.15,
+def compare_empirical_bayes(trials: pd.DataFrame, models, reward: str = "binary",
+                            min_rt: float | None = 0.15,
                             max_missed_fraction: float | None = 0.10, n_starts: int = 2,
                             prior_sd: float = 2.5, seed: int = 0, n_boot: int = 2000,
                             n_jobs: int = 1, replication_run: str | None = "structural",
@@ -1117,11 +1140,12 @@ def compare_empirical_bayes(trials: pd.DataFrame, models, min_rt: float | None =
     subject-bootstrap CI.
     """
     miss = missed_fraction(trials)
-    excluded = sorted(miss[miss > max_missed_fraction].index) if max_missed_fraction else []
+    excluded = (sorted(miss[miss > max_missed_fraction].index)
+                if max_missed_fraction is not None else [])
     keep = trials[~trials["subject"].isin(excluded)]
-    data = prepare(keep, min_rt=min_rt)
-    rep_data = prepare(keep, min_rt=min_rt, runs=(replication_run,)) if replication_run \
-        else None
+    data = prepare(keep, reward=reward, min_rt=min_rt)
+    rep_data = (prepare(keep, reward=reward, min_rt=min_rt, runs=(replication_run,))
+                if replication_run else None)
     rng = np.random.default_rng(seed)
 
     def delta(a, b):
@@ -1136,19 +1160,26 @@ def compare_empirical_bayes(trials: pd.DataFrame, models, min_rt: float | None =
     for m in models:
         fixed = fit_subjects(data, [m], n_starts=n_starts, seed=seed, prior_sd=prior_sd,
                              n_jobs=n_jobs)
-        fx_runs = fixed.set_index("subject")["heldout_loglik"]
-        eb_runs = (heldout_runs_eb(data, m, n_starts=n_starts, seed=seed, n_jobs=n_jobs,
-                                   **eb_kw).groupby("subject")["heldout_loglik"].sum())
-        n_runs = int(fixed["heldout_trials"].sum())
+        fx = fixed.set_index("subject")
+        eb_ho = (heldout_runs_eb(data, m, n_starts=n_starts, seed=seed, n_jobs=n_jobs, **eb_kw)
+                 .groupby("subject")[["heldout_loglik", "heldout_trials"]].sum())
+        # Compare on subjects scored by both methods, on the same trials.
+        common = fx.index[fx["heldout_loglik"].notna()
+                          & fx.index.isin(eb_ho.index)
+                          & (fx["heldout_trials"] == eb_ho["heldout_trials"].reindex(fx.index))]
+        fx_runs = fx.loc[common, "heldout_loglik"]
+        eb_runs = eb_ho.loc[common, "heldout_loglik"]
+        n_runs = int(fx.loc[common, "heldout_trials"].sum())
         eb = fit_empirical_bayes(data, m, n_starts=n_starts, seed=seed, n_jobs=n_jobs, **eb_kw)
         res = {"prior_mean": dict(zip(MODELS[m], eb["prior_mean"], strict=True)),
                "prior_sd": dict(zip(MODELS[m], eb["prior_sd"], strict=True)),
                "eb_converged": eb["converged"], "eb_n_iter": eb["n_iter"],
                "medians_fixed": fixed[list(MODELS[m])].median().to_dict(),
                "medians_eb": eb["fits"][list(MODELS[m])].median().to_dict(),
-               "heldout_runs": {"per_trial_fixed": float(fx_runs.sum() / n_runs),
+               "heldout_runs": {"n_subjects_scored": len(common),
+                                "per_trial_fixed": float(fx_runs.sum() / n_runs),
                                 "per_trial_eb": float(eb_runs.sum() / n_runs),
-                                **delta(eb_runs.reindex(fx_runs.index), fx_runs)}}
+                                **delta(eb_runs, fx_runs)}}
         if rep_data is not None:
             fx_s = session_heldout(fixed, rep_data, [m]).set_index("subject")["heldout_loglik"]
             eb_s = session_heldout(eb["fits"], rep_data, [m]).set_index("subject")

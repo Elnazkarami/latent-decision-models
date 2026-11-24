@@ -575,3 +575,34 @@ def test_cross_condition_decoding_and_contrast(tmp_path):
     assert g.loc[("within_subject_cross_condition", "active->observed"), "p_wilcoxon"] > 0.05
     assert g.loc[("within_subject_contrast", "active-observed"), "mean"] > 0.3
     assert g.loc[("within_subject_contrast", "active-observed"), "p_wilcoxon"] < 0.05
+
+
+def test_decode_reports_no_p_value_when_the_score_is_undefined():
+    # Every held-out run contains one class only: no AUC, so no p-value (it used to be
+    # 1/(1 + n_perm), i.e. "significant").
+    X = np.random.default_rng(0).standard_normal((20, 3))
+    y = np.array([0] * 10 + [1] * 10)
+    r = eeg_decoding.decode(X, y, np.array([0] * 10 + [1] * 10), "classification", n_perm=20)
+    assert np.isnan(r["score"]) and r["p_value"] is None
+
+
+def test_permutation_p_counts_failed_permutations_conservatively():
+    assert eeg_decoding.permutation_p(0.5, [0.1, 0.2, np.nan]) == pytest.approx(2 / 4)
+    assert eeg_decoding.permutation_p(float("nan"), [0.1]) is None
+
+
+def test_holm_keeps_nan_and_excludes_it_from_the_family():
+    adj = eeg_decoding.holm([0.01, np.nan, 0.04])
+    assert np.isnan(adj[1])
+    assert adj[0] == pytest.approx(0.02) and adj[2] == pytest.approx(0.04)
+
+
+def test_cross_decode_skips_a_run_without_training_trials_even_with_covariates():
+    rng = np.random.default_rng(1)
+    Xa, ya = rng.standard_normal((30, 4)), rng.standard_normal(30)
+    Xb, yb = rng.standard_normal((40, 4)), rng.standard_normal(40)
+    ga = np.zeros(30, int)                  # condition A recorded in run 0 only
+    gb = np.repeat([0, 1], 20)
+    r = eeg_decoding.cross_decode(Xa, ya, ga, Xb, yb, gb, "regression",
+                                  rng.standard_normal((30, 1)), rng.standard_normal((40, 1)))
+    assert r["n_groups"] == 1 and r["n_trials"] == 20  # run 0 skipped, run 1 scored

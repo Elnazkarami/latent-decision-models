@@ -512,12 +512,14 @@ def _two_step_eb(args):
         schedules, kind = _two_step_schedules(cfg)
         ranges = {k: tuple(v) for k, v in (cfg.get("parameter_ranges") or {}).items()}
         out["recovery"] = {"data_kind": f"simulated_agents_on_{kind}", "results": [
-            ts.empirical_bayes_recovery(m, schedules, ranges=ranges, **common, **eb_kw)
+            ts.empirical_bayes_recovery(m, schedules, ranges=ranges,
+                                        reward=cfg.get("reward", "binary"), **common, **eb_kw)
             for m in cfg["recovery_models"]]}
     if cfg.get("models"):
         out["real_data"] = {"data_kind": cfg.get("data_kind", "unspecified"),
                             **ts.compare_empirical_bayes(
                                 pd.read_csv(cfg["input"]), cfg["models"],
+                                reward=cfg.get("reward", "binary"),
                                 min_rt=cfg.get("min_rt", 0.15),
                                 max_missed_fraction=cfg.get("max_missed_fraction", 0.10),
                                 n_boot=cfg.get("n_boot", 2000),

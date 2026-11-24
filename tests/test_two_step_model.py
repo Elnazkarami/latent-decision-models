@@ -357,3 +357,28 @@ def test_empirical_bayes_recovers_the_group_distribution_and_shrinks():
     assert (est - t).abs().mean() <= (fixed - t).abs().mean()
     ho = ts.heldout_runs_eb(d, "hybrid", n_iter=2, n_starts=1)
     assert len(ho) == 60 and set(ho["heldout_run"]) == {"run-1", "run-2"}
+
+
+def test_heldout_runs_single_run_subject_is_flagged_not_crashing():
+    d = ts.simulate(ts.synthetic_schedule(n_runs=1), "hybrid",
+                    {"alpha": 0.5, "beta": 4.0, "w": 0.5, "stick": 0.2}, seed=0)
+    r = ts.heldout_runs(d, "hybrid", n_starts=1)
+    assert np.isnan(r["heldout_loglik"]) and r["heldout_trials"] == 0
+    assert d.subset([]).choice.shape[0] == 0
+
+
+def test_contingency_known_answer_keeps_planted_weights_in_range():
+    rng = np.random.default_rng(0)
+    for effect in (-0.3, 0.0, 0.3):
+        for _ in range(200):
+            p = ts._planted_contingency_params(rng, effect, None)
+            assert 0.0 <= p["w_state"] <= 1.0 and 0.0 <= p["w_stimulus"] <= 1.0
+            assert p["w_state"] - p["w_stimulus"] == pytest.approx(effect)
+
+
+def test_stay_summary_tolerates_an_empty_cell():
+    d = ts.simulate(ts.synthetic_schedule(seed=2), "hybrid",
+                    {"alpha": 0.5, "beta": 4.0, "w": 0.5, "stick": 0.2}, seed=0)
+    d.rare[:] = 0  # no rare transitions at all
+    out = ts.stay_summary(d)
+    assert out["rewarded_rare"].isna().all() and out["rewarded_common"].notna().all()

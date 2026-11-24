@@ -128,7 +128,7 @@ def decode(X, y, groups, task: str, covariates=None, n_perm: int = 200,
             "n_features": int(X.shape[1]), "n_perm": n_perm,
             "null_mean": float(np.nanmean(null)) if n_perm else None,
             "null_95": float(np.nanpercentile(null, 95)) if n_perm else None,
-            "p_value": float((1 + np.sum(null >= obs)) / (1 + n_perm)) if n_perm else None}
+            "p_value": permutation_p(obs, null) if n_perm else None}
 
 
 def transfer(X_train, y_train, X_test, y_test, task: str, cov_train=None, cov_test=None,
@@ -156,7 +156,7 @@ def transfer(X_train, y_train, X_test, y_test, task: str, cov_train=None, cov_te
                      for _ in range(n_perm)])
     return {"score": obs, "score_mode": score_mode, "n_train": len(ytr), "n_test": len(yte),
             "null_95": float(np.nanpercentile(null, 95)) if n_perm else None,
-            "p_value": float((1 + np.sum(null >= obs)) / (1 + n_perm)) if n_perm else None}
+            "p_value": permutation_p(obs, null) if n_perm else None}
 
 
 def group_test(scores, chance: float, n_boot: int = 10_000, seed: int = 0,
@@ -181,15 +181,27 @@ def group_test(scores, chance: float, n_boot: int = 10_000, seed: int = 0,
 
 
 def holm(pvalues) -> np.ndarray:
-    """Holm-Bonferroni adjusted p-values (family-wise error)."""
+    """Holm-Bonferroni adjusted p-values (family-wise error).
+
+    NaN p-values (untested cells) stay NaN and do not count in the family size.
+    """
     p = np.asarray(pvalues, float)
-    order = np.argsort(p)
-    adj = np.empty_like(p)
+    adj = np.full_like(p, np.nan)
+    ok = np.flatnonzero(np.isfinite(p))
     running = 0.0
-    for rank, i in enumerate(order):
-        running = max(running, (len(p) - rank) * p[i])
+    for rank, i in enumerate(ok[np.argsort(p[ok])]):
+        running = max(running, (len(ok) - rank) * p[i])
         adj[i] = min(1.0, running)
     return adj
+
+
+def permutation_p(obs: float, null) -> float | None:
+    """(1 + #{null >= obs}) / (1 + n); failed permutations (NaN) count as >= obs
+    (conservative). None if the observed score itself is not finite."""
+    null = np.asarray(null, float)
+    if not np.isfinite(obs) or len(null) == 0:
+        return None
+    return float((1 + np.sum(~(null < obs))) / (1 + len(null)))
 
 
 def cross_decode(X_a, y_a, groups_a, X_b, y_b, groups_b, task: str, cov_a=None, cov_b=None,
@@ -212,11 +224,11 @@ def cross_decode(X_a, y_a, groups_a, X_b, y_b, groups_b, task: str, cov_a=None, 
         for g in np.unique(gb):
             tr, te = ga != g, gb == g
             y_tr, y_te = ya[tr], yb[te]
+            if tr.sum() < 10 or (task == "classification" and len(np.unique(y_tr)) < 2):
+                continue
             if cov_a is not None:
                 y_tr, y_te = _residualise(y_tr, y_te, np.asarray(cov_a, float)[tr],
                                           np.asarray(cov_b, float)[te])
-            if tr.sum() < 10 or (task == "classification" and len(np.unique(y_tr)) < 2):
-                continue
             m = _model(task).fit(Xa[tr], y_tr)
             pred[te] = (m.predict_proba(Xb[te])[:, 1] if task == "classification"
                         else m.predict(Xb[te]))
