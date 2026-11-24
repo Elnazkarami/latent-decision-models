@@ -197,6 +197,7 @@ Contributor rules are in [`AGENTS.md`](AGENTS.md); the research plan is in [`doc
 
 ## Changelog
 
+- **2026-11-24:** Fixes from a code review (no reported result changes): no p-value when a decoding score is undefined; Holm keeps untested (NaN) cells out of the family; cross-condition decoding, single-run subjects and empty stay-table cells no longer crash; the EB vs fixed comparison uses subjects scored by both; known-answer checks keep planted weights in range.
 - **2026-11-24:** Two-step model: empirical-Bayes (hierarchical) fitting (`fit_empirical_bayes`, `heldout_runs_eb`, `ldm two-step-model eb`); `fit` accepts a per-parameter prior. ds007474: EB predicts held-out runs and a separate session better than the fixed prior.
 - **2026-11-24:** Two-step model: points-based model-free variants (`hybrid_wsls_magmf`, `hybrid_wsls_magmf_arbitration`) and bootstrap nulls for any generating/fitted model pair. ds007474: the sign of the stakes "arbitration" effect reverses with points-based learning, so it is not interpreted as arbitration.
 - **2026-11-23:** Two-step model: trial-wise arbitration (`hybrid_wsls_arbitration`, `lagged_conditions`), a parametric-bootstrap null with a calibrated group test (`arbitration_null`, `calibrated_arbitration_test`), and recovery on real schedules. ds007474: less model-based weight after high-stakes trials, in two sessions.
