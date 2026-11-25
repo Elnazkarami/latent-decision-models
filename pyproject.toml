@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "latent-decision-models"
-version = "0.0.1"
+version = "0.1.0"
 description = "Reproducible tools for trial-level modeling of decision confidence and belief updating from behavior, EEG and fMRI"
 readme = "README.md"
 requires-python = ">=3.10"

@@ -60,7 +60,7 @@
     {
       "id": "LDM-008",
       "title": "Research report and reproducible tagged release",
-      "status": "ready(LDM-005 and LDM-007 done; LDM-004 closed)",
+      "status": "done(2026-11-25; v0.1.0, docs/REPORT.md)",
       "deliverable": "release and evidence-based methods report"
     }
   ]

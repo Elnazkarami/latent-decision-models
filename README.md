@@ -8,6 +8,8 @@ A reproducible Python library for trial-aligned modeling of decision confidence,
 
 Python package `latent_decision_models` · CLI `ldm` · repository `latent-decision-models`.
 
+**Research report:** [`docs/REPORT.md`](docs/REPORT.md) summarises every result with its evidence level (confirmatory, pre-specified or exploratory).
+
 ## What you can do with it
 
 - **Load and validate** trial tables with verified column semantics and row-level problem reports. There are adapters for ds002158 (confidence; BIDS events) and ds007474 (two-step task; behavior and event timing from OSF, because the BIDS events files are empty).
@@ -221,58 +223,9 @@ Details: [audit](docs/ds007474-audit.md) · [JSON](reports/ds007474-audit.json) 
 
 Contributor rules are in [`AGENTS.md`](AGENTS.md); the research plan is in [`docs/PROJECT_PLAN.md`](docs/PROJECT_PLAN.md).
 
-## Changelog
+## Changes
 
-- **2026-11-25:** LDM-005, EEG + behavior fusion (re-scoped from fMRI): `fusion` and `fusion_torch` modules, `ldm ds002158 fusion`, CI job for the `[deep]` extra. On ds002158, post-decision EEG adds no measurable information about confidence beyond behavior in new participants.
-- **2026-11-25:** fMRI pilot revision 1: `fmri_lss.lss_basis_weights` (HRF derivative bases, orthogonalised target derivatives), `boosted_amplitude`, `fmri-lss --roi-ts` (reuse saved ROI time series, no image read), plan-defined gating controls. On ds002158, sub-04 still fails the visual control, as anticipated; trial-level fMRI for ds002158 is closed.
-- **2026-11-24:** ds002158 fMRI pilot (2 subjects): pre-specified positive controls failed, so no confidence analysis was run; the timing diagnostic (`fmri_lss.onset_shift_scan`, `ldm ds002158 fmri-timing`) shows the canonical stick-beta feature is latency-fragile in this near-periodic design. `fmri-lss` now saves ROI time series.
-- **2026-11-24:** Trial-level fMRI: `ldm ds002158 fetch-fmri` (budgeted download of derivative images), `fmri-lss` (single-trial LSS betas on Harvard-Oxford ROIs, per-run QC) and `fmri-pilot` (pre-specified positive controls, then exploratory within-subject decoding); new `fmri_lss` module. Pilot plan for 2 subjects committed before any image was opened (`configs/ds002158_fmri_pilot.yaml`).
-- **2026-11-24:** Fixes from a code review (no reported result changes): no p-value when a decoding score is undefined; Holm keeps untested (NaN) cells out of the family; cross-condition decoding, single-run subjects and empty stay-table cells no longer crash; the EB vs fixed comparison uses subjects scored by both; known-answer checks keep planted weights in range.
-- **2026-11-24:** Two-step model: empirical-Bayes (hierarchical) fitting (`fit_empirical_bayes`, `heldout_runs_eb`, `ldm two-step-model eb`); `fit` accepts a per-parameter prior. ds007474: EB predicts held-out runs and a separate session better than the fixed prior.
-- **2026-11-24:** Two-step model: points-based model-free variants (`hybrid_wsls_magmf`, `hybrid_wsls_magmf_arbitration`) and bootstrap nulls for any generating/fitted model pair. ds007474: the sign of the stakes "arbitration" effect reverses with points-based learning, so it is not interpreted as arbitration.
-- **2026-11-23:** Two-step model: trial-wise arbitration (`hybrid_wsls_arbitration`, `lagged_conditions`), a parametric-bootstrap null with a calibrated group test (`arbitration_null`, `calibrated_arbitration_test`), and recovery on real schedules. ds007474: less model-based weight after high-stakes trials, in two sessions.
-- **2026-11-20:** Cross-condition decoding (`eeg_decoding.cross_decode`; `cross_condition`, `condition_contrasts` and `pairwise_transfer` config keys). ds002158: the own-decision confidence signal does not transfer to observed decisions.
-- **2026-11-20:** ds002158 EEG: OBS with 1 component (chosen on planted-signal retention) restores cross-subject confidence decoding, as predicted before decoding.
-- **2026-11-20:** Repository metadata: description and topics, `CITATION.cff`, package keywords, classifiers and project URLs.
-- **2026-11-20:** Planted-signal test of heartbeat-artifact removal (`eeg_clean.planted_signal_retention`, `ldm ds002158 eeg-bcg-retention`) and `eeg-preprocess --obs-n-pc`. On ds002158, OBS with 4 components keeps a median 54% (30–81%) of a slow response-locked signal; template subtraction keeps 96%.
-- **2026-11-20:** EEG cardiac controls: `eeg_clean.ica_remove_cardiac` and `cardiac_trial_features`; `eeg-preprocess --bcg-method` accepts several methods in one pass (`aas`, `obs`, `ica`, `aas_ica`) and writes per-trial heart-period and R-peak-timing columns; new `ldm ds002158 eeg-cardiac`; decoding targets can name any trial column (`column`, `require_columns`). Results for ds002158 in `docs/ds002158-eeg.md`.
-- **2026-11-19:** EEG follow-ups: `eeg_clean.obs_subtract` (optimal-basis-set BCG removal) and `eeg-preprocess --bcg-method obs`; decoding configs accept `custom_windows`, `holm_by`, `channels` and `exclude_channels`; group tests use only leave-one-subject-out results. Time-resolved decoding, OBS sensitivity and an ECG-only control for ds002158.
-- **2026-11-19:** ds002158 EEG, confirmatory analysis on 17 new subjects (pre-registered plan `configs/ds002158_eeg_decoding_confirmatory.yaml`): per-run scoring, group Wilcoxon tests, leave-one-subject-out decoding. Volume grid cropped on the modal trigger phase.
-- **2026-11-19:** ds002158 EEG (two subjects):
-  - `ldm ds002158 fetch-eeg` (budgeted signal download), `eeg-preprocess` (pairing, gradient and BCG removal, causal filtering, epochs) and `eeg-decode` (pre-specified within- and cross-subject decoding).
-  - New `eeg_clean`, `eeg_decoding` and `datasets.ds002158_eeg` modules; `io.brainvision.read_raw`; `io.openneuro.fetch_signal_files`.
-  - A CI job for the optional `[eeg]` extra.
-  - `fetch-eeg --min-free-gb`: downloads never fill the destination disk. Volume-trigger grid tolerance raised to 10 samples after checking the artifact position in the full sample.
-
-- **2026-11-19:** ds002158 fMRI metadata audit:
-  - `ldm ds002158 fmri-audit` (header range reads, run inventory, motion) and `ldm ds002158 fmri-design` (design diagnostics).
-  - New `io.nifti`, `fmri_design` and `datasets.ds002158_fmri` modules.
-  - A CI job for the optional `[fmri]` extra.
-
-- **2026-11-19:** Two-step RL follow-up:
-  - Win-stay/lose-shift and two-learning-rate extensions, with recovery over the fitted range.
-  - Out-of-session replication on the structural-session trials, including a structural-session contingency contrast with a known-answer check.
-  - Fix: the contingency contrast now excludes subjects who saw only one contingency.
-
-- **2026-11-19:** Two-step RL models:
-  - MF, MB, hybrid and contingency-specific hybrid models, with replay on real task schedules.
-  - Recovery on synthetic schedules, real schedules and the fitted range, with group-level model recovery and a known-answer check of the contingency contrast.
-  - Real-data comparison: pre-specified primary analysis plus two sensitivity analyses.
-  - The ds007474 adapter now exposes the full trial schedule and checks the reward rules on every file.
-  - New `ldm two-step-model recovery|compare` commands.
-
-- **2026-11-19:** Audit of ds007474. Added the ds007474 adapter (OSF behavior and event timing), the OSF fetcher, `ldm ds007474 fetch-behavior|trials`, and the optional `[ds007474]` extra (`mat-io`).
-
-- **2026-11-19:** Computational confidence model:
-  - Second-order SDT model with four observed-trial readout variants.
-  - Tests that the likelihood normalizes and that known parameters are recovered.
-  - Parameter and model recovery at a priori and fitted-region ranges, plus group-level model recovery.
-  - Real-data held-out-run comparison and posterior predictive checks, with a sub-20 sensitivity run.
-  - New `ldm confidence-model recovery|compare` commands.
-
-- **2026-11-18:** Confidence baselines, second pass: calibration metrics, within-subject run-held-out evaluation, GEE metacognition model (`ldm confidence-baseline` now reports all three); statsmodels added as a core dependency.
-- **2026-11-18:** Audit of ds002158; ds002158 adapter, EEG marker alignment, metadata-only OpenNeuro fetcher; first-pass behavioral confidence baselines.
-- **2026-11-18:** Initial package: package, synthetic generator, validator, subject-disjoint benchmark, CI.
+User-facing changes and corrections to reported results are listed by release in [`CHANGELOG.md`](CHANGELOG.md).
 
 ## Citing
 

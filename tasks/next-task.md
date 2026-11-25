@@ -24,8 +24,12 @@ Two pre-specified pilot attempts failed the positive controls in sub-04 ([`docs/
 ## LDM-005: done 2026-11-25
 EEG + behavior fusion ([`docs/ds002158-fusion.md`](../docs/ds002158-fusion.md)): EEG alone predicts confidence in new participants (r = 0.08) but adds nothing measurable beyond behavior (gain +0.006 [−0.004, 0.018]); the PyTorch network is not better than linear stacking.
 
-## Next: LDM-008, research report and tagged release
-Now unblocked (LDM-005 and LDM-007 done; LDM-004 closed). A consolidated report of all findings with their evidence level (pre-specified vs exploratory) and a tagged release. Creating a tag or GitHub release is a public action: confirm before publishing.
+## LDM-008: done 2026-11-25
+v0.1.0 with the consolidated report [`docs/REPORT.md`](../docs/REPORT.md) (evidence levels, null results, limitations, reproducibility) and `requirements-lock.txt`. All backlog milestones are done or closed.
+
+## Remaining
+- CITATION.cff: author name and ORCID (PI: after everything else is done), then a patch release.
+- Optional extensions, each needing a new plan: EEG time-frequency or longer post-decision windows for confidence (exploratory on these data); graded points sensitivity in the two-step model; ds007474 fMRI (259 GB raw preprocessing, needs approval).
 
 ## Open questions for the PI
 - **ds002158 fMRI:**

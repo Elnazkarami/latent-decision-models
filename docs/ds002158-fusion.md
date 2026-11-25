@@ -55,7 +55,7 @@ Group tests:
 
 ## Interpretation
 
-- **Consistency with the EEG results.** The earlier within-subject decoder of confidence *residualised* on behavior reached r = 0.16 ([EEG](ds002158-eeg.md)), i.e. about 2.5% of the residual variance. Behavior already explains about 35% of the variance here (r ≈ 0.59). At best, then, EEG could lift the total correlation by roughly 0.01. The gains observed (+0.006 in new participants, −0.004 within subject) are of that order, and this sample cannot distinguish them from zero. The null result is therefore informative about size: post-decision EEG adds **at most a small** increment to behavior in this dataset. It does not show that there is none.
+- **Consistency with the EEG results.** The earlier within-subject decoder of confidence *residualised* on behavior reached r = 0.08 ([EEG](ds002158-eeg.md), uncorrected p = 0.013), about 0.7% of the residual variance. (The plan's comment and the first version of this page wrongly quoted r = 0.16, the plain confidence decoder; corrected 2026-11-25.) Behavior already explains about 35% of the variance here (r ≈ 0.59), so at best EEG could lift the total correlation by roughly +0.004. The observed gains (+0.006 in new participants, −0.004 within subject) are of that order. The null result is therefore informative about size: post-decision EEG adds **at most a very small** increment to behavior in this dataset. It does not show that there is none.
 - **The nonlinear model** overfits with ~1,900 training trials and 620 EEG features; the linear stacked model is the better fusion baseline here.
 - **Not shown:** whether other EEG features (time-frequency, longer windows into the rating period) or other cleaning would add more. Any such test would be exploratory on these data.
 

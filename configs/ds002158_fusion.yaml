@@ -6,6 +6,8 @@
 # (accuracy, evidence, response latency), in held-out participants?
 # Not blind: per-subject EEG decoding is known (confidence after own decisions, post-
 # decision window: within subject r = 0.16 beyond behavior; left-out subjects r = 0.10).
+# Correction 2026-11-25 (after the analysis; no effect on it): r = 0.16 is the plain
+# confidence decoder; beyond behavior it was r = 0.08 within subject, ~0 across subjects.
 # What has not been computed is the participant-disjoint gain of a model that uses both.
 #
 # Timing: every feature is available only after the first-order response (behavior and
