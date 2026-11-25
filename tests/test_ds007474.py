@@ -186,6 +186,22 @@ def test_subject_map(tmp_path):
     assert d.subject_map(tmp_path) == {"0002": "MBMF000202", "0048": "MBMF004801"}
 
 
+def test_load_trials_ignores_appledouble_files(tmp_path):
+    """macOS writes "._*" metadata files on exFAT/FAT drives; they are not data."""
+    csv = tmp_path / d.CSV_DIR
+    mat = tmp_path / d.MAT_DIR
+    csv.mkdir()
+    mat.mkdir()
+    df, _ = _synthetic_csv()
+    _write(csv, df)
+    (mat / "subID_0002_sesID_2_MBMF_fMRI.mat").write_bytes(b"")
+    (csv / "._sub0002s2f3.csv").write_bytes(b"\x00\x05\x16\x07binary")
+    (mat / "._subID_0002_sesID_2_MBMF_fMRI.mat").write_bytes(b"\x00\x05\x16\x07")
+    assert d.subject_map(tmp_path) == {"0002": "MBMF000202"}
+    trials, _ = d.load_trials(tmp_path)
+    assert trials["subject"].nunique() == 1 and len(trials) == 105 + 154
+
+
 def test_osf_selection_guard_and_verify():
     files = [{"path": "/a/x.csv", "size": 3, "sha256": None},
              {"path": "/a/y.nii.gz", "size": 3, "sha256": None}]

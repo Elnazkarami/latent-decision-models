@@ -2,6 +2,14 @@
 
 User-facing changes by release: what you can do with the package, and any correction to a published result. Day-to-day development is in the git history.
 
+## Unreleased
+
+**Fixes:**
+- The ds007474 loader ignores hidden files. Before, macOS `._*` metadata files on exFAT/FAT drives were read as behavior files and loading failed.
+
+**Reproducibility:**
+- [`reproduce/cleanroom.sh`](reproduce/cleanroom.sh) regenerates every committed report from a fresh clone. It can reuse an earlier, hash-checked OSF download (`OSF_LOCAL`) when the OSF API is unavailable. Results: [validation, part 2](docs/VALIDATION.md).
+
 ## 0.1.0 (2026-11-25)
 
 First release.

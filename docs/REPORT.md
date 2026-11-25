@@ -81,7 +81,7 @@ Every claim below is no stronger than its level. All neural features used for co
 
 ## External check
 
-Our ds002158 behavioral results agree with the original publication (Pereira et al. 2020) on every comparable inferential result, including an exact match of the type-2 AUROC test (V = 163, p = 0.03). The type-2 AUROC levels are ~0.04 higher and unexplained. EEG onsets differ by ~50–100 ms, consistent with opposite filtering directions. For ds007474, every comparable verbatim result of the study's preprint is reproduced: transition rate, reward-probability check (47.12% vs 47.19%; null 43.09% vs 43.08%), the reward and model-based stay effects, and the hybrid beating pure MF and MB. Details: [validation](VALIDATION.md).
+Our ds002158 behavioral results agree with the original publication (Pereira et al. 2020) on every comparable inferential result, including an exact match of the type-2 AUROC test (V = 163, p = 0.03). The type-2 AUROC levels are ~0.04 higher and unexplained. EEG onsets differ by ~50–100 ms, consistent with opposite filtering directions. For ds007474, every comparable verbatim result of the study's preprint is reproduced: transition rate, reward-probability check (47.12% vs 47.19%; null 43.09% vs 43.08%), the reward and model-based stay effects, and the hybrid beating pure MF and MB. **Clean-room reproduction:** every committed ds002158 report regenerates within 1e-6 from a fresh clone and environment, using hash-checked data. The ds007474 primary model comparison regenerates within optimizer tolerance (about 1e-5). The drift is traced to one floating-point rewrite of the prior term, and no published number changes. Details: [validation](VALIDATION.md).
 
 ## Limitations
 
@@ -96,4 +96,4 @@ Our ds002158 behavioral results agree with the original publication (Pereira et 
 - **Environment:** `pip install -e '.[dev,eeg,fmri,deep]'`. Exact versions used for the reported runs are in [`requirements-lock.txt`](../requirements-lock.txt) (Python 3.12, macOS, CPU).
 - **Data:** OpenNeuro ds002158 v1.0.2 and ds007474 v1.0.5 (CC0); ds007474 behavior from OSF `ctfzd` (no license; fetched by allow-listed, hash-checked download). Signal downloads are explicit (`fetch-eeg`, `fetch-fmri`).
 - **Commands:** in the README and on each detailed page. Every committed JSON report records the config that produced it.
-- **Tests:** 196 automated tests. They use synthetic data and the CC0 fixture, and run without neuroimaging data. CI runs the base suite plus separate jobs for the `[eeg]`, `[fmri]` and `[deep]` extras. `tests/test_report.py` checks that the ds002158 headline numbers on this page match the committed reports.
+- **Tests:** 205 automated tests. They use synthetic data and the CC0 fixture, and run without neuroimaging data. CI runs the base suite plus separate jobs for the `[eeg]`, `[fmri]` and `[deep]` extras. `tests/test_report.py` checks that the ds002158 headline numbers on this page match the committed reports.

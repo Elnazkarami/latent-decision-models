@@ -123,3 +123,44 @@ Computed with `ldm ds007474 compare-paper`. The output is not committed because 
 - Numbers must match within relative 1e-6 (absolute 1e-9). Strings, booleans and list lengths must match exactly.
 - Keys added to a report format after a report was committed are allowed. Every value in the committed report must still match.
 - Any difference is reported and explained, never accepted silently.
+
+### Results (2026-11-25)
+
+Run at commit 22914e7 on macOS with the system Python 3.12; about 2 h 10 min including the ds007474 retries (environment 10 min, hash checks 17 min, EEG 35 min, fMRI 57 min). Every signal file matched its manifest: 333 EEG files (111 runs, 35 GB) and 24 fMRI files (38 GB), none failing.
+
+| Report | Differences | Explanation |
+| --- | --- | --- |
+| behavioral baseline, paper comparison | none | |
+| EEG: confirmatory decoding, cardiac behavior, cardiac-control decoding | none | |
+| fusion | none | includes the PyTorch model, seeded |
+| fMRI: QC | 1 (text only) | `beta_units` wording was shortened in commit 385ddec, after the committed copy was written; the HRF is now its own field. No number differs. The committed copy has been replaced by the regenerated one. |
+| fMRI: pilot, timing, derivative QC, derivative pilot | none | |
+| **ds007474 primary model comparison** | **11 numbers, within optimizer tolerance** | See below |
+
+**ds007474:**
+- **Deviation from the plan.** On the day of the run, the OSF API returned HTTP 500 to about 4 of 5 requests, so a fresh download could not complete. The run used the files fetched on 2026-11-19. All 378 (13.4 MB) matched their manifest by size and SHA-256, and those hashes had been checked against OSF's published ones when fetched. That is the same standard as the EEG and fMRI files. The script now accepts such a folder explicitly (`OSF_LOCAL`).
+- **Bug found.** The first attempt crashed because copying to an exFAT drive created macOS `._*` metadata files, which the ds007474 loader read as behavior files. The loader now ignores hidden files (regression test added); the EEG loader already did.
+- **Trial table.** The rebuilt table has the same content as the original once rows are sorted. Three columns look different, and the models use none of them:
+  - `onset_seconds` and `onset_reference`: the original was built without `--timing`;
+  - `choice_side`: 897 missing values are written differently.
+- **Model comparison.** The 11 differences:
+  - the contingency effect: −0.01183889 in the reference vs −0.01183898 regenerated;
+  - the time effect: +0.0332389 in both, differing in the seventh significant digit;
+  - the related CI bounds and medians;
+  - one subject's best model, hybrid vs hybrid + contingency (counts 49/35 → 50/34; better than reference 61 → 60).
+- **Cause, found by bisection.**
+  - The local reference was produced by commit 6538889. Every commit up to 8a808b9 reproduces it exactly.
+  - Commit f6b3a4b (empirical-Bayes fitting) rewrote the prior penalty from `θ·θ / sd²` to `Σ((θ − μ)/sd)²`. With μ = 0 the two are mathematically identical but round differently in the last bit, so the optimizer converges to a point a little further along within its tolerance.
+  - Per-subject parameters move by at most 1e-5 (w, α) and 3e-4 (β); held-out log-likelihoods by at most 5e-4.
+  - The subject whose best model changed, MBMF021901, has an exact tie between the two hybrid models: held-out log-likelihood −59.661 for both. Rounding breaks the tie.
+  - The current code is deterministic: it gives the clean-room output exactly from the original trial table and environment.
+- **Effect on reported results:** none. Every published ds007474 number is the same at its printed precision.
+
+**Conclusion.** Everything committed reproduces from a fresh clone and a fresh environment, using signal files and metadata checked by hash. The ds002158 reports match to 1e-6 in every number. The ds007474 primary comparison matches to about 1e-5, with the drift traced to a single commit and to floating-point rounding. Neither the data nor the environment changed anything. The clean room found one real bug, in loading from exFAT/FAT drives, now fixed.
+
+Reproduce (paths are examples):
+
+```bash
+STORE=/data/ldm COMMIT=<sha> WORK=/scratch/cleanroom REF_LOCAL=/data/ldm-ref \
+    OSF_LOCAL=/data/ldm/ds007474_osf zsh reproduce/cleanroom.sh   # omit OSF_LOCAL to fetch from OSF
+```

@@ -79,6 +79,11 @@ class Issue:
     source_file: str
 
 
+def _visible(paths):
+    """Drop hidden files, e.g. macOS "._*" AppleDouble files on exFAT/FAT drives."""
+    return [p for p in paths if not p.name.startswith(".")]
+
+
 def subject_map(osf_root: str | Path) -> dict[str, str]:
     """4-digit OSF participant ID -> BIDS label (``MBMFxxxx0k``), from timing file names.
 
@@ -86,7 +91,7 @@ def subject_map(osf_root: str | Path) -> dict[str, str]:
     equals it for all 189 subjects (VERIFIED-DATA).
     """
     out = {}
-    for p in Path(osf_root, MAT_DIR).glob("*.mat"):
+    for p in _visible(Path(osf_root, MAT_DIR).glob("*.mat")):
         m = _MAT_NAME.search(p.name)
         if m:
             out[m["id"]] = f"MBMF{m['id']}0{m['ses']}"
@@ -278,11 +283,12 @@ def load_trials(osf_root: str | Path, timing: bool = False,
     osf_root = Path(osf_root)
     ids = subject_map(osf_root)
     frames, issues = [], []
-    for p in sorted(Path(osf_root, CSV_DIR).glob("*.csv")):
+    for p in sorted(_visible(Path(osf_root, CSV_DIR).glob("*.csv"))):
         pid = _CSV_NAME.search(p.name)["id"]
         t, iss = parse_behavior_csv(p, ids.get(pid), strict=strict)
         if timing:
-            mats = list(Path(osf_root, MAT_DIR).glob(f"subID_{pid}_sesID_*_MBMF_fMRI.mat"))
+            mats = list(_visible(Path(osf_root, MAT_DIR).glob(
+                f"subID_{pid}_sesID_*_MBMF_fMRI.mat")))
             if len(mats) != 1:
                 raise Ds007474SchemaError(f"expected one timing file for {pid}, got {len(mats)}")
             t = merge_timing(t, read_event_timing(mats[0]))

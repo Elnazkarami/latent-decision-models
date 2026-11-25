@@ -12,6 +12,10 @@
 #   STORE      holds ds002158/ with eeg_fetch_manifest.json and fmri_fetch_manifest.json
 #   REF_LOCAL  reference copies of reports that are not committed (ds007474: the OSF
 #              source has no license; the behavioral baseline)
+#   OSF_LOCAL  optional: an earlier `ldm ds007474 fetch-behavior` folder, used instead of a
+#              fresh OSF download (e.g. when the OSF API is failing). Every file must match
+#              that folder's fetch_manifest.json (size and SHA-256, checked against OSF's
+#              published hashes when it was fetched).
 set -euo pipefail
 : ${STORE:?} ${WORK:?} ${COMMIT:?} ${REF_LOCAL:?}
 PY=${PY:-python3.12}
@@ -92,7 +96,26 @@ $LDM ds002158 fmri-pilot --config configs/ds002158_fmri_pilot_derivative.yaml \
     --out reports/ds002158-fmri-derivative-pilot.json > /dev/null
 
 step ds007474 behavior and the primary RL comparison
-$LDM ds007474 fetch-behavior --dest data/ds007474_osf > /dev/null
+if [[ -n ${OSF_LOCAL:-} ]]; then
+  mkdir -p data/ds007474_osf && cp -R $OSF_LOCAL/. data/ds007474_osf/
+  find data/ds007474_osf -name '._*' -delete   # macOS metadata files on exFAT/FAT drives
+  .venv/bin/python -I - data/ds007474_osf <<'PY'
+import hashlib, json, sys
+from pathlib import Path
+root = Path(sys.argv[1])
+files = json.loads((root / "fetch_manifest.json").read_text())["files"]
+bad = []
+for f in files:
+    p = root / f["path"].lstrip("/")
+    if not (p.is_file() and len(b := p.read_bytes()) == f["bytes"] and f["sha256_ok"]
+            and hashlib.sha256(b).hexdigest() == f["sha256"]):
+        bad.append(f["path"])
+print(f"OSF_LOCAL: {len(files)} files checked, {len(bad)} failing", bad[:5])
+sys.exit(1 if bad else 0)
+PY
+else
+  $LDM ds007474 fetch-behavior --dest data/ds007474_osf > /dev/null
+fi
 $LDM ds007474 trials --osf-root data/ds007474_osf --out data/ds007474_trials.csv \
     --timing > /dev/null
 $LDM two-step-model compare --config configs/ds007474_two_step_model.yaml > /dev/null

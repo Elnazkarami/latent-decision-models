@@ -5,7 +5,10 @@
     "sub-04"
   ],
   "n_runs": 12,
-  "beta_units": "percent of the ROI's run-mean signal per unit nilearn regressor (Glover HRF, stick at stimulus onset)",
+  "source": "derivative images",
+  "amplitude": "canonical",
+  "hrf_model": "glover",
+  "beta_units": "percent of the ROI's run-mean signal per unit nilearn regressor (stick at stimulus onset)",
   "qc": [
     {
       "subject": "sub-02",
@@ -16,14 +19,14 @@
       "lss_condition_number_max": 44.876705262386054,
       "roi_tsnr_median": 191.95092754516045,
       "roi_tsnr_min": 47.296206226428275,
-      "n_rois": 111,
-      "n_rois_empty": 0,
-      "voxels_per_roi_median": 1919.0,
       "max_abs_translation_mm": 1.0199526,
       "max_abs_rotation_deg": 1.119228018305366,
       "mean_fd_mm": 0.17477164556721064,
       "max_fd_mm": 1.095382719,
-      "fraction_fd_above_threshold": 0.037333333333333336
+      "fraction_fd_above_threshold": 0.037333333333333336,
+      "n_rois": 111,
+      "n_rois_empty": 0,
+      "voxels_per_roi_median": 1919.0
     },
     {
       "subject": "sub-02",
@@ -34,14 +37,14 @@
       "lss_condition_number_max": 75.67662535391801,
       "roi_tsnr_median": 243.5004755935105,
       "roi_tsnr_min": 61.4943335422893,
-      "n_rois": 111,
-      "n_rois_empty": 0,
-      "voxels_per_roi_median": 1919.0,
       "max_abs_translation_mm": 0.44552403,
       "max_abs_rotation_deg": 0.973995134761841,
       "mean_fd_mm": 0.13780042895056002,
       "max_fd_mm": 0.49982386800000006,
-      "fraction_fd_above_threshold": 0.0
+      "fraction_fd_above_threshold": 0.0,
+      "n_rois": 111,
+      "n_rois_empty": 0,
+      "voxels_per_roi_median": 1919.0
     },
     {
       "subject": "sub-02",
@@ -52,14 +55,14 @@
       "lss_condition_number_max": 33.12300957609155,
       "roi_tsnr_median": 199.8317022187658,
       "roi_tsnr_min": 75.13419988256975,
-      "n_rois": 111,
-      "n_rois_empty": 0,
-      "voxels_per_roi_median": 1919.0,
       "max_abs_translation_mm": 0.70120876,
       "max_abs_rotation_deg": 0.6907917223196333,
       "mean_fd_mm": 0.15257531079877337,
       "max_fd_mm": 1.6367191179999998,
-      "fraction_fd_above_threshold": 0.013333333333333334
+      "fraction_fd_above_threshold": 0.013333333333333334,
+      "n_rois": 111,
+      "n_rois_empty": 0,
+      "voxels_per_roi_median": 1919.0
     },
     {
       "subject": "sub-02",
@@ -70,14 +73,14 @@
       "lss_condition_number_max": 14.829516472919543,
       "roi_tsnr_median": 182.3379058722421,
       "roi_tsnr_min": 48.76450948977485,
-      "n_rois": 111,
-      "n_rois_empty": 0,
-      "voxels_per_roi_median": 1919.0,
       "max_abs_translation_mm": 1.1276326,
       "max_abs_rotation_deg": 1.0147336945027916,
       "mean_fd_mm": 0.15776041431957336,
       "max_fd_mm": 1.697960715,
-      "fraction_fd_above_threshold": 0.021333333333333333
+      "fraction_fd_above_threshold": 0.021333333333333333,
+      "n_rois": 111,
+      "n_rois_empty": 0,
+      "voxels_per_roi_median": 1919.0
     },
     {
       "subject": "sub-02",
@@ -88,14 +91,14 @@
       "lss_condition_number_max": 56.42801266043507,
       "roi_tsnr_median": 216.98811385681384,
       "roi_tsnr_min": 50.279873348032,
-      "n_rois": 111,
-      "n_rois_empty": 0,
-      "voxels_per_roi_median": 1919.0,
       "max_abs_translation_mm": 0.42003262,
       "max_abs_rotation_deg": 0.7973918379066517,
       "mean_fd_mm": 0.13709889310042667,
       "max_fd_mm": 0.6760615349999999,
-      "fraction_fd_above_threshold": 0.0026666666666666666
+      "fraction_fd_above_threshold": 0.0026666666666666666,
+      "n_rois": 111,
+      "n_rois_empty": 0,
+      "voxels_per_roi_median": 1919.0
     },
     {
       "subject": "sub-02",
@@ -106,14 +109,14 @@
       "lss_condition_number_max": 23.43563655714636,
       "roi_tsnr_median": 182.06523977935342,
       "roi_tsnr_min": 57.19241320855296,
-      "n_rois": 111,
-      "n_rois_empty": 0,
-      "voxels_per_roi_median": 1919.0,
       "max_abs_translation_mm": 1.1043628,
       "max_abs_rotation_deg": 0.9005213762412242,
       "mean_fd_mm": 0.16708131598282994,
       "max_fd_mm": 2.01871225,
-      "fraction_fd_above_threshold": 0.021333333333333333
+      "fraction_fd_above_threshold": 0.021333333333333333,
+      "n_rois": 111,
+      "n_rois_empty": 0,
+      "voxels_per_roi_median": 1919.0
     },
     {
       "subject": "sub-04",
@@ -124,14 +127,14 @@
       "lss_condition_number_max": 39.15421812221536,
       "roi_tsnr_median": 165.24157341784976,
       "roi_tsnr_min": 54.07003350103622,
-      "n_rois": 111,
-      "n_rois_empty": 0,
-      "voxels_per_roi_median": 1919.0,
       "max_abs_translation_mm": 1.0593169,
       "max_abs_rotation_deg": 0.5096751853459969,
       "mean_fd_mm": 0.18018051245687672,
       "max_fd_mm": 0.6556432335000001,
-      "fraction_fd_above_threshold": 0.013404825737265416
+      "fraction_fd_above_threshold": 0.013404825737265416,
+      "n_rois": 111,
+      "n_rois_empty": 0,
+      "voxels_per_roi_median": 1919.0
     },
     {
       "subject": "sub-04",
@@ -142,14 +145,14 @@
       "lss_condition_number_max": 12.613814632999647,
       "roi_tsnr_median": 176.44720213901311,
       "roi_tsnr_min": 74.5907081968657,
-      "n_rois": 111,
-      "n_rois_empty": 0,
-      "voxels_per_roi_median": 1919.0,
       "max_abs_translation_mm": 0.79896695,
       "max_abs_rotation_deg": 0.20478714236387602,
       "mean_fd_mm": 0.17353112811753357,
       "max_fd_mm": 0.7945233205000001,
-      "fraction_fd_above_threshold": 0.00804289544235925
+      "fraction_fd_above_threshold": 0.00804289544235925,
+      "n_rois": 111,
+      "n_rois_empty": 0,
+      "voxels_per_roi_median": 1919.0
     },
     {
       "subject": "sub-04",
@@ -160,14 +163,14 @@
       "lss_condition_number_max": 24.360557187415022,
       "roi_tsnr_median": 190.2873532079541,
       "roi_tsnr_min": 67.60778079716735,
-      "n_rois": 111,
-      "n_rois_empty": 0,
-      "voxels_per_roi_median": 1919.0,
       "max_abs_translation_mm": 0.74488202,
       "max_abs_rotation_deg": 0.23721260588907217,
       "mean_fd_mm": 0.18600033074051214,
       "max_fd_mm": 0.660195645,
-      "fraction_fd_above_threshold": 0.013477088948787063
+      "fraction_fd_above_threshold": 0.013477088948787063,
+      "n_rois": 111,
+      "n_rois_empty": 0,
+      "voxels_per_roi_median": 1919.0
     },
     {
       "subject": "sub-04",
@@ -178,14 +181,14 @@
       "lss_condition_number_max": 8.648474878566375,
       "roi_tsnr_median": 216.7565476081385,
       "roi_tsnr_min": 84.66527533921145,
-      "n_rois": 111,
-      "n_rois_empty": 0,
-      "voxels_per_roi_median": 1919.0,
       "max_abs_translation_mm": 0.6707879,
       "max_abs_rotation_deg": 0.13471269660514684,
       "mean_fd_mm": 0.17821348483832616,
       "max_fd_mm": 0.6931847385000001,
-      "fraction_fd_above_threshold": 0.01078167115902965
+      "fraction_fd_above_threshold": 0.01078167115902965,
+      "n_rois": 111,
+      "n_rois_empty": 0,
+      "voxels_per_roi_median": 1919.0
     },
     {
       "subject": "sub-04",
@@ -196,14 +199,14 @@
       "lss_condition_number_max": 31.64560385952834,
       "roi_tsnr_median": 276.1660525749857,
       "roi_tsnr_min": 87.69417597116748,
-      "n_rois": 111,
-      "n_rois_empty": 0,
-      "voxels_per_roi_median": 1919.0,
       "max_abs_translation_mm": 0.25815741,
       "max_abs_rotation_deg": 0.2646055691052501,
       "mean_fd_mm": 0.19248290093529485,
       "max_fd_mm": 0.552833806,
-      "fraction_fd_above_threshold": 0.0026954177897574125
+      "fraction_fd_above_threshold": 0.0026954177897574125,
+      "n_rois": 111,
+      "n_rois_empty": 0,
+      "voxels_per_roi_median": 1919.0
     },
     {
       "subject": "sub-04",
@@ -214,14 +217,14 @@
       "lss_condition_number_max": 32.670560513552545,
       "roi_tsnr_median": 207.86194031846435,
       "roi_tsnr_min": 83.45944589066816,
-      "n_rois": 111,
-      "n_rois_empty": 0,
-      "voxels_per_roi_median": 1919.0,
       "max_abs_translation_mm": 0.32108063,
       "max_abs_rotation_deg": 0.3202947348537399,
       "mean_fd_mm": 0.18330837464296493,
       "max_fd_mm": 0.8043075085,
-      "fraction_fd_above_threshold": 0.01078167115902965
+      "fraction_fd_above_threshold": 0.01078167115902965,
+      "n_rois": 111,
+      "n_rois_empty": 0,
+      "voxels_per_roi_median": 1919.0
     }
   ]
 }

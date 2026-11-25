@@ -8,7 +8,7 @@ A reproducible Python library for trial-aligned modeling of decision confidence,
 
 Python package `latent_decision_models` · CLI `ldm` · repository `latent-decision-models`.
 
-**Research report:** [`docs/REPORT.md`](docs/REPORT.md) summarises every result with its evidence level (confirmatory, pre-specified or exploratory). **Validation:** [`docs/VALIDATION.md`](docs/VALIDATION.md) compares our results with the original publication and records a clean-room reproduction.
+**Research report:** [`docs/REPORT.md`](docs/REPORT.md) summarises every result with its evidence level (confirmatory, pre-specified or exploratory). **Validation:** [`docs/VALIDATION.md`](docs/VALIDATION.md) compares our results with the original publications of both datasets and records a clean-room reproduction: every committed report regenerates from a fresh clone, environment and hash-checked data.
 
 ## What you can do with it
 
