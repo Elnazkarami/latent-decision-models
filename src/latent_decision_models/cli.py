@@ -155,6 +155,31 @@ def _ds002158_eeg_cardiac(args):
     print(res["group"][cols].to_string(index=False))
 
 
+def _ds002158_fusion(args):
+    """LDM-005: behavior + post-decision EEG fusion for confidence (pre-specified plan)."""
+    from .datasets import ds002158_eeg as e
+
+    cfg = yaml.safe_load(Path(args.config).read_text())
+    if args.epochs_dir:
+        cfg["epochs_dir"] = args.epochs_dir
+    res = e.run_fusion(cfg)
+    if args.predictions:
+        Path(args.predictions).mkdir(parents=True, exist_ok=True)
+        for (c, scheme), p in res["predictions"].items():
+            p.to_csv(Path(args.predictions, f"{c}_{scheme}.csv"), index=False)
+    tests = res["tests"]
+    cols = ["role", "condition", "scheme", "contrast", "n_subjects", "mean", "ci95",
+            "n_above_chance", "p_wilcoxon", "p_holm_secondary"]
+    print(tests[cols].to_string(index=False))
+    out = {"config": args.config, "data_kind": "real_eeg_behavior_openneuro_ds002158_v1.0.2",
+           "timing": "post-decision features (behavior and 0.1-0.6 s after the response); "
+                     "not prospective",
+           "tests": _records(tests), "per_subject_scores": _records(res["scores"])}
+    if args.out:
+        Path(args.out).parent.mkdir(parents=True, exist_ok=True)
+        Path(args.out).write_text(json.dumps(out, indent=1, default=_json_default) + "\n")
+
+
 def _ds002158_eeg_decode(args):
     from .datasets import ds002158_eeg as e
 
@@ -715,6 +740,13 @@ def main():
                     help="refuse to download if less than this would stay free on the "
                          "destination disk (default 20)")
     ff.add_argument("--dry-run", action="store_true", help="only report what would be fetched")
+    fu = dsub.add_parser("fusion", help="Behavior + post-decision EEG fusion for "
+                         "confidence: participant-disjoint and within-subject ablation "
+                         "(configs/ds002158_fusion.yaml)")
+    fu.add_argument("--config", required=True)
+    fu.add_argument("--epochs-dir")
+    fu.add_argument("--out", help="JSON report path")
+    fu.add_argument("--predictions", help="directory for per-trial prediction tables")
     ep = dsub.add_parser("eeg-preprocess", help="Clean raw in-scanner EEG (gradient + BCG "
                          "subtraction, causal filter) and cut trial epochs")
     ep.add_argument("--bids-root", required=True)
@@ -849,7 +881,7 @@ def main():
     elif args.cmd == "ds002158":
         {"fetch-metadata": _ds002158_fetch, "trials": _ds002158_trials,
          "align-eeg": _ds002158_align, "fetch-eeg": _ds002158_fetch_eeg,
-         "fetch-fmri": _ds002158_fetch_fmri,
+         "fetch-fmri": _ds002158_fetch_fmri, "fusion": _ds002158_fusion,
          "eeg-preprocess": _ds002158_eeg_preprocess, "eeg-decode": _ds002158_eeg_decode,
          "eeg-cardiac": _ds002158_eeg_cardiac, "eeg-bcg-retention": _ds002158_eeg_bcg_retention, "fmri-audit": _ds002158_fmri_audit,
          "fmri-design": _ds002158_fmri_design,

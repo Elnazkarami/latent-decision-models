@@ -30,6 +30,10 @@
 #      (patience 20); mean of 5 seeds.
 # All scaling and every hyper-parameter are fitted on training data only (ridge alpha by
 # inner cross-validation over logspace(-1, 5, 13)).
+# Added after commit ccb8cd9, before any real-data fit: training targets are centred
+# within each training run, for every model. Scores are within-run, so run offsets are
+# never to be predicted; without centring, synthetic tests showed run offsets leaking
+# into the stacked model through biased out-of-fold predictions (B+E below B).
 #
 # Evaluation:
 #  * Participant-disjoint (primary): leave one subject out; train on the 18 others.

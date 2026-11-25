@@ -411,6 +411,22 @@ def _analysis_inputs(t, ep, chans, condition, window, spec, bin_s, windows=None)
     return X, y, tt["run"].to_numpy(), cov
 
 
+def select_channels(loaded: dict, cfg: dict) -> list[int]:
+    """Channel indices used for every subject: all EEG channels except ECG and any
+    channel marked bad in any subject (or ``exclude_channels``); ``channels`` overrides."""
+    names = [str(c) for c in next(iter(loaded.values()))[1]["ch_names"]]
+    bad = set()
+    for t, ep in loaded.values():
+        if [str(c) for c in ep["ch_names"]] != names:
+            raise ValueError("channel lists differ between subjects")
+        for b in t["eeg_bad_channels"].dropna():
+            bad |= set(filter(None, str(b).split(";")))
+    bad |= set(cfg.get("exclude_channels", []))  # e.g. to match another channel set
+    if cfg.get("channels"):  # explicit channel list, e.g. [ECG] for a cardiac control
+        return [names.index(c) for c in cfg["channels"]]
+    return [i for i, c in enumerate(names) if c != ECG_CHANNEL and c not in bad]
+
+
 def run_decoding(cfg: dict) -> dict:
     """Within-subject (leave-one-run-out) and cross-subject decoding per the config.
 
@@ -442,17 +458,7 @@ def run_decoding(cfg: dict) -> dict:
 
     loaded = {s: load_epochs(cfg["epochs_dir"], s) for s in cfg["subjects"]}
     names = [str(c) for c in next(iter(loaded.values()))[1]["ch_names"]]
-    bad = set()
-    for t, ep in loaded.values():
-        if [str(c) for c in ep["ch_names"]] != names:
-            raise ValueError("channel lists differ between subjects")
-        for b in t["eeg_bad_channels"].dropna():
-            bad |= set(filter(None, str(b).split(";")))
-    bad |= set(cfg.get("exclude_channels", []))  # e.g. to match another channel set
-    if cfg.get("channels"):  # explicit channel list, e.g. [ECG] for a cardiac control
-        chans = [names.index(c) for c in cfg["channels"]]
-    else:
-        chans = [i for i, c in enumerate(names) if c != ECG_CHANNEL and c not in bad]
+    chans = select_channels(loaded, cfg)
     bin_s = cfg.get("bin_seconds", 0.05)
     windows = {**WINDOWS, **{k: tuple(v) for k, v in cfg.get("custom_windows", {}).items()}}
     cc_pairs = [tuple(pair) for pair in cfg.get("cross_condition", [])]
@@ -708,3 +714,89 @@ def bcg_retention_subject(bids_root: str | Path, subject: str, epochs_dir: str |
                 rows.append({"subject": subject, "eeg_run": run, "waveform": wname,
                              "method": mname, **r})
     return rows
+
+
+# --------------------------------------------------------------------------------------
+# LDM-005: behavior + EEG fusion for confidence (configs/ds002158_fusion.yaml)
+# --------------------------------------------------------------------------------------
+
+BEHAVIOR_DERIVED = {
+    "accuracy_x_evidence": ("accuracy", "evidence_dots_difference"),
+    "accuracy_x_latency": ("accuracy", "response_latency_seconds"),
+}
+
+
+def fusion_inputs(cfg: dict) -> dict:
+    """{condition: {subject: (B, E, y, runs)}} on identical trials for every model.
+
+    Trials: as for decoding in ``cfg["window"]`` (valid, not rejected, response marker),
+    plus confidence and every behavior column present.
+    """
+    from ..eeg_decoding import window_features
+
+    loaded = {s: load_epochs(cfg["epochs_dir"], s) for s in cfg["subjects"]}
+    chans = select_channels(loaded, cfg)
+    out = {c: {} for c in cfg["conditions"]}
+    for s, (t, ep) in loaded.items():
+        t = t.copy()
+        for name, (a, b) in BEHAVIOR_DERIVED.items():
+            t[name] = t[a] * t[b]
+        data, times, tmin, tmax = window_data(ep, cfg["window"])
+        for c in cfg["conditions"]:
+            rows = (decoding_trials(t, c, cfg["window"])
+                    & t[["confidence_raw", *cfg["behavior"]]].notna().all(axis=1).to_numpy())
+            tt = t[rows]
+            E = window_features(data[rows][:, chans], times, tmin, tmax,
+                                cfg.get("bin_seconds", 0.05))
+            out[c][s] = (tt[cfg["behavior"]].to_numpy(float), E,
+                         tt["confidence_raw"].to_numpy(float), tt["run"].to_numpy())
+    return out
+
+
+def eligible(data: dict, subjects, min_runs: int, min_trials: int) -> list[str]:
+    return [s for s in subjects if s in data and len(data[s][2]) >= min_trials
+            and len(np.unique(data[s][3])) >= min_runs]
+
+
+def run_fusion(cfg: dict, inputs: dict | None = None) -> dict:
+    """The pre-specified fusion analysis: predictions, per-subject scores, group tests."""
+    from ..eeg_decoding import group_test, holm
+    from ..fusion import loso_predictions, per_subject_scores, within_predictions
+
+    inputs = inputs if inputs is not None else fusion_inputs(cfg)
+    n_jobs, seed, n_boot = cfg.get("n_jobs", 1), cfg.get("seed", 0), cfg.get("n_boot", 10_000)
+    scores, preds = [], {}
+    for c, data in inputs.items():
+        for scheme in ("participant_disjoint", "within_subject"):
+            if scheme == "participant_disjoint":
+                p = loso_predictions(data, mlp=cfg.get("mlp") if c == "active" else None,
+                                     seed=seed, n_jobs=n_jobs)
+            else:
+                p = within_predictions(data, n_jobs=n_jobs)
+            preds[(c, scheme)] = p
+            sc = per_subject_scores(p).assign(condition=c, scheme=scheme)
+            scores.append(sc)
+    scores = pd.concat(scores, ignore_index=True)
+    conf = set(cfg["confirmatory_subjects"])
+
+    def group(c, scheme, a, b=None, alternative="greater"):
+        g = scores[(scores["condition"] == c) & (scores["scheme"] == scheme)]
+        keep = eligible(inputs[c], g["subject"], cfg["min_runs"], cfg["min_trials"])
+        g = g[g["subject"].isin(keep) & g["subject"].isin(conf)]
+        x = g[a] - (g[b] if b else 0.0)
+        return {"condition": c, "scheme": scheme,
+                "contrast": f"{a} - {b}" if b else f"{a} vs 0",
+                **group_test(x.to_numpy(), 0.0, n_boot, seed, alternative)}
+
+    tests = [dict(group("active", "participant_disjoint", "B+E", "B"), role="primary"),
+             dict(group("active", "within_subject", "B+E", "B"), role="secondary"),
+             dict(group("observed", "participant_disjoint", "B+E", "B"), role="secondary"),
+             dict(group("observed", "within_subject", "B+E", "B"), role="secondary"),
+             dict(group("active", "participant_disjoint", "MLP", "B+E", "two-sided"),
+                  role="secondary"),
+             dict(group("active", "participant_disjoint", "E"), role="secondary")]
+    tests = pd.DataFrame(tests)
+    sec = (tests["role"] == "secondary") & tests["p_wilcoxon"].notna()
+    tests["p_holm_secondary"] = np.nan
+    tests.loc[sec, "p_holm_secondary"] = holm(tests.loc[sec, "p_wilcoxon"])
+    return {"scores": scores, "tests": tests, "predictions": preds}
