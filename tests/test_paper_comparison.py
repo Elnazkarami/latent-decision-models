@@ -54,3 +54,36 @@ def test_rt_confidence_signs():
 def test_wilcoxon_v_is_the_sum_of_positive_ranks():
     res = pp._wilcoxon([1.0, -2.0, 3.0, 0.0])
     assert res["n"] == 3 and res["V"] == 4.0   # ranks 1, 2, 3; positives 1 + 3
+
+
+def test_ds007474_reward_probability_and_stay_regression():
+    from latent_decision_models.datasets import ds007474_paper as d7
+
+    rng = np.random.default_rng(1)
+    rows = []
+    for s in range(15):
+        n = 200
+        p1 = rng.uniform(0.2, 0.8, n)
+        p2 = rng.uniform(0.2, 0.8, n)
+        choice = rng.integers(1, 3, n)
+        rare = rng.random(n) < 0.3
+        planet = np.where(rare, 3 - choice, choice)
+        win = (rng.random(n) < 0.5).astype(int)
+        # model-based stay: repeat after win+common or loss+rare
+        for i in range(1, n):
+            if rng.random() < 0.8:
+                mb_stay = (win[i - 1] == 1) != rare[i - 1]
+                choice[i] = choice[i - 1] if mb_stay else 3 - choice[i - 1]
+        rows.append(pd.DataFrame({
+            "subject": f"s{s}", "session": "functional", "run": "run-1",
+            "trial_index": np.arange(n), "valid_trial": True, "choice": choice,
+            "planet": planet, "rare_transition": rare.astype(int), "reward_binary": win,
+            "reward_contingency": np.where(np.arange(n) < n // 2, "stimulus", "state"),
+            "reward_probability_planet1": p1, "reward_probability_planet2": p2}))
+    t = pd.concat(rows, ignore_index=True)
+    r = d7.reward_probability(t)
+    assert r["null_percent"] == pytest.approx(50, abs=2)
+    st = d7.stay_regression(t)
+    assert st["win:rare"]["coef"] < 0 and st["win:rare"]["p"] < 0.001
+    c = d7.compare(t)
+    assert c["D2_common_transition_fraction"] == pytest.approx(0.7, abs=0.03)

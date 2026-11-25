@@ -236,6 +236,15 @@ def _ds002158_compare_paper(args):
                  "comparison_rules": "docs/VALIDATION.md", **res}, args.out)
 
 
+def _ds007474_compare_paper(args):
+    """Quantities comparable to the ds007474 study's preprint (see docs/VALIDATION.md)."""
+    from .datasets import ds007474_paper as pp
+
+    _write_json({"data_kind": "real_behavioral_openneuro_ds007474_v1.0.5_osf_ctfzd",
+                 "paper": "Ding, Cockburn et al., bioRxiv 10.1101/2025.09.17.676398v1",
+                 **pp.compare(pd.read_csv(args.trials))}, args.out)
+
+
 def _ds002158_eeg_decode(args):
     from .datasets import ds002158_eeg as e
 
@@ -918,6 +927,10 @@ def main():
     f7 = d7sub.add_parser("fetch-behavior",
                           help="Download OSF behavior CSV + timing .mat (~13 MB; no MRI)")
     f7.add_argument("--dest", required=True)
+    c7 = d7sub.add_parser("compare-paper", help="Behavioral quantities comparable to the "
+                          "study's preprint (Ding, Cockburn et al.); docs/VALIDATION.md")
+    c7.add_argument("--trials", required=True)
+    c7.add_argument("--out", help="JSON report path (default: print)")
     t7 = d7sub.add_parser("trials", help="Parse OSF behavior into a validated trial table")
     t7.add_argument("--osf-root", required=True)
     t7.add_argument("--out", required=True)
@@ -952,7 +965,8 @@ def main():
         {"recovery": _two_step_recovery, "compare": _two_step_compare,
          "eb": _two_step_eb}[args.ts_cmd](args)
     elif args.cmd == "ds007474":
-        {"fetch-behavior": _ds007474_fetch, "trials": _ds007474_trials}[args.d7_cmd](args)
+        {"fetch-behavior": _ds007474_fetch, "trials": _ds007474_trials,
+         "compare-paper": _ds007474_compare_paper}[args.d7_cmd](args)
     elif args.cmd == "verify-files":
         _verify_files(args)
     elif args.cmd == "compare-reports":

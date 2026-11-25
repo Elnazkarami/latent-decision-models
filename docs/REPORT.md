@@ -81,7 +81,7 @@ Every claim below is no stronger than its level. All neural features used for co
 
 ## External check
 
-Our ds002158 behavioral results agree with the original publication (Pereira et al. 2020) on every comparable inferential result, including an exact match of the type-2 AUROC test (V = 163, p = 0.03). The type-2 AUROC levels are ~0.04 higher and unexplained. EEG onsets differ by ~50–100 ms, consistent with opposite filtering directions. Details: [validation](VALIDATION.md). The ds007474 comparison is pending.
+Our ds002158 behavioral results agree with the original publication (Pereira et al. 2020) on every comparable inferential result, including an exact match of the type-2 AUROC test (V = 163, p = 0.03). The type-2 AUROC levels are ~0.04 higher and unexplained. EEG onsets differ by ~50–100 ms, consistent with opposite filtering directions. For ds007474, every comparable verbatim result of the study's preprint is reproduced: transition rate, reward-probability check (47.12% vs 47.19%; null 43.09% vs 43.08%), the reward and model-based stay effects, and the hybrid beating pure MF and MB. Details: [validation](VALIDATION.md).
 
 ## Limitations
 

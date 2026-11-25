@@ -82,6 +82,22 @@ Report: [`reports/ds002158-paper-comparison.json`](../reports/ds002158-paper-com
 | D5 | the mixture model beats pure MF and MB (BIC, p < 0.001) | held-out log-likelihood, hybrid vs MF and MB | no |
 | D6 | the arbitration mixture beats the fixed-weight mixture (BIC) | not comparable: a different arbitration model and criterion (ours: [RL models](ds007474-two-step-model.md)) | – |
 
+### Results (2026-11-25)
+
+Computed with `ldm ds007474 compare-paper`. The output is not committed because the OSF source has no license; the summary numbers are given here. All 189 subjects with data and their valid trials are included. The preprint analysed 179 subjects after fMRI motion exclusions; which subjects is not stated.
+
+| # | Preprint | Ours | Verdict |
+| --- | --- | --- | --- |
+| D1 | 189 with data; 179 analysed (fMRI motion) | 189 with data; 181 analysed in our RL models (missed-trial rule) | **agree** on the data; the two exclusion rules differ by design |
+| D2 | common transition 70% | 71.9% of valid trials | **agree** (the designed probability vs the realised fraction) |
+| D3 | 47.19% vs null 43.08%, p < 0.001 | null **43.09%**; planet reached 45.06% (t = 14.1, p < 10⁻³⁰) | **null agrees; achieved value differs as pre-specified** (−2.1 points). Post hoc explanation: under stimulus contingency the reward follows the chosen ship, not the planet. Using the option the reward depends on gives **47.12%** (t = 20.5), matching the preprint. |
+| D4 | previous outcome β = 0.657; outcome × transition β = −0.676; both p < 0.001 | reward 0.49, reward × rare −0.53 (±1 coding, population-averaged GEE); both p < 10⁻²⁹ | **agree** (direction and significance). Population-averaged coefficients are expected to be somewhat smaller than mixed-model ones. |
+| D5 | mixture beats MF and MB | hybrid beats MF (+1,084 [718, 1,451]) and MB (+1,116 [680, 1,605]) on held-out runs | **agree** |
+
+**Summary:**
+- Every comparable verbatim result of the preprint is reproduced from our independent adapter once the reward-relevant option is used (D3, post hoc). This includes the null reward probability to 0.01 percentage points.
+- Arbitration (D6) cannot be compared: the two studies define and test different arbitration models.
+
 ## 2. Clean-room reproduction
 
 **Question.** Does a fresh copy of the repository regenerate the committed reports, or do they depend on state on the machine where they were first made? Plan fixed before the run.
