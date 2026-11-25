@@ -22,6 +22,52 @@ def _write_json(content, out=None):
     print(text)
 
 
+def _verify_files(args):
+    """Check downloaded files against a fetch manifest (size and SHA-256)."""
+    from .provenance import sha256_file
+
+    manifest = json.loads(Path(args.manifest).read_text())
+    bad = []
+    for m in manifest["files"]:
+        p = Path(args.root, m["path"])
+        if not p.exists():
+            bad.append(f"{m['path']}: missing")
+        elif p.stat().st_size != m["bytes"]:
+            bad.append(f"{m['path']}: size {p.stat().st_size} != {m['bytes']}")
+        elif sha256_file(p) != m["sha256"]:
+            bad.append(f"{m['path']}: SHA-256 mismatch")
+    _write_json({"manifest": str(args.manifest), "n_files": len(manifest["files"]),
+                 "n_bad": len(bad), "bad": bad})
+    if bad:
+        raise SystemExit(1)
+
+
+def _compare_reports(args):
+    """Compare regenerated JSON reports with reference ones (same file names)."""
+    from .provenance import json_differences
+
+    pairs = []
+    for name in args.files:
+        pairs.append((Path(args.expected, name), Path(args.actual, name)))
+    summary, failed = {}, False
+    for exp, act in pairs:
+        if not act.exists():
+            summary[exp.name] = ["missing in actual"]
+            failed = True
+            continue
+        diffs = json_differences(json.loads(exp.read_text()), json.loads(act.read_text()),
+                                 rtol=args.rtol, atol=args.atol, ignore_keys=args.ignore_key,
+                                 allow_new_keys=args.allow_new_keys)
+        summary[exp.name] = diffs[:50] + ([f"... {len(diffs) - 50} more"] if len(diffs) > 50
+                                          else [])
+        failed |= bool(diffs)
+    _write_json({"rtol": args.rtol, "atol": args.atol, "ignore_keys": args.ignore_key,
+                 "allow_new_keys": args.allow_new_keys,
+                 "identical_within_tolerance": not failed, "differences": summary}, args.out)
+    if failed:
+        raise SystemExit(1)
+
+
 def _ds002158_fetch(args):
     from .datasets import ds002158 as d
     from .io import openneuro
@@ -721,6 +767,21 @@ def main():
     cmsub.add_parser("compare", help="Fit models per subject; run-held-out comparison"
                      ).add_argument("--config", required=True)
 
+    vf = sub.add_parser("verify-files", help="Check downloaded files against a fetch "
+                        "manifest (size, SHA-256); exit 1 on any mismatch")
+    vf.add_argument("--manifest", required=True)
+    vf.add_argument("--root", required=True, help="directory the manifest paths are under")
+    cr = sub.add_parser("compare-reports", help="Compare regenerated JSON reports with "
+                        "reference copies (numeric tolerance); exit 1 on any difference")
+    cr.add_argument("--expected", required=True, help="directory of reference reports")
+    cr.add_argument("--actual", required=True, help="directory of regenerated reports")
+    cr.add_argument("--files", nargs="+", required=True, help="report file names")
+    cr.add_argument("--rtol", type=float, default=1e-6)
+    cr.add_argument("--atol", type=float, default=1e-9)
+    cr.add_argument("--ignore-key", nargs="*", default=[])
+    cr.add_argument("--allow-new-keys", action="store_true",
+                    help="accept keys present only in the regenerated reports")
+    cr.add_argument("--out", help="JSON summary path (default: print)")
     ds = sub.add_parser("ds002158", help="OpenNeuro ds002158 adapter (experimental)")
     dsub = ds.add_subparsers(dest="ds_cmd", required=True)
     f = dsub.add_parser("fetch-metadata",
@@ -892,6 +953,10 @@ def main():
          "eb": _two_step_eb}[args.ts_cmd](args)
     elif args.cmd == "ds007474":
         {"fetch-behavior": _ds007474_fetch, "trials": _ds007474_trials}[args.d7_cmd](args)
+    elif args.cmd == "verify-files":
+        _verify_files(args)
+    elif args.cmd == "compare-reports":
+        _compare_reports(args)
     elif args.cmd == "ds002158":
         {"fetch-metadata": _ds002158_fetch, "trials": _ds002158_trials,
          "align-eeg": _ds002158_align, "fetch-eeg": _ds002158_fetch_eeg,

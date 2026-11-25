@@ -69,4 +69,26 @@ The comparison is **not done** because the paper could not be read: the publishe
 
 ## 2. Clean-room reproduction
 
-To follow after part 1.
+**Question.** Does a fresh copy of the repository regenerate the committed reports, or do they depend on state on the machine where they were first made? Plan fixed before the run.
+
+**Procedure** ([`reproduce/cleanroom.sh`](../reproduce/cleanroom.sh)):
+1. **Clone and environment:** fresh clone at a pinned commit; fresh virtual environment from the system Python 3.12, with packages from `requirements-lock.txt`.
+2. **Metadata:** fresh download of the ds002158 metadata (events and sidecars) from OpenNeuro; fresh ds007474 behavior from OSF.
+3. **Signal files:** the large files already on external storage (35 GB raw EEG, 38 GB fMRI derivative) are reused only after their size and SHA-256 match the fetch manifests written when they were downloaded. They are not re-downloaded, which would take about 14 h at the measured ~1.5 MB/s.
+4. **Pipeline:** everything downstream is recomputed: trial table, behavioral baseline, paper comparison, EEG cleaning and epochs for 19 subjects, confirmatory decoding, cardiac controls, fusion, the fMRI pilot from the images, and the ds007474 primary model comparison.
+5. **Check:** `ldm compare-reports` compares every regenerated report with the committed copy. The ds007474 and behavioral-baseline outputs are not committed, so they are compared with the local copies made when the results were first reported.
+
+**Reports compared (12):**
+- behavioral baseline;
+- paper comparison;
+- confirmatory EEG decoding;
+- cardiac behavior;
+- cardiac-control decoding;
+- fusion;
+- fMRI QC, pilot and timing, plus the derivative variant's QC and pilot;
+- ds007474 primary model comparison.
+
+**Agreement rule:**
+- Numbers must match within relative 1e-6 (absolute 1e-9). Strings, booleans and list lengths must match exactly.
+- Keys added to a report format after a report was committed are allowed. Every value in the committed report must still match.
+- Any difference is reported and explained, never accepted silently.
