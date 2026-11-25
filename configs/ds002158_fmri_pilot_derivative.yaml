@@ -1,0 +1,54 @@
+# LDM-004 pilot, revision 1: latency-robust single-trial estimates (option 1 of
+# docs/ds002158-fmri-pilot.md). Written 2026-11-25 and committed before this analysis was
+# run. Same 2 subjects and runs as configs/ds002158_fmri_pilot.yaml, whose controls failed.
+#
+# Already seen (so nothing here is blind): the canonical-HRF stick betas, both controls
+# per subject and run, and the onset-shift scan (sub-02 responses ~0.5-1.5 s later than
+# the canonical HRF predicts; sub-04 sensorimotor ~1-2.5 s later, sub-04 occipital ~3.5 s
+# out of phase in 6/6 runs). Confidence data have not been analysed with fMRI.
+#
+# Feature: LSS as before, with each trial (and each other-trials regressor) modelled by
+# the Glover HRF plus its time derivative ("glover + derivative"). For the target trial,
+# the derivative is orthogonalised against the canonical regressor and scaled to its
+# norm, and the amplitude is "derivative-boosted" (Calhoun et al. 2004):
+#   a = sign(b_canonical) * sqrt(b_canonical^2 + b_derivative^2).
+# Expectation, stated now: the time derivative absorbs latency errors of roughly +/- 1-2
+# s. sub-04's occipital lag (~3.5 s, post hoc estimate) may be outside that range; if so
+# the visual control fails again and this option is closed.
+# The amplitudes come from the same ROI time series as before (LSS is linear in the
+# data; the time series were saved by the first pilot run).
+#
+# Controls (must hold in BOTH subjects, one-sided t over the 6 run means, p < 0.05):
+#  a. visual: mean amplitude of valid trials (both conditions) > 0, occipital ROI set
+#     (unchanged from the first plan).
+#  b. sensorimotor_active: mean amplitude of valid ACTIVE trials (button press) > 0,
+#     pre/postcentral ROI set. Replaces the active - observed contrast, which the
+#     high-pass filter partly removes (29-36% of that regressor is explained by drift).
+#  The active - observed contrast is still reported, descriptive only (not gating).
+# If both hold in both subjects: run the exploratory per-subject confidence decoding
+# exactly as in the first plan (decision 3) on these amplitudes. Otherwise: stop and
+# recommend closing trial-level fMRI for ds002158 (option 3); no further download.
+input_trials: data/ds002158_trials.csv
+bids_root: data/ds002158
+out_dir: data/derivatives/ldm-fmri-derivative
+roi_ts_dir: data/derivatives/ldm-fmri/roi_ts   # time series saved by the first pilot run
+subjects: [sub-02, sub-04]
+tr: 1.28
+hrf_model: glover + derivative
+amplitude: derivative_boosted
+high_pass_hz: 0.0078125
+atlas: harvard_oxford_cort_sub_thr25_2mm
+controls:
+  visual: {gate: true}
+  sensorimotor_active: {gate: true}
+  movement: {gate: false}
+decoding:
+  conditions: [active, observed]
+  n_perm: 1000
+  seed: 0
+  targets:
+    confidence: {task: regression}
+    confidence_beyond_behavior:
+      task: regression
+      target: confidence
+      covariates: [accuracy, response_latency_seconds, evidence_dots_difference]
