@@ -33,14 +33,14 @@
     {
       "id": "LDM-004",
       "title": "fMRI derivatives audit and trial-level ROI/GLM baseline",
-      "status": "closed_pending_confirmation(pilot: no trial-level feature passed controls in both subjects; docs/ds002158-fmri-pilot.md)",
+      "status": "closed(2026-11-25, confirmed by PI: no trial-level fMRI feature passed the pilot controls; docs/ds002158-fmri-pilot.md)",
       "deliverable": "documented feature extraction and tests",
       "notes": "Metadata audit done: docs/ds002158-fmri-audit.md. Derivative = SPM DARTEL MNI 1.5 mm, 5 mm FWHM (headers), TR missing in headers. Single-trial (whole-trial) betas feasible; pre-decision vs response not separable. Next: LSS betas + ROI extraction, needs image download approval."
     },
     {
       "id": "LDM-005",
-      "title": "Multimodal baseline and small PyTorch fusion",
-      "status": "blocked:decision(re-scope: no ds002158 fMRI features; EEG + behavior or another dataset)",
+      "title": "EEG + behavior fusion baseline and small PyTorch fusion (ds002158; re-scoped 2026-11-25, no fMRI)",
+      "status": "in_progress(plan configs/ds002158_fusion.yaml)",
       "deliverable": "ablation, CI, participant-disjoint metrics"
     },
     {

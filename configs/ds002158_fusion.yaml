@@ -1,0 +1,69 @@
+# LDM-005 (re-scoped 2026-11-25 to EEG + behavior; trial-level fMRI for ds002158 was
+# closed, docs/ds002158-fmri-pilot.md). Written 2026-11-25 and committed before any
+# fusion model was fitted.
+#
+# Question: does post-decision EEG add information about confidence beyond behavior
+# (accuracy, evidence, response latency), in held-out participants?
+# Not blind: per-subject EEG decoding is known (confidence after own decisions, post-
+# decision window: within subject r = 0.16 beyond behavior; left-out subjects r = 0.10).
+# What has not been computed is the participant-disjoint gain of a model that uses both.
+#
+# Timing: every feature is available only after the first-order response (behavior and
+# the 0.1-0.6 s post-response EEG window), before the confidence report. These are
+# post-decision models, not prospective predictions.
+#
+# Feature sets (trials: valid, EEG not rejected, response marker present, confidence and
+# all behavior columns present; the same trials for every model):
+#  B   behavior: accuracy, evidence_dots_difference, response_latency_seconds,
+#      accuracy x evidence, accuracy x latency
+#  E   EEG: post_decision window (0.1-0.6 s after the response), 50 ms bin means, all
+#      good channels (ECG and any channel marked bad in any subject removed), epochs
+#      cleaned by template subtraction (hb-aas, as in the confirmatory EEG analysis)
+#  B+E stacked: a ridge model on E is fitted inside the training data; its out-of-fold
+#      predictions there (inner folds: the training subjects, or the training runs within
+#      subject) and its prediction for the test data enter a linear ridge model together
+#      with B (avoids one penalty shrinking 5 behavior features and ~300 EEG features
+#      alike)
+#  MLP (secondary, PyTorch, LOSO only): EEG -> linear 8 units, concatenated with B ->
+#      16 ReLU units (dropout 0.2) -> 1; AdamW (lr 1e-3, weight decay 1e-2), up to 300
+#      epochs with early stopping on 2 training subjects held out for validation
+#      (patience 20); mean of 5 seeds.
+# All scaling and every hyper-parameter are fitted on training data only (ridge alpha by
+# inner cross-validation over logspace(-1, 5, 13)).
+#
+# Evaluation:
+#  * Participant-disjoint (primary): leave one subject out; train on the 18 others.
+#  * Within subject (secondary): leave one run out.
+#  * Score: Spearman r between prediction and confidence within each held-out run,
+#    averaged over runs (score_mode per_group, as in the EEG analysis).
+#  * Group: the 17 confirmatory subjects with >= 3 runs and >= 40 trials (sub-02, sub-04
+#    used only as training data; sub-20 excluded, label conflict).
+#
+# PRIMARY test: own decisions (active), participant-disjoint, Delta = r(B+E) - r(B) per
+# subject; one-sided Wilcoxon (Delta > 0), mean and subject-bootstrap 95% CI.
+# Secondary (Holm over these 5, reported with the primary):
+#  1. within subject, active: Delta(B+E - B), one-sided
+#  2. participant-disjoint, observed decisions: Delta(B+E - B), one-sided
+#  3. within subject, observed: Delta(B+E - B), one-sided
+#  4. participant-disjoint, active: MLP - B+E (two-sided): does a small nonlinear fusion
+#     beat the linear one?
+#  5. participant-disjoint, active: r(E) > 0 (one-sided), EEG alone
+# Claims: "EEG adds information beyond behavior in new participants" only if the primary
+# test has p < 0.05 with the CI above 0.
+epochs_dir: data/derivatives/hb-aas   # override with --epochs-dir
+subjects: [sub-02, sub-04, sub-07, sub-08, sub-09, sub-10, sub-11, sub-12, sub-13, sub-14,
+           sub-15, sub-16, sub-17, sub-18, sub-19, sub-21, sub-22, sub-24, sub-26]
+confirmatory_subjects: [sub-07, sub-08, sub-09, sub-10, sub-11, sub-12, sub-13, sub-14,
+                        sub-15, sub-16, sub-17, sub-18, sub-19, sub-21, sub-22, sub-24, sub-26]
+min_runs: 3
+min_trials: 40
+conditions: [active, observed]
+window: post_decision
+bin_seconds: 0.05
+behavior: [accuracy, evidence_dots_difference, response_latency_seconds,
+           accuracy_x_evidence, accuracy_x_latency]
+mlp: {hidden: 16, eeg_units: 8, dropout: 0.2, lr: 0.001, weight_decay: 0.01,
+      max_epochs: 300, patience: 20, n_val_subjects: 2, n_seeds: 5}
+n_boot: 10000
+seed: 0
+n_jobs: 8

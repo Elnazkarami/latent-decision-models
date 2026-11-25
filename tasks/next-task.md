@@ -17,13 +17,15 @@ Done: OBS sensitivity, ECG-only control, exploratory time course, cardiac-timing
 1. Done: the planted-signal test shows OBS (4 components) removes about half of a slow response-locked signal; OBS with 1 component restores the cross-subject transfer (r = 0.11), as predicted.
 2. Done: own-vs-observed cross-condition decoding (plan committed first): no transfer in either direction. Remaining EEG questions need new data (e.g. separating movement from commitment).
 
-## LDM-004 (ds002158 trial-level fMRI): closed, pending PI confirmation
-Two pre-specified pilot attempts (canonical LSS betas; derivative-boosted LSS amplitudes) both failed the positive controls in sub-04 (occipital response ~3.5 s out of phase with the near-periodic 9.5 s trials); see [`docs/ds002158-fmri-pilot.md`](../docs/ds002158-fmri-pilot.md). Recommendation: no further download; EEG stays the neural evidence for ds002158. LDM-005 (multimodal fusion) therefore has no fMRI input from ds002158: it could be re-scoped to EEG + behavior, or to another dataset.
+## LDM-004 (ds002158 trial-level fMRI): closed 2026-11-25
+Two pre-specified pilot attempts failed the positive controls in sub-04 ([`docs/ds002158-fmri-pilot.md`](../docs/ds002158-fmri-pilot.md)). No further download. The 38 GB of pilot images remain on external storage (deletion not requested).
+
+## LDM-005 (current): EEG + behavior fusion for confidence (ds002158)
+Re-scoped from multimodal fMRI fusion. Plan committed first: [`configs/ds002158_fusion.yaml`](../configs/ds002158_fusion.yaml). Primary: does post-decision EEG add to behavior in held-out participants (Delta r, own decisions)? Secondary: within subject, observed decisions, a small PyTorch fusion vs linear, EEG alone.
 
 ## Open questions for the PI
 - **ds002158 fMRI:**
-  - Confirm closing trial-level fMRI; delete the 38 GB of pilot images (ROI time series are kept)?
-  - Re-scope LDM-005 (EEG + behavior fusion, or another dataset)?
+  - Delete the 38 GB of fMRI pilot images (ROI time series are kept)?
   - Exclude sub-20 from fMRI as well? It has the highest motion, a rejected run-007 derivative and unresolved EEG labels.
   - Accept that fMRI features are whole-trial, not pre-decision?
 - **ds007474 licensing:** the OSF project and the authors' code declare no license. Ask the authors to add one before any public derived release?
