@@ -65,7 +65,22 @@ Report: [`reports/ds002158-paper-comparison.json`](../reports/ds002158-paper-com
 
 ### ds007474 vs Ding, Cockburn et al. (2026), Cell Reports 45(6)
 
-The comparison is **not done** because the paper could not be read: the publisher pages refused automated access and the preprint server was rate-limited. It needs a local copy of the paper or the preprint (bioRxiv 10.1101/2025.09.17.676398).
+**Source.** The publisher's pages refuse automated access. The bioRxiv preprint of the study (10.1101/2025.09.17.676398v1, posted 2025-09-19) was read instead. It has not been confirmed to match the published version. Only the Abstract, Introduction, Results 2.1–2.3 and the end of Methods were read verbatim; the rest of the Methods came as a machine summary. Only verbatim results are compared below.
+
+**Expected differences:**
+- **Exclusions:** the authors excluded 10 participants for fMRI motion and analysed 179. Our behavioral analysis excludes participants who missed more than 10% of trials and analyses 181.
+- **Models:** the authors compare an "arbitration mixture" model with reliability signals (RPE/SPE) by in-sample BIC. We compare a fixed-weight hybrid, a win-stay/lose-shift extension and condition-based arbitration on held-out runs and sessions.
+
+**Agreement rules:** the same as above.
+
+| # | Paper (verbatim) | Our comparable quantity | New? |
+| --- | --- | --- | --- |
+| D1 | 179 analysed of 189 | subjects with data; subjects analysed | no |
+| D2 | common transition 70% | fraction of common (non-rare) transitions | yes |
+| D3 | reward probability 47.19% vs null 43.08%, paired t p < 0.001 | per-subject mean reward probability of the planet reached vs the mean over the two planets; paired t. The paper's exact definition was not in the verbatim text, so this is our reading. | yes |
+| D4 | stay regression: previous outcome β = 0.657, p < 0.001; outcome × transition β = −0.676, p < 0.001 (mixed logistic) | logistic GEE of stay on previous win × previous rare, clustered on subject. Compared on direction and significance, because model and coding differ. | yes |
+| D5 | the mixture model beats pure MF and MB (BIC, p < 0.001) | held-out log-likelihood, hybrid vs MF and MB | no |
+| D6 | the arbitration mixture beats the fixed-weight mixture (BIC) | not comparable: a different arbitration model and criterion (ours: [RL models](ds007474-two-step-model.md)) | – |
 
 ## 2. Clean-room reproduction
 
