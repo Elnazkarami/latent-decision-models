@@ -311,6 +311,26 @@ def test_cli_fmri_lss_and_pilot_end_to_end(tmp_path, monkeypatch, capsys):
     best = json.loads((tmp_path / "timing.json").read_text())["best_positive_shift"]
     assert {b["roi_set"] for b in best} == {"occipital", "sensorimotor"}
     assert all(abs(b["shift_s"]) <= 0.5 for b in best)  # planted at the recorded onsets
+    # Revision: derivative-boosted amplitudes from the saved time series (no image read).
+    cfg2 = yaml.safe_load(Path("configs/ds002158_fmri_pilot_derivative.yaml").read_text())
+    cfg2.update(input_trials=str(tmp_path / "trials.csv"), subjects=["sub-02"],
+                bids_root=str(tmp_path / "bids"), out_dir=str(tmp_path / "out2"),
+                roi_ts_dir=str(tmp_path / "out" / "roi_ts"))
+    cfg2["decoding"]["n_perm"] = 5
+    (tmp_path / "cfg2.yaml").write_text(yaml.safe_dump(cfg2))
+    for p in tmp_path.glob("bids/**/*_preproc.nii"):
+        p.unlink()                      # proves the images are not needed
+    run("fmri-lss", "--config", str(tmp_path / "cfg2.yaml"), "--report",
+        str(tmp_path / "lss2.json"))
+    assert json.loads((tmp_path / "lss2.json").read_text())["source"] == \
+        "saved ROI time series"
+    b2 = pd.read_csv(tmp_path / "out2" / "sub-02_lss_roi_betas.csv")
+    assert len(b2) == len(b)
+    run("fmri-pilot", "--config", str(tmp_path / "cfg2.yaml"), "--out",
+        str(tmp_path / "pilot2.json"))
+    res2 = json.loads((tmp_path / "pilot2.json").read_text())
+    assert set(res2["gating_controls"]) == {"visual", "sensorimotor_active"}
+    assert res2["controls_passed"] is True and len(res2["decoding"]) == 4
 
 
 def test_fetch_fmri_selects_derivative_bold_and_motion_only(monkeypatch, capsys):
@@ -345,3 +365,47 @@ def test_onset_shift_scan_finds_a_delayed_response():
     best = scan.loc[scan["r2_gain"].idxmax()]
     assert best["shift_s"] == 2.0 and best["beta"] > 0
     assert scan.loc[scan["shift_s"] == 0, "beta"].item() < best["beta"]
+
+
+def test_derivative_basis_is_exact_at_zero_shift_and_robust_to_small_delays():
+    pytest.importorskip("nilearn")
+    rng = np.random.default_rng(6)
+    onsets, cond, n_vol = _schedule()
+    onsets = onsets + rng.uniform(-0.5, 0.5, len(onsets))
+    W, cn = fmri_lss.lss_basis_weights(onsets, cond, n_vol, TR,
+                                       hrf_model="glover + derivative")
+    assert W.shape == (len(onsets), 2, n_vol) and cn.max() < 200
+    y0 = _signal(onsets, np.ones(len(onsets)), n_vol)
+    B0 = np.einsum("nkt,t->nk", W, y0)
+    np.testing.assert_allclose(B0[:, 0], 1.0, atol=1e-6)   # orthogonalised derivative
+    np.testing.assert_allclose(B0[:, 1], 0.0, atol=1e-6)   # carries nothing at 0 s
+    y1 = _signal(onsets + 1.0, np.ones(len(onsets)), n_vol)   # response 1 s late
+    canon = fmri_lss.lss_weights(onsets, cond, n_vol, TR)[0] @ y1
+    boosted = fmri_lss.boosted_amplitude(np.einsum("nkt,t->nk", W, y1)[:, :, None])[:, 0]
+    # measured: median error 0.12 (boosted) vs 0.21 (canonical) at a 1 s delay
+    assert np.median(np.abs(boosted - 1)) < 0.7 * np.median(np.abs(canon - 1))
+    assert (boosted > 0).all()
+
+
+def test_boosted_amplitude_and_model_checks():
+    B = np.array([[[3.0], [4.0]], [[-3.0], [4.0]], [[2.0], [0.0]]])
+    np.testing.assert_allclose(fmri_lss.boosted_amplitude(B)[:, 0], [5.0, -5.0, 2.0])
+    np.testing.assert_allclose(fmri_lss.boosted_amplitude(B[:, :1])[:, 0], [3.0, -3.0, 2.0])
+    with pytest.raises(ValueError, match="canonical-only"):
+        fmri_lss.lss_weights([1.0], ["a"], 50, TR, hrf_model="glover + derivative")
+    with pytest.raises(ValueError, match="does not match"):
+        f.lss_from_timeseries(np.ones((50, 1)), {1: "x"}, pd.DataFrame(), np.zeros((50, 6)),
+                              hrf_model="glover", amplitude="derivative_boosted")
+
+
+def test_controls_passed_uses_only_gating_controls():
+    c = {"sub-02": {"visual": {"p_one_sided": 0.01}, "movement": {"p_one_sided": 0.4},
+                    "sensorimotor_active": {"p_one_sided": 0.02}},
+         "sub-04": {"visual": {"p_one_sided": 0.03}, "movement": {"p_one_sided": 0.01},
+                    "sensorimotor_active": {"p_one_sided": 0.04}}}
+    revised = {"visual": {"gate": True}, "sensorimotor_active": {"gate": True},
+               "movement": {"gate": False}}
+    assert f.controls_passed(c, revised)
+    assert not f.controls_passed(c, {"visual": {"rois": "occipital"}, "movement": {}})
+    c["sub-04"]["visual"]["p_one_sided"] = 0.06
+    assert not f.controls_passed(c, revised)

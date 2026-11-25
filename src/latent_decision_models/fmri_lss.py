@@ -21,13 +21,18 @@ import pandas as pd
 from .fmri_design import _design
 
 
-def lss_weights(onsets, conditions, n_volumes: int, tr: float, confounds=None,
-                hrf_model: str = "glover", high_pass: float = 1 / 128):
-    """Rows of the LSS pseudo-inverses, one per trial: ``betas = W @ Y``.
+def lss_basis_weights(onsets, conditions, n_volumes: int, tr: float, confounds=None,
+                      hrf_model: str = "glover", high_pass: float = 1 / 128):
+    """LSS pseudo-inverse rows for every basis function of the target trial.
 
-    Returns ``(W, condition_numbers)``; ``W`` has shape (n_trials, n_volumes) and the
-    condition numbers are of each design with unit-norm columns.
-    ``confounds`` (n_volumes x k) are demeaned and added to every design.
+    Returns ``(W, condition_numbers)`` with ``W`` of shape (n_trials, n_basis, n_volumes):
+    ``n_basis`` is 1 for a canonical HRF, 2 for ``"glover + derivative"`` and 3 with the
+    dispersion derivative as well. Each target derivative regressor is orthogonalised
+    against the target canonical regressor and scaled to its norm, so the canonical beta
+    keeps its meaning and :func:`boosted_amplitude` can combine them (Calhoun et al.
+    2004). Other-trials regressors keep nilearn's basis. ``confounds`` (n_volumes x k)
+    are demeaned and added to every design. Condition numbers are of each design with
+    unit-norm columns (collinearity, not column scale).
     """
     onsets = np.asarray(onsets, float)
     conditions = np.asarray(conditions).astype(str)
@@ -41,20 +46,52 @@ def lss_weights(onsets, conditions, n_volumes: int, tr: float, confounds=None,
             raise ValueError(f"confounds have {conf.shape[0]} rows, expected {n_volumes}")
         conf = conf - conf.mean(axis=0)
     n = len(onsets)
-    W = np.empty((n, n_volumes))
-    cond_numbers = np.empty(n)
+    W, cond_numbers = None, np.empty(n)
     for i in range(n):
         labels = np.where(np.arange(n) == i, "target", "other_" + conditions)
         X = _design(frame_times, pd.DataFrame({"onset": onsets, "duration": 0.0,
                                                "trial_type": labels}), hrf_model, high_pass)
-        A = X.to_numpy(float)
+        basis = ["target"] + [c for c in X.columns
+                              if c.startswith("target_") and "derivative" in c]
+        A = np.array(X, dtype=float)  # a writable copy (pandas may return a read-only view)
+        cols = [X.columns.get_loc(c) for c in basis]
+        canon = A[:, cols[0]]
+        for c in cols[1:]:
+            d = A[:, c] - canon * (A[:, c] @ canon) / (canon @ canon)
+            A[:, c] = d * np.linalg.norm(canon) / np.linalg.norm(d)
         if conf is not None:
             A = np.column_stack([A, conf])
-        # Collinearity, not column scale (stick regressors peak near 0.01, rotations are
-        # in radians): condition number of the design with unit-norm columns.
         cond_numbers[i] = np.linalg.cond(A / np.linalg.norm(A, axis=0))
-        W[i] = np.linalg.pinv(A)[X.columns.get_loc("target")]
+        if W is None:
+            W = np.empty((n, len(basis), n_volumes))
+        W[i] = np.linalg.pinv(A)[cols]
     return W, cond_numbers
+
+
+def lss_weights(onsets, conditions, n_volumes: int, tr: float, confounds=None,
+                hrf_model: str = "glover", high_pass: float = 1 / 128):
+    """Rows of the LSS pseudo-inverses, one per trial: ``betas = W @ Y``.
+
+    Canonical-only models (no derivatives); see :func:`lss_basis_weights` otherwise.
+    Returns ``(W, condition_numbers)``; ``W`` has shape (n_trials, n_volumes) and the
+    condition numbers are of each design with unit-norm columns.
+    """
+    if "derivative" in hrf_model:
+        raise ValueError("lss_weights is for canonical-only models; use lss_basis_weights")
+    W, cond = lss_basis_weights(onsets, conditions, n_volumes, tr, confounds, hrf_model,
+                                high_pass)
+    return W[:, 0], cond
+
+
+def boosted_amplitude(B: np.ndarray) -> np.ndarray:
+    """Derivative-boosted amplitude from (trials, n_basis, signals) betas.
+
+    ``sign(b_canonical) * sqrt(sum of squared betas)`` (Calhoun et al. 2004), valid when
+    the derivative regressors are orthogonalised and scaled as in
+    :func:`lss_basis_weights`. With one basis function it returns the canonical beta.
+    """
+    B = np.asarray(B, float)
+    return np.sign(B[:, 0]) * np.sqrt((B ** 2).sum(axis=1))
 
 
 def roi_timeseries(data: np.ndarray, labels: np.ndarray, label_ids) -> tuple[np.ndarray, dict]:

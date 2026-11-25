@@ -1,0 +1,102 @@
+{
+  "config": "configs/ds002158_fmri_pilot_derivative.yaml",
+  "data_kind": "real_fmri_openneuro_ds002158_v1.0.2_derivative",
+  "feature_window": "whole trial (stimulus, response and start of the confidence report are not separable; docs/ds002158-fmri-audit.md)",
+  "amplitude": "derivative_boosted",
+  "gating_controls": [
+    "visual",
+    "sensorimotor_active"
+  ],
+  "positive_controls": {
+    "sub-02": {
+      "visual": {
+        "per_run": [
+          -1.9781,
+          28.5874,
+          21.4471,
+          15.2716,
+          47.1152,
+          42.7109
+        ],
+        "mean": 25.525690105260754,
+        "t": 3.442871879697021,
+        "p_one_sided": 0.0091891702466158,
+        "n_runs": 6
+      },
+      "sensorimotor_active": {
+        "per_run": [
+          -18.5487,
+          18.8898,
+          27.9224,
+          16.5552,
+          44.0277,
+          57.9504
+        ],
+        "mean": 24.466118946163515,
+        "t": 2.2782586095958064,
+        "p_one_sided": 0.0358470334533816,
+        "n_runs": 6
+      },
+      "movement": {
+        "per_run": [
+          -38.7947,
+          -17.2817,
+          23.5967,
+          11.7706,
+          2.5112,
+          13.2129
+        ],
+        "mean": -0.8308106668374317,
+        "t": -0.08797048511102078,
+        "p_one_sided": 0.5333425942510446,
+        "n_runs": 6
+      }
+    },
+    "sub-04": {
+      "visual": {
+        "per_run": [
+          0.4414,
+          1.2493,
+          -8.5045,
+          9.3511,
+          -6.0745,
+          -6.0863
+        ],
+        "mean": -1.6039210616264985,
+        "t": -0.5922438801277159,
+        "p_one_sided": 0.7102736651213725,
+        "n_runs": 6
+      },
+      "sensorimotor_active": {
+        "per_run": [
+          10.7132,
+          17.907,
+          29.5739,
+          26.5622,
+          11.519,
+          29.2499
+        ],
+        "mean": 20.920858686997885,
+        "t": 5.895754202827577,
+        "p_one_sided": 0.0009982432163984866,
+        "n_runs": 6
+      },
+      "movement": {
+        "per_run": [
+          2.1803,
+          17.8075,
+          47.8663,
+          16.4175,
+          9.8859,
+          37.8232
+        ],
+        "mean": 21.996795908345092,
+        "t": 3.1028065329497605,
+        "p_one_sided": 0.01338396479692578,
+        "n_runs": 6
+      }
+    }
+  },
+  "controls_passed": false,
+  "decoding": "not run: a positive control failed (plan, decision 2)"
+}

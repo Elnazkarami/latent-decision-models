@@ -157,9 +157,50 @@ def preproc_path(bids_root, subject: str, run: str) -> Path:
                 f"{subject}_ses-001_task-main_{run}_preproc.nii")
 
 
+def _motion(bids_root, subject: str, run: str) -> np.ndarray:
+    return read_motion(preproc_path(bids_root, subject, run).with_name(
+        f"{subject}_ses-001_task-main_{run}_headmove.txt"))
+
+
+def lss_from_timeseries(Y: np.ndarray, names: dict, trials: pd.DataFrame,
+                        motion: np.ndarray, tr: float = TR_SECONDS,
+                        hrf_model: str = "glover", high_pass: float = 1 / 128,
+                        amplitude: str = "canonical"):
+    """Single-trial ROI amplitudes (% signal) from ROI time series (volumes x ROIs).
+
+    ``amplitude``: ``"canonical"`` (canonical-HRF beta; needs a canonical-only
+    ``hrf_model``) or ``"derivative_boosted"`` (needs an ``hrf_model`` with derivatives).
+    Returns ``(betas, qc)``.
+    """
+    from ..fmri_lss import boosted_amplitude, lss_basis_weights, percent_signal, tsnr
+
+    has_deriv = "derivative" in hrf_model
+    if (amplitude == "derivative_boosted") != has_deriv:
+        raise ValueError(f"amplitude {amplitude!r} does not match hrf_model {hrf_model!r}")
+    n_vol = len(Y)
+    if len(motion) != n_vol:
+        raise ValueError(f"{len(motion)} motion rows != {n_vol} volumes")
+    g = trials.sort_values("onset_seconds")
+    W, cond = lss_basis_weights(g["onset_seconds"], g["condition"], n_vol, tr,
+                                confounds=motion, hrf_model=hrf_model, high_pass=high_pass)
+    B = boosted_amplitude(np.einsum("nkt,tr->nkr", W, np.nan_to_num(percent_signal(Y))))
+    B[:, np.isnan(Y).all(axis=0)] = np.nan
+    ids = g[["subject", "run", "trial_index", "condition"]].reset_index(drop=True)
+    betas = pd.concat([ids, pd.DataFrame(B, columns=[f"roi_{n}" for n in names.values()])],
+                      axis=1)
+    t = tsnr(Y)
+    qc = {"n_volumes": int(n_vol), "n_trials": len(g),
+          "last_onset_to_scan_end_s": float(n_vol * tr - g["onset_seconds"].max()),
+          "lss_condition_number_max": float(cond.max()),
+          "roi_tsnr_median": float(np.nanmedian(t)), "roi_tsnr_min": float(np.nanmin(t)),
+          **motion_summary(motion)}
+    return betas, qc
+
+
 def run_lss(bids_root, subject: str, run: str, trials: pd.DataFrame, atlas=None,
-            tr: float = TR_SECONDS, hrf_model: str = "glover", high_pass: float = 1 / 128):
-    """Single-trial ROI betas (% signal change) and QC for one run.
+            tr: float = TR_SECONDS, hrf_model: str = "glover", high_pass: float = 1 / 128,
+            amplitude: str = "canonical"):
+    """Single-trial ROI amplitudes (% signal change) and QC for one run, from the image.
 
     ``trials``: this run's rows of the trial table (all trials enter the design).
     ``atlas``: ``(labels, names)`` on the derivative grid; built if None.
@@ -168,37 +209,22 @@ def run_lss(bids_root, subject: str, run: str, trials: pd.DataFrame, atlas=None,
     """
     import nibabel as nib
 
-    from ..fmri_lss import lss_weights, percent_signal, roi_timeseries, tsnr
+    from ..fmri_lss import roi_timeseries
 
     img = nib.load(preproc_path(bids_root, subject, run))
     if atlas is None:
         atlas = harvard_oxford_atlas(img.affine, img.shape)
     labels, names = atlas
-    data = np.asarray(img.dataobj, dtype=np.float32)
-    n_vol = data.shape[3]
-    motion_file = preproc_path(bids_root, subject, run).with_name(
-        f"{subject}_ses-001_task-main_{run}_headmove.txt")
-    motion = read_motion(motion_file)
-    if len(motion) != n_vol:
-        raise ValueError(f"{subject} {run}: {len(motion)} motion rows != {n_vol} volumes")
-    Y, n_vox = roi_timeseries(data, labels, list(names))
-    del data
-    g = trials.sort_values("onset_seconds")
-    W, cond = lss_weights(g["onset_seconds"], g["condition"], n_vol, tr, confounds=motion,
-                          hrf_model=hrf_model, high_pass=high_pass)
-    B = W @ np.nan_to_num(percent_signal(Y))
-    B[:, np.isnan(Y).all(axis=0)] = np.nan
-    ids = g[["subject", "run", "trial_index", "condition"]].reset_index(drop=True)
-    betas = pd.concat([ids, pd.DataFrame(B, columns=[f"roi_{n}" for n in names.values()])],
-                      axis=1)
-    t = tsnr(Y)
-    qc = {"subject": subject, "run": run, "n_volumes": int(n_vol), "n_trials": len(g),
-          "last_onset_to_scan_end_s": float(n_vol * tr - g["onset_seconds"].max()),
-          "lss_condition_number_max": float(cond.max()),
-          "roi_tsnr_median": float(np.nanmedian(t)), "roi_tsnr_min": float(np.nanmin(t)),
-          "n_rois": len(names), "n_rois_empty": int(sum(v == 0 for v in n_vox.values())),
-          "voxels_per_roi_median": float(np.median(list(n_vox.values()))),
-          **motion_summary(motion)}
+    motion = _motion(bids_root, subject, run)
+    if len(motion) != img.shape[3]:
+        raise ValueError(f"{subject} {run}: {len(motion)} motion rows != "
+                         f"{img.shape[3]} volumes")
+    Y, n_vox = roi_timeseries(np.asarray(img.dataobj, dtype=np.float32), labels, list(names))
+    betas, qc = lss_from_timeseries(Y, names, trials, motion, tr, hrf_model, high_pass,
+                                    amplitude)
+    qc = {"subject": subject, "run": run, **qc, "n_rois": len(names),
+          "n_rois_empty": int(sum(v == 0 for v in n_vox.values())),
+          "voxels_per_roi_median": float(np.median(list(n_vox.values())))}
     return betas, qc, Y
 
 
@@ -217,8 +243,7 @@ def timing_scan(ts_dir, bids_root, trials: pd.DataFrame, subjects, tr: float = T
             names = dict(enumerate((str(n) for n in z["names"]), start=1))
             Y = percent_signal(z["Y"])
             col = {f"roi_{n}": j for j, n in enumerate(names.values())}
-            motion = read_motion(preproc_path(bids_root, subject, run).with_name(
-                f"{subject}_ses-001_task-main_{run}_headmove.txt"))
+            motion = _motion(bids_root, subject, run)
             g = trials[(trials["subject"] == subject) & (trials["run"] == run)]
             for roi_set in ("occipital", "sensorimotor"):
                 y = Y[:, [col[c] for c in roi_set_columns(names, roi_set)]].mean(axis=1)
@@ -238,10 +263,12 @@ def _one_sided_t(x) -> dict:
 
 
 def positive_controls(betas: pd.DataFrame, trials: pd.DataFrame, names) -> dict:
-    """The two pre-specified pipeline checks of configs/ds002158_fmri_pilot.yaml (per subject).
+    """Pipeline checks of the fMRI pilot plans, per subject (one-sided t over run means).
 
-    visual: mean beta of valid trials in occipital ROIs > 0 (t over run means).
-    movement: active - observed mean beta in pre/postcentral ROIs > 0 (t over runs).
+    visual: mean amplitude of valid trials in occipital ROIs > 0.
+    sensorimotor_active: mean amplitude of valid active trials in pre/postcentral ROIs > 0.
+    movement: active - observed mean amplitude in pre/postcentral ROIs > 0.
+    Which of them gate further analysis is set by each plan's ``controls``.
     """
     keys = ["subject", "run", "trial_index"]
     d = betas.merge(trials[keys + ["valid_trial"]], on=keys, how="left", validate="1:1")
@@ -252,10 +279,21 @@ def positive_controls(betas: pd.DataFrame, trials: pd.DataFrame, names) -> dict:
     for subject, g in d.groupby("subject"):
         vis = occ[g.index].groupby(g["run"]).mean()
         s = sm[g.index]
-        diff = (s[g["condition"] == "active"].groupby(g["run"]).mean()
-                - s[g["condition"] == "observed"].groupby(g["run"]).mean()).dropna()
-        out[subject] = {"visual": _one_sided_t(vis), "movement": _one_sided_t(diff)}
+        active = s[g["condition"] == "active"].groupby(g["run"]).mean()
+        diff = (active - s[g["condition"] == "observed"].groupby(g["run"]).mean()).dropna()
+        out[subject] = {"visual": _one_sided_t(vis),
+                        "sensorimotor_active": _one_sided_t(active),
+                        "movement": _one_sided_t(diff)}
     return out
+
+
+def controls_passed(controls: dict, spec: dict, alpha: float = 0.05) -> bool:
+    """True if every gating control holds (one-sided p < alpha) in every subject.
+
+    ``spec``: the plan's ``controls`` mapping; an entry gates unless ``gate: false``.
+    """
+    gating = [k for k, v in spec.items() if (v or {}).get("gate", True)]
+    return all(c[k]["p_one_sided"] < alpha for c in controls.values() for k in gating)
 
 
 def decode_pilot(betas: pd.DataFrame, trials: pd.DataFrame, cfg: dict) -> pd.DataFrame:

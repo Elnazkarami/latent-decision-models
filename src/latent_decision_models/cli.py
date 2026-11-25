@@ -289,8 +289,11 @@ def _ds002158_fmri_audit(args):
 
 
 def _ds002158_fmri_lss(args):
-    """Single-trial ROI betas (LSS) and per-run QC from the published derivative."""
-    import nibabel as nib
+    """Single-trial ROI amplitudes (LSS) and per-run QC from the published derivative.
+
+    With ``--roi-ts`` (or ``roi_ts_dir`` in the config) the ROI time series saved by an
+    earlier run are reused and no image is read (LSS is linear in the data).
+    """
     import numpy as np
 
     from .datasets import ds002158_fmri as f
@@ -299,39 +302,60 @@ def _ds002158_fmri_lss(args):
     bids_root = args.bids_root or cfg["bids_root"]
     out_dir = Path(args.out_dir or cfg["out_dir"])
     out_dir.mkdir(parents=True, exist_ok=True)
+    roi_ts = args.roi_ts or cfg.get("roi_ts_dir")
     trials = pd.read_csv(cfg["input_trials"])
     subjects = args.subjects or cfg["subjects"]
+    kw = {"tr": cfg["tr"], "hrf_model": cfg["hrf_model"], "high_pass": cfg["high_pass_hz"],
+          "amplitude": cfg.get("amplitude", "canonical")}
     qc_rows = []
     for subject in subjects:
         t = trials[trials["subject"] == subject]
-        runs = sorted(r for r in t["run"].unique()
-                      if f.preproc_path(bids_root, subject, r).exists())
-        if not runs:
-            raise SystemExit(f"{subject}: no derivative images under {bids_root}")
-        ref = nib.load(f.preproc_path(bids_root, subject, runs[0]))
-        atlas = f.harvard_oxford_atlas(ref.affine, ref.shape)
-        parts = []
-        for run in runs:
-            img = nib.load(f.preproc_path(bids_root, subject, run))
-            if not np.allclose(img.affine, ref.affine) or img.shape[:3] != ref.shape[:3]:
-                raise SystemExit(f"{subject} {run}: grid differs from {runs[0]}")
-            b, qc, Y = f.run_lss(bids_root, subject, run, t[t["run"] == run], atlas=atlas,
-                                 tr=cfg["tr"], hrf_model=cfg["hrf_model"],
-                                 high_pass=cfg["high_pass_hz"])
-            (out_dir / "roi_ts").mkdir(exist_ok=True)
-            np.savez(out_dir / "roi_ts" / f"{subject}_{run}_roi_ts.npz", Y=Y,
-                     names=np.array(list(atlas[1].values())))
-            parts.append(b)
-            qc_rows.append(qc)
-            print(f"{subject} {run}: {len(b)} trials, ROI tSNR median "
+        parts, names = [], None
+        if roi_ts:
+            files = sorted(Path(roi_ts).glob(f"{subject}_run-*_roi_ts.npz"))
+            if not files:
+                raise SystemExit(f"{subject}: no ROI time series in {roi_ts}")
+            for path in files:
+                run = path.name.split("_")[1]
+                z = np.load(path)
+                names = dict(enumerate((str(n) for n in z["names"]), start=1))
+                b, qc = f.lss_from_timeseries(z["Y"], names, t[t["run"] == run],
+                                              f._motion(bids_root, subject, run), **kw)
+                parts.append(b)
+                qc_rows.append({"subject": subject, "run": run, **qc})
+        else:
+            import nibabel as nib
+
+            runs = sorted(r for r in t["run"].unique()
+                          if f.preproc_path(bids_root, subject, r).exists())
+            if not runs:
+                raise SystemExit(f"{subject}: no derivative images under {bids_root}")
+            ref = nib.load(f.preproc_path(bids_root, subject, runs[0]))
+            atlas = f.harvard_oxford_atlas(ref.affine, ref.shape)
+            names = atlas[1]
+            for run in runs:
+                img = nib.load(f.preproc_path(bids_root, subject, run))
+                if not np.allclose(img.affine, ref.affine) or img.shape[:3] != ref.shape[:3]:
+                    raise SystemExit(f"{subject} {run}: grid differs from {runs[0]}")
+                b, qc, Y = f.run_lss(bids_root, subject, run, t[t["run"] == run],
+                                     atlas=atlas, **kw)
+                (out_dir / "roi_ts").mkdir(exist_ok=True)
+                np.savez(out_dir / "roi_ts" / f"{subject}_{run}_roi_ts.npz", Y=Y,
+                         names=np.array(list(names.values())))
+                parts.append(b)
+                qc_rows.append(qc)
+        for qc in qc_rows[-len(parts):]:
+            print(f"{subject} {qc['run']}: {qc['n_trials']} trials, ROI tSNR median "
                   f"{qc['roi_tsnr_median']:.0f}", flush=True)
         pd.concat(parts).to_csv(out_dir / f"{subject}_lss_roi_betas.csv", index=False)
-        pd.Series(atlas[1]).to_csv(out_dir / "atlas_labels.csv", header=["region"])
+        pd.Series(names).to_csv(out_dir / "atlas_labels.csv", header=["region"])
     qc = pd.DataFrame(qc_rows)
     qc.to_csv(out_dir / "lss_qc.csv", index=False)
     _write_json({"config": args.config, "subjects": subjects, "n_runs": len(qc),
+                 "source": "saved ROI time series" if roi_ts else "derivative images",
+                 "amplitude": kw["amplitude"], "hrf_model": kw["hrf_model"],
                  "beta_units": "percent of the ROI's run-mean signal per unit nilearn "
-                               "regressor (Glover HRF, stick at stimulus onset)",
+                               "regressor (stick at stimulus onset)",
                  "qc": _records(qc)}, args.report)
 
 
@@ -366,10 +390,13 @@ def _ds002158_fmri_pilot(args):
     betas = pd.concat([pd.read_csv(betas_dir / f"{s}_lss_roi_betas.csv")
                        for s in cfg["subjects"]])
     controls = f.positive_controls(betas, trials, names)
-    passed = all(v["p_one_sided"] < 0.05 for c in controls.values() for v in c.values())
+    passed = f.controls_passed(controls, cfg["controls"])
     out = {"config": args.config, "data_kind": "real_fmri_openneuro_ds002158_v1.0.2_derivative",
            "feature_window": "whole trial (stimulus, response and start of the confidence "
                              "report are not separable; docs/ds002158-fmri-audit.md)",
+           "amplitude": cfg.get("amplitude", "canonical"),
+           "gating_controls": [k for k, v in cfg["controls"].items()
+                               if (v or {}).get("gate", True)],
            "positive_controls": controls, "controls_passed": passed}
     if passed:
         dec = f.decode_pilot(betas, trials, cfg["decoding"])
@@ -748,6 +775,8 @@ def main():
     fl.add_argument("--bids-root", help="dataset root holding derivatives/fmriprep")
     fl.add_argument("--out-dir")
     fl.add_argument("--subjects", nargs="+")
+    fl.add_argument("--roi-ts", help="reuse ROI time series saved by an earlier fmri-lss "
+                    "run (no image is read)")
     fl.add_argument("--report", help="JSON report path (default: print)")
     ft = dsub.add_parser("fmri-timing", help="Onset-shift scan of occipital and "
                          "sensorimotor ROI means: is the response earlier/later than the "

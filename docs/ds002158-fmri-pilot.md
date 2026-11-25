@@ -7,7 +7,7 @@
 
 ## Result in one paragraph
 
-Image quality is good. However, the pre-specified pipeline checks failed: each subject failed one of the two positive controls. Under the plan, the confidence analysis was therefore **not run**. A timing diagnostic, added afterwards and so post hoc, explains the visual failure. In sub-04 the occipital response is out of phase with the canonical HRF at the recorded stimulus onsets. Trials repeat every ~9.5 s, so a canonical-HRF beta from this design depends strongly on response latency. Single-trial betas from a canonical stick function at stimulus onset are therefore not a dependable feature for this dataset as specified. Any continuation needs a revised, latency-robust plan (options below).
+Image quality is good. However, the pre-specified pipeline checks failed: each subject failed one of the two positive controls. Under the plan, the confidence analysis was therefore **not run**. A timing diagnostic, added afterwards and so post hoc, explains the visual failure. In sub-04 the occipital response is out of phase with the canonical HRF at the recorded stimulus onsets. Trials repeat every ~9.5 s, so a canonical-HRF beta from this design depends strongly on response latency. Single-trial betas from a canonical stick function at stimulus onset are therefore not a dependable feature for this dataset as specified. Any continuation needs a revised, latency-robust plan (options below). **Update: a revised plan with derivative-boosted amplitudes (option 1) also failed in sub-04 (see Revision 1). Trial-level fMRI for ds002158 is recommended to be closed.**
 
 ## Quality (12 runs)
 
@@ -61,6 +61,36 @@ The FIR (finite impulse response) estimate of the evoked response is not informa
 
 Downloading more subjects (19 GB each) is not recommended until one of options 1–2 passes the controls on the pilot.
 
+## Revision 1: latency-robust amplitudes (option 1, chosen 2026-11-25)
+
+**Plan:** [`configs/ds002158_fmri_pilot_derivative.yaml`](../configs/ds002158_fmri_pilot_derivative.yaml), committed before the analysis. It was not blind: the first pilot's results and the timing scan were known.
+- **Feature:** each trial was modelled with the Glover HRF plus its time derivative. The target derivative was orthogonalised against the canonical regressor and scaled to its norm. The amplitude is derivative-boosted, sign(b_canonical) × √(b_canonical² + b_derivative²) (Calhoun et al. 2004).
+- **Gating controls:** visual (as before) and sensorimotor response on active trials. The active − observed contrast was demoted to descriptive because of the high-pass problem.
+- **Stated expectation:** the derivative absorbs latency errors of about ±1–2 s, so sub-04's ~3.5 s occipital lag might still fail.
+- **Synthetic check:** at a 1 s delay, the boosted amplitude has a median error of 0.12, against 0.21 for the canonical beta.
+- **Source:** amplitudes were computed from the saved ROI time series. Rebuilding the canonical betas this way reproduces the first pilot exactly (maximum difference 0).
+
+**Report:** [`reports/ds002158-fmri-derivative-pilot.json`](../reports/ds002158-fmri-derivative-pilot.json); QC in [`reports/ds002158-fmri-derivative-lss-qc.json`](../reports/ds002158-fmri-derivative-lss-qc.json).
+
+| | Visual (gating) | Sensorimotor, active trials (gating) | Active − observed (descriptive) |
+| --- | --- | --- | --- |
+| sub-02 | mean 25.5, t = 3.44, **p = 0.009** (5/6 runs > 0) | mean 24.5, t = 2.28, **p = 0.036** (5/6) | −0.8, p = 0.53 |
+| sub-04 | mean −1.6, t = −0.59, p = 0.71 (3/6) | mean 20.9, t = 5.90, **p = 0.001** (6/6) | 22.0, p = 0.013 |
+
+**Outcome:** sub-04's visual control fails again, as anticipated in the plan. Its sensorimotor responses are now clear in every run, so the method works where the latency error is small. Occipital cortex in sub-04 is out of the derivative's range. By the plan's rule, the decoding was not run.
+
+## Conclusion and recommendation
+
+Two pre-specified attempts failed to give trial-level fMRI features that pass basic checks in both pilot subjects. The cause appears to be specific to this dataset. Trials come every ~9.5 s with little jitter, so single-trial amplitudes depend strongly on response latency. That latency differs between regions and subjects by more than a time derivative can absorb.
+
+**Recommendation: close trial-level fMRI work for ds002158** (option 3). Do not download more subjects. Keep the EEG results as the neural evidence for this dataset. Deleting the 38 GB of pilot images is the user's decision; the ROI time series (a few MB) are kept, so all reported numbers can be regenerated.
+
+Not tried, because each would be a further post hoc rescue on the same two subjects:
+- region-specific latency fitting (option 2);
+- FIR or phase-based single-trial models.
+
+These are reasonable only with a fresh, independent subset of subjects for confirmation.
+
 ## Reproduce
 
 ```bash
@@ -69,6 +99,9 @@ ldm ds002158 fetch-fmri --subjects sub-02 sub-04 --dest data/ds002158 --approved
 ldm ds002158 fmri-lss --config configs/ds002158_fmri_pilot.yaml --report reports/ds002158-fmri-lss-qc.json
 ldm ds002158 fmri-pilot --config configs/ds002158_fmri_pilot.yaml --out reports/ds002158-fmri-pilot.json
 ldm ds002158 fmri-timing --config configs/ds002158_fmri_pilot.yaml --out reports/ds002158-fmri-timing.json
+# revision 1 (reuses the saved ROI time series; no image read)
+ldm ds002158 fmri-lss --config configs/ds002158_fmri_pilot_derivative.yaml --report reports/ds002158-fmri-derivative-lss-qc.json
+ldm ds002158 fmri-pilot --config configs/ds002158_fmri_pilot_derivative.yaml --out reports/ds002158-fmri-derivative-pilot.json
 ```
 
 `fmri-lss` takes ~6 min per run from an external disk. It saves ROI time series to `<out-dir>/roi_ts/`, which `fmri-timing` reads. In this pilot the time series were extracted by an equivalent script before `fmri-lss` saved them: same functions, same file format.

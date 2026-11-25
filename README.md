@@ -90,6 +90,8 @@ ldm ds002158 fetch-fmri --subjects sub-02 sub-04 --dest data/ds002158 --approved
 ldm ds002158 fmri-lss --config configs/ds002158_fmri_pilot.yaml --report reports/ds002158-fmri-lss-qc.json
 ldm ds002158 fmri-pilot --config configs/ds002158_fmri_pilot.yaml --out reports/ds002158-fmri-pilot.json
 ldm ds002158 fmri-timing --config configs/ds002158_fmri_pilot.yaml --out reports/ds002158-fmri-timing.json   # onset-shift timing check
+# latency-robust variant (HRF + time derivative, derivative-boosted amplitudes), from saved ROI time series
+ldm ds002158 fmri-lss --config configs/ds002158_fmri_pilot_derivative.yaml --roi-ts data/derivatives/ldm-fmri/roi_ts
 ```
 
 Runs in the derivative's `reject/` folders are never downloaded. Single-trial features here are whole-trial measures (stimulus and response are 0.4 s apart), never pre-decision ones.
@@ -125,7 +127,7 @@ ldm ds002158 align-eeg --events <..._events.tsv> --vmrk <..._eeg.vmrk>
 | `eeg_clean` | Sliding-window template subtraction (MR gradient, BCG), optimal-basis-set (OBS) and ICA-based BCG removal, heartbeat detection (MNE), per-trial heart period and R-peak timing, causal band-pass and decimation |
 | `eeg_decoding` | Binned window features; leave-one-run-out and cross-subject decoding (logistic / ridge, regularisation tuned inside training folds), training-fold-only residualisation on covariates, within-run permutation tests, Holm correction |
 | `fmri_design` | Design diagnostics from event timing (nilearn): single-trial VIF under LSA/LSS, neighbouring-trial correlation, separability of stimulus / response / post-decision regressors |
-| `fmri_lss` | Least-squares-separate single-trial weights (nilearn designs + confounds; betas of any signal are `W @ Y`), ROI averaging that skips non-finite or constant voxels, percent signal, temporal SNR, and an onset-shift scan (is the response earlier or later than the canonical HRF predicts?) |
+| `fmri_lss` | Least-squares-separate single-trial weights (nilearn designs + confounds, optional HRF derivative bases; betas of any signal are `W @ Y`), derivative-boosted amplitudes, ROI averaging that skips non-finite or constant voxels, percent signal, temporal SNR, and an onset-shift scan (is the response earlier or later than the canonical HRF predicts?) |
 | `io.nifti` | NIfTI-1 header summary from a byte prefix (nibabel) |
 | `io.osf` | OSF listing and allow-listed, capped, SHA-256-verified downloads |
 | `io.openneuro` | Pinned OpenNeuro snapshots: metadata fetch (refuses signal files), header range reads, and budgeted signal downloads (whole request refused above the approved size) |
@@ -165,7 +167,7 @@ Details and evidence: [audit](docs/ds002158-audit.md) · [EEG](docs/ds002158-eeg
   - Its headers store TR = 0; use 1.28 s.
   - sub-20 run-007's derivative was moved to a `reject/` folder, but its raw data and behavior were not.
 - **Trial-level fMRI:** single-trial responses are estimable (trials ≥ 9 s apart; LSS VIF ≤ 1.2). Pre-decision and response-locked activity are **not** separable (r ≈ 0.96, 0.4 s apart), so fMRI trial features are whole-trial measures.
-- **fMRI pilot (sub-02, sub-04):** image quality is good (ROI tSNR 165–276), but the pre-specified positive controls failed (each subject failed one), so no fMRI confidence analysis was run. Trials repeat every ~9.5 s, so a canonical-HRF beta at stimulus onset depends strongly on response latency; in sub-04 the occipital response is ~3.5 s out of phase in all 6 runs. A latency-robust plan is needed before any more data ([details](docs/ds002158-fmri-pilot.md)).
+- **fMRI pilot (sub-02, sub-04):** image quality is good (ROI tSNR 165–276), but no trial-level fMRI feature passed the pre-specified positive controls in both subjects, so no fMRI confidence analysis was run. Trials repeat every ~9.5 s, so single-trial amplitudes depend strongly on response latency. In sub-04 the occipital response is ~3.5 s out of phase in all 6 runs, beyond what an HRF time derivative absorbs. Trial-level fMRI for this dataset is not pursued further ([details](docs/ds002158-fmri-pilot.md)).
 - **Observed trials** are shuffled replays of the participant's own preceding active block. Their "RT" is the replayed virtual-hand latency, not a participant RT.
 - **Behavioral baseline (post-decision, held-out subjects):** error vs null 0.136 vs 0.222, almost entirely from objective accuracy. Predictions are well calibrated (slope 0.99). Per-person models add only a little (MAE 0.010 lower).
 - **Metacognition (committed vs observed):** confidence tracks accuracy less steeply for observed decisions. GEE interaction −1.73 [−2.95, −0.51], p = 0.006; robust to excluding sub-20. The direction matches the paper. These are post-hoc, population-averaged estimates, and the design is paired (replayed trials).
@@ -212,6 +214,7 @@ Contributor rules are in [`AGENTS.md`](AGENTS.md); the research plan is in [`doc
 
 ## Changelog
 
+- **2026-11-25:** fMRI pilot revision 1: `fmri_lss.lss_basis_weights` (HRF derivative bases, orthogonalised target derivatives), `boosted_amplitude`, `fmri-lss --roi-ts` (reuse saved ROI time series, no image read), plan-defined gating controls. On ds002158, sub-04 still fails the visual control, as anticipated; trial-level fMRI for ds002158 is closed.
 - **2026-11-24:** ds002158 fMRI pilot (2 subjects): pre-specified positive controls failed, so no confidence analysis was run; the timing diagnostic (`fmri_lss.onset_shift_scan`, `ldm ds002158 fmri-timing`) shows the canonical stick-beta feature is latency-fragile in this near-periodic design. `fmri-lss` now saves ROI time series.
 - **2026-11-24:** Trial-level fMRI: `ldm ds002158 fetch-fmri` (budgeted download of derivative images), `fmri-lss` (single-trial LSS betas on Harvard-Oxford ROIs, per-run QC) and `fmri-pilot` (pre-specified positive controls, then exploratory within-subject decoding); new `fmri_lss` module. Pilot plan for 2 subjects committed before any image was opened (`configs/ds002158_fmri_pilot.yaml`).
 - **2026-11-24:** Fixes from a code review (no reported result changes): no p-value when a decoding score is undefined; Holm keeps untested (NaN) cells out of the family; cross-condition decoding, single-run subjects and empty stay-table cells no longer crash; the EB vs fixed comparison uses subjects scored by both; known-answer checks keep planted weights in range.
