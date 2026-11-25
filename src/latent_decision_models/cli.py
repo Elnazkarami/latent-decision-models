@@ -315,9 +315,12 @@ def _ds002158_fmri_lss(args):
             img = nib.load(f.preproc_path(bids_root, subject, run))
             if not np.allclose(img.affine, ref.affine) or img.shape[:3] != ref.shape[:3]:
                 raise SystemExit(f"{subject} {run}: grid differs from {runs[0]}")
-            b, qc = f.run_lss(bids_root, subject, run, t[t["run"] == run], atlas=atlas,
-                              tr=cfg["tr"], hrf_model=cfg["hrf_model"],
-                              high_pass=cfg["high_pass_hz"])
+            b, qc, Y = f.run_lss(bids_root, subject, run, t[t["run"] == run], atlas=atlas,
+                                 tr=cfg["tr"], hrf_model=cfg["hrf_model"],
+                                 high_pass=cfg["high_pass_hz"])
+            (out_dir / "roi_ts").mkdir(exist_ok=True)
+            np.savez(out_dir / "roi_ts" / f"{subject}_{run}_roi_ts.npz", Y=Y,
+                     names=np.array(list(atlas[1].values())))
             parts.append(b)
             qc_rows.append(qc)
             print(f"{subject} {run}: {len(b)} trials, ROI tSNR median "
@@ -330,6 +333,26 @@ def _ds002158_fmri_lss(args):
                  "beta_units": "percent of the ROI's run-mean signal per unit nilearn "
                                "regressor (Glover HRF, stick at stimulus onset)",
                  "qc": _records(qc)}, args.report)
+
+
+def _ds002158_fmri_timing(args):
+    """Onset-shift scan of occipital / sensorimotor ROI means (timing diagnostic)."""
+    from .datasets import ds002158_fmri as f
+
+    cfg = yaml.safe_load(Path(args.config).read_text())
+    ts_dir = Path(args.betas_dir or cfg["out_dir"]) / "roi_ts"
+    trials = pd.read_csv(cfg["input_trials"])
+    scan = f.timing_scan(ts_dir, args.bids_root or cfg["bids_root"], trials, cfg["subjects"],
+                         tr=cfg["tr"])
+    mean = (scan.groupby(["subject", "roi_set", "shift_s"])[["beta", "r2_gain"]].mean()
+            .reset_index())
+    best = (mean[mean["beta"] > 0].sort_values("r2_gain").groupby(["subject", "roi_set"])
+            .tail(1).sort_values(["subject", "roi_set"]))
+    print(best.round(3).to_string(index=False))
+    _write_json({"config": args.config, "data_kind": "real_fmri_openneuro_ds002158_v1.0.2_"
+                 "derivative", "best_positive_shift": _records(best),
+                 "mean_over_runs": _records(mean),
+                 "per_run": _records(scan)}, args.out)
 
 
 def _ds002158_fmri_pilot(args):
@@ -726,6 +749,13 @@ def main():
     fl.add_argument("--out-dir")
     fl.add_argument("--subjects", nargs="+")
     fl.add_argument("--report", help="JSON report path (default: print)")
+    ft = dsub.add_parser("fmri-timing", help="Onset-shift scan of occipital and "
+                         "sensorimotor ROI means: is the response earlier/later than the "
+                         "canonical HRF predicts?")
+    ft.add_argument("--config", required=True)
+    ft.add_argument("--betas-dir", help="fmri-lss output directory (holds roi_ts/)")
+    ft.add_argument("--bids-root")
+    ft.add_argument("--out", help="JSON report path (default: print)")
     fp = dsub.add_parser("fmri-pilot", help="Positive controls and exploratory decoding on "
                          "LSS ROI betas")
     fp.add_argument("--config", required=True)
@@ -794,7 +824,8 @@ def main():
          "eeg-preprocess": _ds002158_eeg_preprocess, "eeg-decode": _ds002158_eeg_decode,
          "eeg-cardiac": _ds002158_eeg_cardiac, "eeg-bcg-retention": _ds002158_eeg_bcg_retention, "fmri-audit": _ds002158_fmri_audit,
          "fmri-design": _ds002158_fmri_design,
-         "fmri-lss": _ds002158_fmri_lss, "fmri-pilot": _ds002158_fmri_pilot}[args.ds_cmd](args)
+         "fmri-lss": _ds002158_fmri_lss, "fmri-pilot": _ds002158_fmri_pilot,
+         "fmri-timing": _ds002158_fmri_timing}[args.ds_cmd](args)
 
 
 if __name__ == "__main__":

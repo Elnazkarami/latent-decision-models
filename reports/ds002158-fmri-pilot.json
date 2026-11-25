@@ -1,0 +1,69 @@
+{
+  "config": "configs/ds002158_fmri_pilot.yaml",
+  "data_kind": "real_fmri_openneuro_ds002158_v1.0.2_derivative",
+  "feature_window": "whole trial (stimulus, response and start of the confidence report are not separable; docs/ds002158-fmri-audit.md)",
+  "positive_controls": {
+    "sub-02": {
+      "visual": {
+        "per_run": [
+          -2.886,
+          21.1972,
+          14.8086,
+          11.9762,
+          35.5286,
+          34.4775
+        ],
+        "mean": 19.183658590102688,
+        "t": 3.2223286920219,
+        "p_one_sided": 0.011702424703125094,
+        "n_runs": 6
+      },
+      "movement": {
+        "per_run": [
+          -20.7876,
+          -14.5524,
+          16.6261,
+          8.7197,
+          9.9241,
+          19.8847
+        ],
+        "mean": 3.302429715630239,
+        "t": 0.47919862919850115,
+        "p_one_sided": 0.32601077696886693,
+        "n_runs": 6
+      }
+    },
+    "sub-04": {
+      "visual": {
+        "per_run": [
+          -1.412,
+          -0.4133,
+          -7.5004,
+          7.3654,
+          -6.4419,
+          -6.682
+        ],
+        "mean": -2.5140314232121885,
+        "t": -1.085571186077332,
+        "p_one_sided": 0.8363937109986925,
+        "n_runs": 6
+      },
+      "movement": {
+        "per_run": [
+          1.7951,
+          20.7663,
+          37.4074,
+          9.9823,
+          7.9354,
+          28.4352
+        ],
+        "mean": 17.720283317210217,
+        "t": 3.1983406477302623,
+        "p_one_sided": 0.012019856422557946,
+        "n_runs": 6
+      }
+    }
+  },
+  "controls_passed": false,
+  "decoding": "not run: a positive control failed (plan, decision 2)"
+}

@@ -94,3 +94,37 @@ def tsnr(Y: np.ndarray) -> np.ndarray:
     """Temporal SNR per column: mean / standard deviation over time (no detrending)."""
     with np.errstate(divide="ignore", invalid="ignore"):
         return np.nanmean(Y, axis=0) / np.nanstd(Y, axis=0)
+
+
+def onset_shift_scan(y, onsets, n_volumes: int, tr: float, confounds=None,
+                     shifts=None, hrf_model: str = "glover",
+                     high_pass: float = 1 / 128) -> pd.DataFrame:
+    """Fit one all-trials regressor with onsets shifted by each value in ``shifts`` (s).
+
+    A timing check: the shift with the best positive fit estimates how much later (> 0)
+    or earlier the response is than the canonical HRF at the recorded onsets predicts.
+    With near-periodic trials the profile repeats every trial period, so only shifts
+    well inside +/- half a period are interpretable. Returns one row per shift with the
+    beta and the R^2 gained over the nuisance-only model (drift, intercept, confounds).
+    """
+    shifts = np.arange(-6.0, 6.01, 0.5) if shifts is None else shifts
+    from nilearn.glm.first_level import make_first_level_design_matrix
+
+    y = np.asarray(y, float)
+    onsets = np.asarray(onsets, float)
+    frame_times = np.arange(n_volumes) * tr
+    N = make_first_level_design_matrix(frame_times, None, drift_model="cosine",
+                                       high_pass=high_pass).to_numpy()
+    if confounds is not None:
+        c = np.asarray(confounds, float)
+        N = np.column_stack([N, c - c.mean(axis=0)])
+    res0 = y - N @ np.linalg.lstsq(N, y, rcond=None)[0]
+    rows = []
+    for s in shifts:
+        X = _design(frame_times, pd.DataFrame({"onset": onsets + s, "duration": 0.0,
+                                               "trial_type": "trial"}), hrf_model, high_pass)
+        A = np.column_stack([X["trial"].to_numpy(), N])
+        b = np.linalg.lstsq(A, y, rcond=None)[0]
+        rows.append({"shift_s": float(s), "beta": float(b[0]),
+                     "r2_gain": float(1 - (y - A @ b).var() / res0.var())})
+    return pd.DataFrame(rows)

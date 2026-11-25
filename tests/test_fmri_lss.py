@@ -120,7 +120,8 @@ def _pilot_run(tmp_path, subject="sub-02", run="run-001", seed=0, effects=(1.0, 
 
 def test_run_lss_end_to_end_on_a_synthetic_derivative(tmp_path):
     trials, atlas = _pilot_run(tmp_path)
-    betas, qc = f.run_lss(tmp_path, "sub-02", "run-001", trials, atlas=atlas)
+    betas, qc, Y = f.run_lss(tmp_path, "sub-02", "run-001", trials, atlas=atlas)
+    assert Y.shape == (qc["n_volumes"], 2)
     assert list(betas.columns[-2:]) == ["roi_Left Visual", "roi_Left Motor"]
     # Percent signal: 10 units on a mean of ~1000 -> ~1% per unit regressor amplitude.
     np.testing.assert_allclose(betas["roi_Left Visual"], 1.0, atol=0.15)
@@ -304,6 +305,12 @@ def test_cli_fmri_lss_and_pilot_end_to_end(tmp_path, monkeypatch, capsys):
     assert res["controls_passed"] is True
     assert res["positive_controls"]["sub-02"]["movement"]["mean"] > 0.5
     assert len(res["decoding"]) == 4  # 2 conditions x 2 targets
+    run("fmri-timing", "--config", str(tmp_path / "cfg.yaml"), "--betas-dir",
+        str(tmp_path / "out"), "--bids-root", str(tmp_path / "bids"),
+        "--out", str(tmp_path / "timing.json"))
+    best = json.loads((tmp_path / "timing.json").read_text())["best_positive_shift"]
+    assert {b["roi_set"] for b in best} == {"occipital", "sensorimotor"}
+    assert all(abs(b["shift_s"]) <= 0.5 for b in best)  # planted at the recorded onsets
 
 
 def test_fetch_fmri_selects_derivative_bold_and_motion_only(monkeypatch, capsys):
@@ -326,3 +333,15 @@ def test_fetch_fmri_selects_derivative_bold_and_motion_only(monkeypatch, capsys)
     cli.main()
     assert json.loads(capsys.readouterr().out) == {"subjects": ["sub-20"], "n_files": 2,
                                                    "total_bytes": 20}
+
+
+def test_onset_shift_scan_finds_a_delayed_response():
+    pytest.importorskip("nilearn")
+    onsets, _, n_vol = _schedule(gap=9.0)
+    rng = np.random.default_rng(5)
+    onsets = onsets + rng.uniform(-0.5, 0.5, len(onsets))   # jitter like ds002158
+    y = _signal(onsets + 2.0, np.ones(len(onsets)), n_vol)  # response 2 s late
+    scan = fmri_lss.onset_shift_scan(y, onsets, n_vol, TR, shifts=np.arange(-4, 4.01, 0.5))
+    best = scan.loc[scan["r2_gain"].idxmax()]
+    assert best["shift_s"] == 2.0 and best["beta"] > 0
+    assert scan.loc[scan["shift_s"] == 0, "beta"].item() < best["beta"]

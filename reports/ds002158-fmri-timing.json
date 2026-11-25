@@ -1,0 +1,5538 @@
+{
+  "config": "configs/ds002158_fmri_pilot.yaml",
+  "data_kind": "real_fmri_openneuro_ds002158_v1.0.2_derivative",
+  "best_positive_shift": [
+    {
+      "subject": "sub-02",
+      "roi_set": "occipital",
+      "shift_s": 1.0,
+      "beta": 28.134519089213413,
+      "r2_gain": 0.0693391773976841
+    },
+    {
+      "subject": "sub-02",
+      "roi_set": "sensorimotor",
+      "shift_s": 0.5,
+      "beta": 21.758844575070498,
+      "r2_gain": 0.05766301767898363
+    },
+    {
+      "subject": "sub-04",
+      "roi_set": "occipital",
+      "shift_s": -6.0,
+      "beta": 22.48842052707724,
+      "r2_gain": 0.050415917781578466
+    },
+    {
+      "subject": "sub-04",
+      "roi_set": "sensorimotor",
+      "shift_s": 1.5,
+      "beta": 14.072640434712307,
+      "r2_gain": 0.03771277713149129
+    }
+  ],
+  "mean_over_runs": [
+    {
+      "subject": "sub-02",
+      "roi_set": "occipital",
+      "shift_s": -6.0,
+      "beta": 0.6501269234120155,
+      "r2_gain": 0.003364200521250934
+    },
+    {
+      "subject": "sub-02",
+      "roi_set": "occipital",
+      "shift_s": -5.5,
+      "beta": -9.006083218564724,
+      "r2_gain": 0.009100130368799031
+    },
+    {
+      "subject": "sub-02",
+      "roi_set": "occipital",
+      "shift_s": -5.0,
+      "beta": -18.244055508276343,
+      "r2_gain": 0.02737675242444859
+    },
+    {
+      "subject": "sub-02",
+      "roi_set": "occipital",
+      "shift_s": -4.5,
+      "beta": -25.915822725364592,
+      "r2_gain": 0.05214321051805807
+    },
+    {
+      "subject": "sub-02",
+      "roi_set": "occipital",
+      "shift_s": -4.0,
+      "beta": -31.018962863041804,
+      "r2_gain": 0.07365108576575974
+    },
+    {
+      "subject": "sub-02",
+      "roi_set": "occipital",
+      "shift_s": -3.5,
+      "beta": -32.830564745737455,
+      "r2_gain": 0.08264814500635825
+    },
+    {
+      "subject": "sub-02",
+      "roi_set": "occipital",
+      "shift_s": -3.0,
+      "beta": -31.101660649381298,
+      "r2_gain": 0.0749040946029257
+    },
+    {
+      "subject": "sub-02",
+      "roi_set": "occipital",
+      "shift_s": -2.5,
+      "beta": -26.030830994138814,
+      "r2_gain": 0.05348401843868968
+    },
+    {
+      "subject": "sub-02",
+      "roi_set": "occipital",
+      "shift_s": -2.0,
+      "beta": -18.341444774174672,
+      "r2_gain": 0.027751602207479464
+    },
+    {
+      "subject": "sub-02",
+      "roi_set": "occipital",
+      "shift_s": -1.5,
+      "beta": -8.7941773589731,
+      "r2_gain": 0.008431250242733853
+    },
+    {
+      "subject": "sub-02",
+      "roi_set": "occipital",
+      "shift_s": -1.0,
+      "beta": 1.550398824901374,
+      "r2_gain": 0.0036848948203705065
+    },
+    {
+      "subject": "sub-02",
+      "roi_set": "occipital",
+      "shift_s": -0.5,
+      "beta": 11.627067513802343,
+      "r2_gain": 0.015303226540833326
+    },
+    {
+      "subject": "sub-02",
+      "roi_set": "occipital",
+      "shift_s": 0.0,
+      "beta": 20.13090737519892,
+      "r2_gain": 0.037377869743404846
+    },
+    {
+      "subject": "sub-02",
+      "roi_set": "occipital",
+      "shift_s": 0.5,
+      "beta": 25.93241645221597,
+      "r2_gain": 0.059152739418358156
+    },
+    {
+      "subject": "sub-02",
+      "roi_set": "occipital",
+      "shift_s": 1.0,
+      "beta": 28.134519089213413,
+      "r2_gain": 0.0693391773976841
+    },
+    {
+      "subject": "sub-02",
+      "roi_set": "occipital",
+      "shift_s": 1.5,
+      "beta": 26.465619514196376,
+      "r2_gain": 0.06311480370639388
+    },
+    {
+      "subject": "sub-02",
+      "roi_set": "occipital",
+      "shift_s": 2.0,
+      "beta": 21.286754676315777,
+      "r2_gain": 0.044025818499251225
+    },
+    {
+      "subject": "sub-02",
+      "roi_set": "occipital",
+      "shift_s": 2.5,
+      "beta": 13.274301200108477,
+      "r2_gain": 0.02197750408912369
+    },
+    {
+      "subject": "sub-02",
+      "roi_set": "occipital",
+      "shift_s": 3.0,
+      "beta": 3.50992926360073,
+      "r2_gain": 0.008231219927681352
+    },
+    {
+      "subject": "sub-02",
+      "roi_set": "occipital",
+      "shift_s": 3.5,
+      "beta": -7.302577271147771,
+      "r2_gain": 0.01039244557313912
+    },
+    {
+      "subject": "sub-02",
+      "roi_set": "occipital",
+      "shift_s": 4.0,
+      "beta": -18.085807970566858,
+      "r2_gain": 0.030279253735855143
+    },
+    {
+      "subject": "sub-02",
+      "roi_set": "occipital",
+      "shift_s": 4.5,
+      "beta": -27.907792714908368,
+      "r2_gain": 0.06331626525920318
+    },
+    {
+      "subject": "sub-02",
+      "roi_set": "occipital",
+      "shift_s": 5.0,
+      "beta": -35.61576006637145,
+      "r2_gain": 0.09877732580682762
+    },
+    {
+      "subject": "sub-02",
+      "roi_set": "occipital",
+      "shift_s": 5.5,
+      "beta": -40.03424424106096,
+      "r2_gain": 0.12258356294185184
+    },
+    {
+      "subject": "sub-02",
+      "roi_set": "occipital",
+      "shift_s": 6.0,
+      "beta": -40.468395848713385,
+      "r2_gain": 0.12470623677551847
+    },
+    {
+      "subject": "sub-02",
+      "roi_set": "sensorimotor",
+      "shift_s": -6.0,
+      "beta": -4.164518482618885,
+      "r2_gain": 0.007547240002170275
+    },
+    {
+      "subject": "sub-02",
+      "roi_set": "sensorimotor",
+      "shift_s": -5.5,
+      "beta": -10.947975360726126,
+      "r2_gain": 0.019421823546152368
+    },
+    {
+      "subject": "sub-02",
+      "roi_set": "sensorimotor",
+      "shift_s": -5.0,
+      "beta": -16.854041755099406,
+      "r2_gain": 0.03534896308279543
+    },
+    {
+      "subject": "sub-02",
+      "roi_set": "sensorimotor",
+      "shift_s": -4.5,
+      "beta": -21.042918882181542,
+      "r2_gain": 0.04894539733344453
+    },
+    {
+      "subject": "sub-02",
+      "roi_set": "sensorimotor",
+      "shift_s": -4.0,
+      "beta": -22.82455870776455,
+      "r2_gain": 0.05381356750965579
+    },
+    {
+      "subject": "sub-02",
+      "roi_set": "sensorimotor",
+      "shift_s": -3.5,
+      "beta": -21.9692428264634,
+      "r2_gain": 0.047698004911844116
+    },
+    {
+      "subject": "sub-02",
+      "roi_set": "sensorimotor",
+      "shift_s": -3.0,
+      "beta": -18.636946820988342,
+      "r2_gain": 0.03339098847173851
+    },
+    {
+      "subject": "sub-02",
+      "roi_set": "sensorimotor",
+      "shift_s": -2.5,
+      "beta": -13.224614492302399,
+      "r2_gain": 0.01720352533778256
+    },
+    {
+      "subject": "sub-02",
+      "roi_set": "sensorimotor",
+      "shift_s": -2.0,
+      "beta": -6.609296721997616,
+      "r2_gain": 0.006754579736186502
+    },
+    {
+      "subject": "sub-02",
+      "roi_set": "sensorimotor",
+      "shift_s": -1.5,
+      "beta": 0.7021470742063576,
+      "r2_gain": 0.006489502931449879
+    },
+    {
+      "subject": "sub-02",
+      "roi_set": "sensorimotor",
+      "shift_s": -1.0,
+      "beta": 7.790225002383252,
+      "r2_gain": 0.016491467560146172
+    },
+    {
+      "subject": "sub-02",
+      "roi_set": "sensorimotor",
+      "shift_s": -0.5,
+      "beta": 14.118231892354649,
+      "r2_gain": 0.03319423383236449
+    },
+    {
+      "subject": "sub-02",
+      "roi_set": "sensorimotor",
+      "shift_s": 0.0,
+      "beta": 18.9226429662987,
+      "r2_gain": 0.048876932420795216
+    },
+    {
+      "subject": "sub-02",
+      "roi_set": "sensorimotor",
+      "shift_s": 0.5,
+      "beta": 21.758844575070498,
+      "r2_gain": 0.05766301767898363
+    },
+    {
+      "subject": "sub-02",
+      "roi_set": "sensorimotor",
+      "shift_s": 1.0,
+      "beta": 22.19373819375483,
+      "r2_gain": 0.05478410584346403
+    },
+    {
+      "subject": "sub-02",
+      "roi_set": "sensorimotor",
+      "shift_s": 1.5,
+      "beta": 20.185699980671725,
+      "r2_gain": 0.04196605610077492
+    },
+    {
+      "subject": "sub-02",
+      "roi_set": "sensorimotor",
+      "shift_s": 2.0,
+      "beta": 15.984391646835968,
+      "r2_gain": 0.024515214274221524
+    },
+    {
+      "subject": "sub-02",
+      "roi_set": "sensorimotor",
+      "shift_s": 2.5,
+      "beta": 9.958266875356694,
+      "r2_gain": 0.009866020265405636
+    },
+    {
+      "subject": "sub-02",
+      "roi_set": "sensorimotor",
+      "shift_s": 3.0,
+      "beta": 2.8210103964192736,
+      "r2_gain": 0.004437493016982448
+    },
+    {
+      "subject": "sub-02",
+      "roi_set": "sensorimotor",
+      "shift_s": 3.5,
+      "beta": -4.928020544382252,
+      "r2_gain": 0.010786867821799903
+    },
+    {
+      "subject": "sub-02",
+      "roi_set": "sensorimotor",
+      "shift_s": 4.0,
+      "beta": -12.509446000706857,
+      "r2_gain": 0.027384737211750314
+    },
+    {
+      "subject": "sub-02",
+      "roi_set": "sensorimotor",
+      "shift_s": 4.5,
+      "beta": -19.062553867844287,
+      "r2_gain": 0.048562632410019325
+    },
+    {
+      "subject": "sub-02",
+      "roi_set": "sensorimotor",
+      "shift_s": 5.0,
+      "beta": -23.775432281328676,
+      "r2_gain": 0.0660760044353398
+    },
+    {
+      "subject": "sub-02",
+      "roi_set": "sensorimotor",
+      "shift_s": 5.5,
+      "beta": -25.87474006580493,
+      "r2_gain": 0.07198923741368611
+    },
+    {
+      "subject": "sub-02",
+      "roi_set": "sensorimotor",
+      "shift_s": 6.0,
+      "beta": -25.124921061510076,
+      "r2_gain": 0.06395886099520952
+    },
+    {
+      "subject": "sub-04",
+      "roi_set": "occipital",
+      "shift_s": -6.0,
+      "beta": 22.48842052707724,
+      "r2_gain": 0.050415917781578466
+    },
+    {
+      "subject": "sub-04",
+      "roi_set": "occipital",
+      "shift_s": -5.5,
+      "beta": 17.25993245206899,
+      "r2_gain": 0.02852154374699641
+    },
+    {
+      "subject": "sub-04",
+      "roi_set": "occipital",
+      "shift_s": -5.0,
+      "beta": 10.124047929413644,
+      "r2_gain": 0.009532494820846893
+    },
+    {
+      "subject": "sub-04",
+      "roi_set": "occipital",
+      "shift_s": -4.5,
+      "beta": 1.8786212937603244,
+      "r2_gain": 0.0017654549323322481
+    },
+    {
+      "subject": "sub-04",
+      "roi_set": "occipital",
+      "shift_s": -4.0,
+      "beta": -6.401262903054118,
+      "r2_gain": 0.008746088457614246
+    },
+    {
+      "subject": "sub-04",
+      "roi_set": "occipital",
+      "shift_s": -3.5,
+      "beta": -13.725043754176276,
+      "r2_gain": 0.027065554036136103
+    },
+    {
+      "subject": "sub-04",
+      "roi_set": "occipital",
+      "shift_s": -3.0,
+      "beta": -19.23340026894125,
+      "r2_gain": 0.04837464737637485
+    },
+    {
+      "subject": "sub-04",
+      "roi_set": "occipital",
+      "shift_s": -2.5,
+      "beta": -22.418504989278812,
+      "r2_gain": 0.06339667516153881
+    },
+    {
+      "subject": "sub-04",
+      "roi_set": "occipital",
+      "shift_s": -2.0,
+      "beta": -23.053919651100443,
+      "r2_gain": 0.0659262614001696
+    },
+    {
+      "subject": "sub-04",
+      "roi_set": "occipital",
+      "shift_s": -1.5,
+      "beta": -20.980760037723403,
+      "r2_gain": 0.054716383011340665
+    },
+    {
+      "subject": "sub-04",
+      "roi_set": "occipital",
+      "shift_s": -1.0,
+      "beta": -16.62118298083691,
+      "r2_gain": 0.03512013838750585
+    },
+    {
+      "subject": "sub-04",
+      "roi_set": "occipital",
+      "shift_s": -0.5,
+      "beta": -10.491814509642579,
+      "r2_gain": 0.015431875877894926
+    },
+    {
+      "subject": "sub-04",
+      "roi_set": "occipital",
+      "shift_s": 0.0,
+      "beta": -3.670470856012131,
+      "r2_gain": 0.0038110882846602765
+    },
+    {
+      "subject": "sub-04",
+      "roi_set": "occipital",
+      "shift_s": 0.5,
+      "beta": 3.007882585107397,
+      "r2_gain": 0.0033954534453010665
+    },
+    {
+      "subject": "sub-04",
+      "roi_set": "occipital",
+      "shift_s": 1.0,
+      "beta": 8.786594530719977,
+      "r2_gain": 0.011915557755102354
+    },
+    {
+      "subject": "sub-04",
+      "roi_set": "occipital",
+      "shift_s": 1.5,
+      "beta": 13.053970580525855,
+      "r2_gain": 0.023548076554141744
+    },
+    {
+      "subject": "sub-04",
+      "roi_set": "occipital",
+      "shift_s": 2.0,
+      "beta": 15.361476471310972,
+      "r2_gain": 0.031560021073256915
+    },
+    {
+      "subject": "sub-04",
+      "roi_set": "occipital",
+      "shift_s": 2.5,
+      "beta": 15.597589038146525,
+      "r2_gain": 0.03248076868233396
+    },
+    {
+      "subject": "sub-04",
+      "roi_set": "occipital",
+      "shift_s": 3.0,
+      "beta": 13.759253725963122,
+      "r2_gain": 0.025726758177887426
+    },
+    {
+      "subject": "sub-04",
+      "roi_set": "occipital",
+      "shift_s": 3.5,
+      "beta": 10.144882653284206,
+      "r2_gain": 0.014976228985212761
+    },
+    {
+      "subject": "sub-04",
+      "roi_set": "occipital",
+      "shift_s": 4.0,
+      "beta": 5.011794369014516,
+      "r2_gain": 0.004948412966831665
+    },
+    {
+      "subject": "sub-04",
+      "roi_set": "occipital",
+      "shift_s": 4.5,
+      "beta": -1.0278519493588008,
+      "r2_gain": 0.0008145733166324831
+    },
+    {
+      "subject": "sub-04",
+      "roi_set": "occipital",
+      "shift_s": 5.0,
+      "beta": -7.273397248315586,
+      "r2_gain": 0.005493125758214627
+    },
+    {
+      "subject": "sub-04",
+      "roi_set": "occipital",
+      "shift_s": 5.5,
+      "beta": -12.88310087900165,
+      "r2_gain": 0.018095167916814075
+    },
+    {
+      "subject": "sub-04",
+      "roi_set": "occipital",
+      "shift_s": 6.0,
+      "beta": -17.15687645227496,
+      "r2_gain": 0.03372825781126385
+    },
+    {
+      "subject": "sub-04",
+      "roi_set": "sensorimotor",
+      "shift_s": -6.0,
+      "beta": 8.79644802038552,
+      "r2_gain": 0.014526588026607704
+    },
+    {
+      "subject": "sub-04",
+      "roi_set": "sensorimotor",
+      "shift_s": -5.5,
+      "beta": 3.0829663853010865,
+      "r2_gain": 0.0030384909491767975
+    },
+    {
+      "subject": "sub-04",
+      "roi_set": "sensorimotor",
+      "shift_s": -5.0,
+      "beta": -2.9943372096111234,
+      "r2_gain": 0.0028906842176090555
+    },
+    {
+      "subject": "sub-04",
+      "roi_set": "sensorimotor",
+      "shift_s": -4.5,
+      "beta": -8.706107178528063,
+      "r2_gain": 0.014568463016056798
+    },
+    {
+      "subject": "sub-04",
+      "roi_set": "sensorimotor",
+      "shift_s": -4.0,
+      "beta": -13.353533702840151,
+      "r2_gain": 0.033492738669600196
+    },
+    {
+      "subject": "sub-04",
+      "roi_set": "sensorimotor",
+      "shift_s": -3.5,
+      "beta": -16.381972274093467,
+      "r2_gain": 0.05150580160394543
+    },
+    {
+      "subject": "sub-04",
+      "roi_set": "sensorimotor",
+      "shift_s": -3.0,
+      "beta": -17.536514560432323,
+      "r2_gain": 0.06144122511983866
+    },
+    {
+      "subject": "sub-04",
+      "roi_set": "sensorimotor",
+      "shift_s": -2.5,
+      "beta": -16.643989872505426,
+      "r2_gain": 0.05909955922740151
+    },
+    {
+      "subject": "sub-04",
+      "roi_set": "sensorimotor",
+      "shift_s": -2.0,
+      "beta": -14.0204717334967,
+      "r2_gain": 0.04588386771184736
+    },
+    {
+      "subject": "sub-04",
+      "roi_set": "sensorimotor",
+      "shift_s": -1.5,
+      "beta": -9.757623629590228,
+      "r2_gain": 0.026837066754157646
+    },
+    {
+      "subject": "sub-04",
+      "roi_set": "sensorimotor",
+      "shift_s": -1.0,
+      "beta": -4.6251440732666245,
+      "r2_gain": 0.01009898261165032
+    },
+    {
+      "subject": "sub-04",
+      "roi_set": "sensorimotor",
+      "shift_s": -0.5,
+      "beta": 0.9053289131366814,
+      "r2_gain": 0.0022060587715165094
+    },
+    {
+      "subject": "sub-04",
+      "roi_set": "sensorimotor",
+      "shift_s": 0.0,
+      "beta": 5.948923858392803,
+      "r2_gain": 0.0054046840573246935
+    },
+    {
+      "subject": "sub-04",
+      "roi_set": "sensorimotor",
+      "shift_s": 0.5,
+      "beta": 10.086192671659694,
+      "r2_gain": 0.01670396546108029
+    },
+    {
+      "subject": "sub-04",
+      "roi_set": "sensorimotor",
+      "shift_s": 1.0,
+      "beta": 12.889010072378701,
+      "r2_gain": 0.02960822370505876
+    },
+    {
+      "subject": "sub-04",
+      "roi_set": "sensorimotor",
+      "shift_s": 1.5,
+      "beta": 14.072640434712307,
+      "r2_gain": 0.03771277713149129
+    },
+    {
+      "subject": "sub-04",
+      "roi_set": "sensorimotor",
+      "shift_s": 2.0,
+      "beta": 13.458942282812572,
+      "r2_gain": 0.03699879037524173
+    },
+    {
+      "subject": "sub-04",
+      "roi_set": "sensorimotor",
+      "shift_s": 2.5,
+      "beta": 11.19798282723564,
+      "r2_gain": 0.02868317088379722
+    },
+    {
+      "subject": "sub-04",
+      "roi_set": "sensorimotor",
+      "shift_s": 3.0,
+      "beta": 7.440747046076091,
+      "r2_gain": 0.016558197556080307
+    },
+    {
+      "subject": "sub-04",
+      "roi_set": "sensorimotor",
+      "shift_s": 3.5,
+      "beta": 2.7106866464448767,
+      "r2_gain": 0.006497743119427117
+    },
+    {
+      "subject": "sub-04",
+      "roi_set": "sensorimotor",
+      "shift_s": 4.0,
+      "beta": -2.6313604938544644,
+      "r2_gain": 0.0028833634543073416
+    },
+    {
+      "subject": "sub-04",
+      "roi_set": "sensorimotor",
+      "shift_s": 4.5,
+      "beta": -7.843296841899067,
+      "r2_gain": 0.007781132032315526
+    },
+    {
+      "subject": "sub-04",
+      "roi_set": "sensorimotor",
+      "shift_s": 5.0,
+      "beta": -12.396769777726698,
+      "r2_gain": 0.019902462126204112
+    },
+    {
+      "subject": "sub-04",
+      "roi_set": "sensorimotor",
+      "shift_s": 5.5,
+      "beta": -15.593898660942349,
+      "r2_gain": 0.03445913509944134
+    },
+    {
+      "subject": "sub-04",
+      "roi_set": "sensorimotor",
+      "shift_s": 6.0,
+      "beta": -17.16648006138927,
+      "r2_gain": 0.04562185679242381
+    }
+  ],
+  "per_run": [
+    {
+      "shift_s": -6.0,
+      "beta": 3.9941424218370623,
+      "r2_gain": 0.0012283151135916714,
+      "subject": "sub-02",
+      "run": "run-001",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": -5.5,
+      "beta": 1.628363955840177,
+      "r2_gain": 0.00020566909537322875,
+      "subject": "sub-02",
+      "run": "run-001",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": -5.0,
+      "beta": -1.086102636511481,
+      "r2_gain": 9.186815702777462e-05,
+      "subject": "sub-02",
+      "run": "run-001",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": -4.5,
+      "beta": -3.661394688567985,
+      "r2_gain": 0.001045456656244892,
+      "subject": "sub-02",
+      "run": "run-001",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": -4.0,
+      "beta": -6.021513612026062,
+      "r2_gain": 0.0028265269755086697,
+      "subject": "sub-02",
+      "run": "run-001",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": -3.5,
+      "beta": -7.676917370959891,
+      "r2_gain": 0.004595216982088091,
+      "subject": "sub-02",
+      "run": "run-001",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": -3.0,
+      "beta": -8.57029630228032,
+      "r2_gain": 0.0057414034211699105,
+      "subject": "sub-02",
+      "run": "run-001",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": -2.5,
+      "beta": -8.413762482625263,
+      "r2_gain": 0.00555920192348458,
+      "subject": "sub-02",
+      "run": "run-001",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": -2.0,
+      "beta": -7.437639349160447,
+      "r2_gain": 0.00436418998532484,
+      "subject": "sub-02",
+      "run": "run-001",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": -1.5,
+      "beta": -5.77306467461357,
+      "r2_gain": 0.0026379083912121404,
+      "subject": "sub-02",
+      "run": "run-001",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": -1.0,
+      "beta": -3.7880882168267482,
+      "r2_gain": 0.0011355497171549045,
+      "subject": "sub-02",
+      "run": "run-001",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": -0.5,
+      "beta": -1.8416292847294395,
+      "r2_gain": 0.000267469287970723,
+      "subject": "sub-02",
+      "run": "run-001",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": 0.0,
+      "beta": -0.32812924242916375,
+      "r2_gain": 8.427602572802506e-06,
+      "subject": "sub-02",
+      "run": "run-001",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": 0.5,
+      "beta": 0.3770899426092488,
+      "r2_gain": 1.1012440800595158e-05,
+      "subject": "sub-02",
+      "run": "run-001",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": 1.0,
+      "beta": 0.22907398870911588,
+      "r2_gain": 4.022585581187066e-06,
+      "subject": "sub-02",
+      "run": "run-001",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": 1.5,
+      "beta": -0.757356528692721,
+      "r2_gain": 4.365993595523143e-05,
+      "subject": "sub-02",
+      "run": "run-001",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": 2.0,
+      "beta": -2.475745174149613,
+      "r2_gain": 0.00046526464116558586,
+      "subject": "sub-02",
+      "run": "run-001",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": 2.5,
+      "beta": -4.604004500606456,
+      "r2_gain": 0.0016100870425813651,
+      "subject": "sub-02",
+      "run": "run-001",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": 3.0,
+      "beta": -6.994893983805134,
+      "r2_gain": 0.0037226933612948265,
+      "subject": "sub-02",
+      "run": "run-001",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": 3.5,
+      "beta": -9.461692839939108,
+      "r2_gain": 0.006816862084012998,
+      "subject": "sub-02",
+      "run": "run-001",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": 4.0,
+      "beta": -11.980873411339134,
+      "r2_gain": 0.010902218072306735,
+      "subject": "sub-02",
+      "run": "run-001",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": 4.5,
+      "beta": -14.174939268263104,
+      "r2_gain": 0.01514256167618444,
+      "subject": "sub-02",
+      "run": "run-001",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": 5.0,
+      "beta": -15.909341380277175,
+      "r2_gain": 0.018873842852694223,
+      "subject": "sub-02",
+      "run": "run-001",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": 5.5,
+      "beta": -16.671275302531132,
+      "r2_gain": 0.02054528896078056,
+      "subject": "sub-02",
+      "run": "run-001",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": 6.0,
+      "beta": -16.25849193187674,
+      "r2_gain": 0.019498803558685607,
+      "subject": "sub-02",
+      "run": "run-001",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": -6.0,
+      "beta": 10.27538980350841,
+      "r2_gain": 0.006853761839640038,
+      "subject": "sub-02",
+      "run": "run-001",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": -5.5,
+      "beta": 6.52295641477112,
+      "r2_gain": 0.0027824330593281266,
+      "subject": "sub-02",
+      "run": "run-001",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": -5.0,
+      "beta": 2.088138884449214,
+      "r2_gain": 0.0002862936558839513,
+      "subject": "sub-02",
+      "run": "run-001",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": -4.5,
+      "beta": -2.5160106704468266,
+      "r2_gain": 0.00041620528416852487,
+      "subject": "sub-02",
+      "run": "run-001",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": -4.0,
+      "beta": -6.687357967548164,
+      "r2_gain": 0.002939142392773264,
+      "subject": "sub-02",
+      "run": "run-001",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": -3.5,
+      "beta": -9.955455818796102,
+      "r2_gain": 0.006515147979623048,
+      "subject": "sub-02",
+      "run": "run-001",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": -3.0,
+      "beta": -11.863762400603548,
+      "r2_gain": 0.009275577641379762,
+      "subject": "sub-02",
+      "run": "run-001",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": -2.5,
+      "beta": -12.36068294862981,
+      "r2_gain": 0.010115482005110699,
+      "subject": "sub-02",
+      "run": "run-001",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": -2.0,
+      "beta": -11.527425172361598,
+      "r2_gain": 0.008838279582294661,
+      "subject": "sub-02",
+      "run": "run-001",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": -1.5,
+      "beta": -9.63113470633709,
+      "r2_gain": 0.006189726688281216,
+      "subject": "sub-02",
+      "run": "run-001",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": -1.0,
+      "beta": -6.816245922421103,
+      "r2_gain": 0.0030997465228509435,
+      "subject": "sub-02",
+      "run": "run-001",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": -0.5,
+      "beta": -3.5589565926108153,
+      "r2_gain": 0.0008421405391104697,
+      "subject": "sub-02",
+      "run": "run-001",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": 0.0,
+      "beta": 0.14591535462536093,
+      "r2_gain": 1.4050308501101227e-06,
+      "subject": "sub-02",
+      "run": "run-001",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": 0.5,
+      "beta": 3.794808339861286,
+      "r2_gain": 0.0009402494226251612,
+      "subject": "sub-02",
+      "run": "run-001",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": 1.0,
+      "beta": 7.407618104384183,
+      "r2_gain": 0.0035463418760662835,
+      "subject": "sub-02",
+      "run": "run-001",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": 1.5,
+      "beta": 10.160881219526829,
+      "r2_gain": 0.006625441001998578,
+      "subject": "sub-02",
+      "run": "run-001",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": 2.0,
+      "beta": 11.931555385303994,
+      "r2_gain": 0.009110704990180851,
+      "subject": "sub-02",
+      "run": "run-001",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": 2.5,
+      "beta": 11.828514114908437,
+      "r2_gain": 0.008959998886741705,
+      "subject": "sub-02",
+      "run": "run-001",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": 3.0,
+      "beta": 10.349467759711285,
+      "r2_gain": 0.00687069576485988,
+      "subject": "sub-02",
+      "run": "run-001",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": 3.5,
+      "beta": 7.185414134965019,
+      "r2_gain": 0.0033145160013043906,
+      "subject": "sub-02",
+      "run": "run-001",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": 4.0,
+      "beta": 2.898039230055762,
+      "r2_gain": 0.0005377942083416576,
+      "subject": "sub-02",
+      "run": "run-001",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": 4.5,
+      "beta": -1.9921536118072865,
+      "r2_gain": 0.00025215772561071326,
+      "subject": "sub-02",
+      "run": "run-001",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": 5.0,
+      "beta": -6.824006885878551,
+      "r2_gain": 0.002927551477652557,
+      "subject": "sub-02",
+      "run": "run-001",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": 5.5,
+      "beta": -11.063882317493995,
+      "r2_gain": 0.007628855648861954,
+      "subject": "sub-02",
+      "run": "run-001",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": 6.0,
+      "beta": -14.02689126472866,
+      "r2_gain": 0.012236014978053489,
+      "subject": "sub-02",
+      "run": "run-001",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": -6.0,
+      "beta": -9.358773314439587,
+      "r2_gain": 0.009236422614756767,
+      "subject": "sub-02",
+      "run": "run-002",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": -5.5,
+      "beta": -14.883691150474325,
+      "r2_gain": 0.023115960904440125,
+      "subject": "sub-02",
+      "run": "run-002",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": -5.0,
+      "beta": -19.485866222581027,
+      "r2_gain": 0.039278154178617686,
+      "subject": "sub-02",
+      "run": "run-002",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": -4.5,
+      "beta": -22.370804480486147,
+      "r2_gain": 0.05147470169127644,
+      "subject": "sub-02",
+      "run": "run-002",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": -4.0,
+      "beta": -23.301405157583456,
+      "r2_gain": 0.055650331244349927,
+      "subject": "sub-02",
+      "run": "run-002",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": -3.5,
+      "beta": -21.85387430342863,
+      "r2_gain": 0.048907978230791294,
+      "subject": "sub-02",
+      "run": "run-002",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": -3.0,
+      "beta": -18.238806211759915,
+      "r2_gain": 0.0340779446825088,
+      "subject": "sub-02",
+      "run": "run-002",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": -2.5,
+      "beta": -12.636203466394281,
+      "r2_gain": 0.016372654509159035,
+      "subject": "sub-02",
+      "run": "run-002",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": -2.0,
+      "beta": -5.743309655309431,
+      "r2_gain": 0.0033775706193706068,
+      "subject": "sub-02",
+      "run": "run-002",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": -1.5,
+      "beta": 1.7377943760367303,
+      "r2_gain": 0.00030802382120520555,
+      "subject": "sub-02",
+      "run": "run-002",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": -1.0,
+      "beta": 9.02822129558146,
+      "r2_gain": 0.008264018539322127,
+      "subject": "sub-02",
+      "run": "run-002",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": -0.5,
+      "beta": 15.040771225906957,
+      "r2_gain": 0.02284095946208131,
+      "subject": "sub-02",
+      "run": "run-002",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": 0.0,
+      "beta": 18.78478687124859,
+      "r2_gain": 0.03571132285880285,
+      "subject": "sub-02",
+      "run": "run-002",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": 0.5,
+      "beta": 19.645292569798364,
+      "r2_gain": 0.03938983958251241,
+      "subject": "sub-02",
+      "run": "run-002",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": 1.0,
+      "beta": 17.477429295363084,
+      "r2_gain": 0.03153694341559732,
+      "subject": "sub-02",
+      "run": "run-002",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": 1.5,
+      "beta": 12.569095301004813,
+      "r2_gain": 0.016458510374456226,
+      "subject": "sub-02",
+      "run": "run-002",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": 2.0,
+      "beta": 5.883959410726525,
+      "r2_gain": 0.003617325404248306,
+      "subject": "sub-02",
+      "run": "run-002",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": 2.5,
+      "beta": -2.481202892136912,
+      "r2_gain": 0.000640751831074593,
+      "subject": "sub-02",
+      "run": "run-002",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": 3.0,
+      "beta": -11.204267735492616,
+      "r2_gain": 0.01297809172670683,
+      "subject": "sub-02",
+      "run": "run-002",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": 3.5,
+      "beta": -19.93000315367762,
+      "r2_gain": 0.040863107222789075,
+      "subject": "sub-02",
+      "run": "run-002",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": 4.0,
+      "beta": -27.45622572667573,
+      "r2_gain": 0.07748732476501652,
+      "subject": "sub-02",
+      "run": "run-002",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": 4.5,
+      "beta": -33.18979669775866,
+      "r2_gain": 0.11351040319255135,
+      "subject": "sub-02",
+      "run": "run-002",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": 5.0,
+      "beta": -36.49522978436831,
+      "r2_gain": 0.13749468375103469,
+      "subject": "sub-02",
+      "run": "run-002",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": 5.5,
+      "beta": -36.72306616652368,
+      "r2_gain": 0.13929047553919727,
+      "subject": "sub-02",
+      "run": "run-002",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": 6.0,
+      "beta": -33.96877118776692,
+      "r2_gain": 0.11881166773995211,
+      "subject": "sub-02",
+      "run": "run-002",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": -6.0,
+      "beta": -6.643326822214092,
+      "r2_gain": 0.0054749313323968485,
+      "subject": "sub-02",
+      "run": "run-002",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": -5.5,
+      "beta": -12.378394499070994,
+      "r2_gain": 0.018808787136356142,
+      "subject": "sub-02",
+      "run": "run-002",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": -5.0,
+      "beta": -17.514381908007564,
+      "r2_gain": 0.03732869162888053,
+      "subject": "sub-02",
+      "run": "run-002",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": -4.5,
+      "beta": -21.056690916300113,
+      "r2_gain": 0.05364785705305852,
+      "subject": "sub-02",
+      "run": "run-002",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": -4.0,
+      "beta": -22.513533469384544,
+      "r2_gain": 0.06111282441184818,
+      "subject": "sub-02",
+      "run": "run-002",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": -3.5,
+      "beta": -21.57663144667967,
+      "r2_gain": 0.05608304887362747,
+      "subject": "sub-02",
+      "run": "run-002",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": -3.0,
+      "beta": -18.34182446870201,
+      "r2_gain": 0.04054218411457633,
+      "subject": "sub-02",
+      "run": "run-002",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": -2.5,
+      "beta": -13.223666872152688,
+      "r2_gain": 0.021092651502758186,
+      "subject": "sub-02",
+      "run": "run-002",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": -2.0,
+      "beta": -6.8921535682175525,
+      "r2_gain": 0.0057217827619540085,
+      "subject": "sub-02",
+      "run": "run-002",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": -1.5,
+      "beta": 0.1536672728825007,
+      "r2_gain": 2.8332950141596314e-06,
+      "subject": "sub-02",
+      "run": "run-002",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": -1.0,
+      "beta": 6.98373781117347,
+      "r2_gain": 0.005817069385817719,
+      "subject": "sub-02",
+      "run": "run-002",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": -0.5,
+      "beta": 13.208335342810173,
+      "r2_gain": 0.020721052212538726,
+      "subject": "sub-02",
+      "run": "run-002",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": 0.0,
+      "beta": 17.854836041201207,
+      "r2_gain": 0.037953045148328424,
+      "subject": "sub-02",
+      "run": "run-002",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": 0.5,
+      "beta": 20.762964402415225,
+      "r2_gain": 0.051759184955828874,
+      "subject": "sub-02",
+      "run": "run-002",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": 1.0,
+      "beta": 21.438479728202044,
+      "r2_gain": 0.055820530676940594,
+      "subject": "sub-02",
+      "run": "run-002",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": 1.5,
+      "beta": 19.929392299951335,
+      "r2_gain": 0.04867568809212297,
+      "subject": "sub-02",
+      "run": "run-002",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": 2.0,
+      "beta": 16.3550480209118,
+      "r2_gain": 0.03287709142320805,
+      "subject": "sub-02",
+      "run": "run-002",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": 2.5,
+      "beta": 10.660088138571057,
+      "r2_gain": 0.013913243615370163,
+      "subject": "sub-02",
+      "run": "run-002",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": 3.0,
+      "beta": 3.4705878852717578,
+      "r2_gain": 0.001464844335750115,
+      "subject": "sub-02",
+      "run": "run-002",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": 3.5,
+      "beta": -4.834358517776028,
+      "r2_gain": 0.0028283676534758273,
+      "subject": "sub-02",
+      "run": "run-002",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": 4.0,
+      "beta": -13.092528170679858,
+      "r2_gain": 0.02072705157137189,
+      "subject": "sub-02",
+      "run": "run-002",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": 4.5,
+      "beta": -20.394603331002,
+      "r2_gain": 0.05041949687859992,
+      "subject": "sub-02",
+      "run": "run-002",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": 5.0,
+      "beta": -25.665312894072837,
+      "r2_gain": 0.07999232651651789,
+      "subject": "sub-02",
+      "run": "run-002",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": 5.5,
+      "beta": -28.18512595748897,
+      "r2_gain": 0.09652171075983584,
+      "subject": "sub-02",
+      "run": "run-002",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": 6.0,
+      "beta": -27.801456537711616,
+      "r2_gain": 0.09362159111723412,
+      "subject": "sub-02",
+      "run": "run-002",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": -6.0,
+      "beta": 8.132348190759762,
+      "r2_gain": 0.005765507522783708,
+      "subject": "sub-02",
+      "run": "run-003",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": -5.5,
+      "beta": -3.200029748413129,
+      "r2_gain": 0.0008767258049175997,
+      "subject": "sub-02",
+      "run": "run-003",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": -5.0,
+      "beta": -15.415449996632015,
+      "r2_gain": 0.019905128159323104,
+      "subject": "sub-02",
+      "run": "run-003",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": -4.5,
+      "beta": -26.661165670530092,
+      "r2_gain": 0.05852525386997198,
+      "subject": "sub-02",
+      "run": "run-003",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": -4.0,
+      "beta": -35.13401246831709,
+      "r2_gain": 0.10105021591040375,
+      "subject": "sub-02",
+      "run": "run-003",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": -3.5,
+      "beta": -39.411073262594435,
+      "r2_gain": 0.12825565371428704,
+      "subject": "sub-02",
+      "run": "run-003",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": -3.0,
+      "beta": -39.04906244361667,
+      "r2_gain": 0.12826796463645262,
+      "subject": "sub-02",
+      "run": "run-003",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": -2.5,
+      "beta": -34.585836471824216,
+      "r2_gain": 0.10284530539824499,
+      "subject": "sub-02",
+      "run": "run-003",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": -2.0,
+      "beta": -26.878350940737107,
+      "r2_gain": 0.06314671173955555,
+      "subject": "sub-02",
+      "run": "run-003",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": -1.5,
+      "beta": -17.06881011172101,
+      "r2_gain": 0.025635720910368254,
+      "subject": "sub-02",
+      "run": "run-003",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": -1.0,
+      "beta": -5.8861421013292405,
+      "r2_gain": 0.0030325193308119447,
+      "subject": "sub-02",
+      "run": "run-003",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": -0.5,
+      "beta": 5.618067040489805,
+      "r2_gain": 0.002722821562929467,
+      "subject": "sub-02",
+      "run": "run-003",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": 0.0,
+      "beta": 16.428074547951667,
+      "r2_gain": 0.022856262237486602,
+      "subject": "sub-02",
+      "run": "run-003",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": 0.5,
+      "beta": 25.30857811618739,
+      "r2_gain": 0.05354702606105499,
+      "subject": "sub-02",
+      "run": "run-003",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": 1.0,
+      "beta": 30.758760113793745,
+      "r2_gain": 0.07886188598640897,
+      "subject": "sub-02",
+      "run": "run-003",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": 1.5,
+      "beta": 32.502285627964625,
+      "r2_gain": 0.08896821681403955,
+      "subject": "sub-02",
+      "run": "run-003",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": 2.0,
+      "beta": 30.085482664540496,
+      "r2_gain": 0.07755703312670514,
+      "subject": "sub-02",
+      "run": "run-003",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": 2.5,
+      "beta": 24.30582753364822,
+      "r2_gain": 0.05155237667724455,
+      "subject": "sub-02",
+      "run": "run-003",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": 3.0,
+      "beta": 15.803762700536709,
+      "r2_gain": 0.02204879267000215,
+      "subject": "sub-02",
+      "run": "run-003",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": 3.5,
+      "beta": 5.245285898873096,
+      "r2_gain": 0.0024346449095575817,
+      "subject": "sub-02",
+      "run": "run-003",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": 4.0,
+      "beta": -6.606007343668948,
+      "r2_gain": 0.0038344691316595236,
+      "subject": "sub-02",
+      "run": "run-003",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": 4.5,
+      "beta": -18.603381838190163,
+      "r2_gain": 0.030002206934116704,
+      "subject": "sub-02",
+      "run": "run-003",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": 5.0,
+      "beta": -29.419011494361502,
+      "r2_gain": 0.07398928568012264,
+      "subject": "sub-02",
+      "run": "run-003",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": 5.5,
+      "beta": -37.240227096842325,
+      "r2_gain": 0.11754690284892078,
+      "subject": "sub-02",
+      "run": "run-003",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": 6.0,
+      "beta": -41.087226408412455,
+      "r2_gain": 0.14318161155034315,
+      "subject": "sub-02",
+      "run": "run-003",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": -6.0,
+      "beta": -0.7361664213266187,
+      "r2_gain": 6.153010722154129e-05,
+      "subject": "sub-02",
+      "run": "run-003",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": -5.5,
+      "beta": -7.241184009677209,
+      "r2_gain": 0.005846621453634238,
+      "subject": "sub-02",
+      "run": "run-003",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": -5.0,
+      "beta": -13.727718250435585,
+      "r2_gain": 0.020557927440129298,
+      "subject": "sub-02",
+      "run": "run-003",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": -4.5,
+      "beta": -18.997919502533822,
+      "r2_gain": 0.038701444563480014,
+      "subject": "sub-02",
+      "run": "run-003",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": -4.0,
+      "beta": -21.924589991420138,
+      "r2_gain": 0.05124774434421375,
+      "subject": "sub-02",
+      "run": "run-003",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": -3.5,
+      "beta": -22.08158088185763,
+      "r2_gain": 0.05243609842964492,
+      "subject": "sub-02",
+      "run": "run-003",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": -3.0,
+      "beta": -19.561648542814485,
+      "r2_gain": 0.041921608246225706,
+      "subject": "sub-02",
+      "run": "run-003",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": -2.5,
+      "beta": -15.216739283711812,
+      "r2_gain": 0.025927530533143672,
+      "subject": "sub-02",
+      "run": "run-003",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": -2.0,
+      "beta": -9.731593373154581,
+      "r2_gain": 0.010780613058277932,
+      "subject": "sub-02",
+      "run": "run-003",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": -1.5,
+      "beta": -3.9286942837763927,
+      "r2_gain": 0.0017687463684774585,
+      "subject": "sub-02",
+      "run": "run-003",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": -1.0,
+      "beta": 1.8477410472860203,
+      "r2_gain": 0.00038918344376293046,
+      "subject": "sub-02",
+      "run": "run-003",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": -0.5,
+      "beta": 7.126301735987782,
+      "r2_gain": 0.005705632703223218,
+      "subject": "sub-02",
+      "run": "run-003",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": 0.0,
+      "beta": 11.600520470866385,
+      "r2_gain": 0.014842835702062684,
+      "subject": "sub-02",
+      "run": "run-003",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": 0.5,
+      "beta": 14.95073252900702,
+      "r2_gain": 0.024336317187606316,
+      "subject": "sub-02",
+      "run": "run-003",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": 1.0,
+      "beta": 16.532508113455293,
+      "r2_gain": 0.029671332355262647,
+      "subject": "sub-02",
+      "run": "run-003",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": 1.5,
+      "beta": 16.464563456430966,
+      "r2_gain": 0.029732920650991312,
+      "subject": "sub-02",
+      "run": "run-003",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": 2.0,
+      "beta": 14.447389122721898,
+      "r2_gain": 0.023292495009797687,
+      "subject": "sub-02",
+      "run": "run-003",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": 2.5,
+      "beta": 10.873558245922586,
+      "r2_gain": 0.013436968180511988,
+      "subject": "sub-02",
+      "run": "run-003",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": 3.0,
+      "beta": 6.049762496198698,
+      "r2_gain": 0.004207949456364157,
+      "subject": "sub-02",
+      "run": "run-003",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": 3.5,
+      "beta": 0.31956412133866663,
+      "r2_gain": 1.1769103347880616e-05,
+      "subject": "sub-02",
+      "run": "run-003",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": 4.0,
+      "beta": -5.901100152883131,
+      "r2_gain": 0.003984952627713811,
+      "subject": "sub-02",
+      "run": "run-003",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": 4.5,
+      "beta": -11.835043315330871,
+      "r2_gain": 0.015813906099742314,
+      "subject": "sub-02",
+      "run": "run-003",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": 5.0,
+      "beta": -16.671171211761127,
+      "r2_gain": 0.030943893401600087,
+      "subject": "sub-02",
+      "run": "run-003",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": 5.5,
+      "beta": -19.43020971531429,
+      "r2_gain": 0.04167461301797304,
+      "subject": "sub-02",
+      "run": "run-003",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": 6.0,
+      "beta": -19.900277508560883,
+      "r2_gain": 0.04374434432995211,
+      "subject": "sub-02",
+      "run": "run-003",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": -6.0,
+      "beta": 5.303404585564526,
+      "r2_gain": 0.0014781461881429037,
+      "subject": "sub-02",
+      "run": "run-004",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": -5.5,
+      "beta": -6.942551836381864,
+      "r2_gain": 0.0025126148619132316,
+      "subject": "sub-02",
+      "run": "run-004",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": -5.0,
+      "beta": -19.011587754242896,
+      "r2_gain": 0.018664905981259583,
+      "subject": "sub-02",
+      "run": "run-004",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": -4.5,
+      "beta": -29.707656434852375,
+      "r2_gain": 0.04520387928945491,
+      "subject": "sub-02",
+      "run": "run-004",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": -4.0,
+      "beta": -37.46055866151873,
+      "r2_gain": 0.07164624731294988,
+      "subject": "sub-02",
+      "run": "run-004",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": -3.5,
+      "beta": -41.42464992821231,
+      "r2_gain": 0.08777504928165325,
+      "subject": "sub-02",
+      "run": "run-004",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": -3.0,
+      "beta": -40.830155757678064,
+      "r2_gain": 0.08582864202399809,
+      "subject": "sub-02",
+      "run": "run-004",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": -2.5,
+      "beta": -36.15158759611811,
+      "r2_gain": 0.06781429418062401,
+      "subject": "sub-02",
+      "run": "run-004",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": -2.0,
+      "beta": -27.94057420679099,
+      "r2_gain": 0.040729854648971275,
+      "subject": "sub-02",
+      "run": "run-004",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": -1.5,
+      "beta": -17.351025673696714,
+      "r2_gain": 0.015725251152227115,
+      "subject": "sub-02",
+      "run": "run-004",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": -1.0,
+      "beta": -5.639075368741487,
+      "r2_gain": 0.0016553979830130627,
+      "subject": "sub-02",
+      "run": "run-004",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": -0.5,
+      "beta": 5.8429086620545245,
+      "r2_gain": 0.0017668731611812927,
+      "subject": "sub-02",
+      "run": "run-004",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": 0.0,
+      "beta": 15.810722202959148,
+      "r2_gain": 0.012867589374425892,
+      "subject": "sub-02",
+      "run": "run-004",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": 0.5,
+      "beta": 22.936415882363573,
+      "r2_gain": 0.027052949299692042,
+      "subject": "sub-02",
+      "run": "run-004",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": 1.0,
+      "beta": 26.67413526854788,
+      "r2_gain": 0.036725366630967815,
+      "subject": "sub-02",
+      "run": "run-004",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": 1.5,
+      "beta": 26.652069994447007,
+      "r2_gain": 0.03699162289990676,
+      "subject": "sub-02",
+      "run": "run-004",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": 2.0,
+      "beta": 23.573905182094414,
+      "r2_gain": 0.02920160379666703,
+      "subject": "sub-02",
+      "run": "run-004",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": 2.5,
+      "beta": 17.493257767953686,
+      "r2_gain": 0.016174587037361188,
+      "subject": "sub-02",
+      "run": "run-004",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": 3.0,
+      "beta": 9.516673265667233,
+      "r2_gain": 0.004784725239998955,
+      "subject": "sub-02",
+      "run": "run-004",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": 3.5,
+      "beta": -0.5393661043673276,
+      "r2_gain": 1.5272523084530754e-05,
+      "subject": "sub-02",
+      "run": "run-004",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": 4.0,
+      "beta": -11.38593319345442,
+      "r2_gain": 0.006744651839041604,
+      "subject": "sub-02",
+      "run": "run-004",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": 4.5,
+      "beta": -22.394914028698757,
+      "r2_gain": 0.025845780417157238,
+      "subject": "sub-02",
+      "run": "run-004",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": 5.0,
+      "beta": -31.8817002742556,
+      "r2_gain": 0.052068428031278646,
+      "subject": "sub-02",
+      "run": "run-004",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": 5.5,
+      "beta": -38.4734619596911,
+      "r2_gain": 0.07571790840213743,
+      "subject": "sub-02",
+      "run": "run-004",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": 6.0,
+      "beta": -41.04548940133539,
+      "r2_gain": 0.08650742676754009,
+      "subject": "sub-02",
+      "run": "run-004",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": -6.0,
+      "beta": -0.5450080576047928,
+      "r2_gain": 2.5386718532360852e-05,
+      "subject": "sub-02",
+      "run": "run-004",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": -5.5,
+      "beta": -7.4770910040296625,
+      "r2_gain": 0.004739645376251156,
+      "subject": "sub-02",
+      "run": "run-004",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": -5.0,
+      "beta": -14.053437679301158,
+      "r2_gain": 0.01658620494556795,
+      "subject": "sub-02",
+      "run": "run-004",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": -4.5,
+      "beta": -19.40545993147931,
+      "r2_gain": 0.0313674818673737,
+      "subject": "sub-02",
+      "run": "run-004",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": -4.0,
+      "beta": -22.82525940539524,
+      "r2_gain": 0.043258279815621026,
+      "subject": "sub-02",
+      "run": "run-004",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": -3.5,
+      "beta": -23.765442087852083,
+      "r2_gain": 0.04698270707997276,
+      "subject": "sub-02",
+      "run": "run-004",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": -3.0,
+      "beta": -22.19394182579995,
+      "r2_gain": 0.04124125836403847,
+      "subject": "sub-02",
+      "run": "run-004",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": -2.5,
+      "beta": -18.34296060792364,
+      "r2_gain": 0.02839214590370298,
+      "subject": "sub-02",
+      "run": "run-004",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": -2.0,
+      "beta": -12.93453553232858,
+      "r2_gain": 0.014195043773331917,
+      "subject": "sub-02",
+      "run": "run-004",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": -1.5,
+      "beta": -6.548708959802628,
+      "r2_gain": 0.0036429358088927444,
+      "subject": "sub-02",
+      "run": "run-004",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": -1.0,
+      "beta": -0.02118740847235183,
+      "r2_gain": 3.80045117598371e-08,
+      "subject": "sub-02",
+      "run": "run-004",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": -0.5,
+      "beta": 5.968101271539865,
+      "r2_gain": 0.002997867270361887,
+      "subject": "sub-02",
+      "run": "run-004",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": 0.0,
+      "beta": 11.14622549859561,
+      "r2_gain": 0.010400214121999096,
+      "subject": "sub-02",
+      "run": "run-004",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": 0.5,
+      "beta": 14.764440899828864,
+      "r2_gain": 0.018230155553497496,
+      "subject": "sub-02",
+      "run": "run-004",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": 1.0,
+      "beta": 16.90711620520384,
+      "r2_gain": 0.02399481304488915,
+      "subject": "sub-02",
+      "run": "run-004",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": 1.5,
+      "beta": 17.181660982347232,
+      "r2_gain": 0.02500141790575383,
+      "subject": "sub-02",
+      "run": "run-004",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": 2.0,
+      "beta": 16.03644243079513,
+      "r2_gain": 0.021976197632490257,
+      "subject": "sub-02",
+      "run": "run-004",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": 2.5,
+      "beta": 13.376853737332537,
+      "r2_gain": 0.0153812850461309,
+      "subject": "sub-02",
+      "run": "run-004",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": 3.0,
+      "beta": 9.39275972054649,
+      "r2_gain": 0.007579943431801239,
+      "subject": "sub-02",
+      "run": "run-004",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": 3.5,
+      "beta": 4.184492686431331,
+      "r2_gain": 0.001494933827608902,
+      "subject": "sub-02",
+      "run": "run-004",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": 4.0,
+      "beta": -2.041489423122976,
+      "r2_gain": 0.00035262199290242435,
+      "subject": "sub-02",
+      "run": "run-004",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": 4.5,
+      "beta": -8.485257873334033,
+      "r2_gain": 0.006034117954356932,
+      "subject": "sub-02",
+      "run": "run-004",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": 5.0,
+      "beta": -14.482181541808249,
+      "r2_gain": 0.01747239121999844,
+      "subject": "sub-02",
+      "run": "run-004",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": 5.5,
+      "beta": -18.86407723967843,
+      "r2_gain": 0.029603295467076185,
+      "subject": "sub-02",
+      "run": "run-004",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": 6.0,
+      "beta": -21.14202432012251,
+      "r2_gain": 0.037325746902993395,
+      "subject": "sub-02",
+      "run": "run-004",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": -6.0,
+      "beta": 2.3778484504335196,
+      "r2_gain": 0.00043709967847982423,
+      "subject": "sub-02",
+      "run": "run-005",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": -5.5,
+      "beta": -9.642294307488207,
+      "r2_gain": 0.007162809585481433,
+      "subject": "sub-02",
+      "run": "run-005",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": -5.0,
+      "beta": -21.07605537525522,
+      "r2_gain": 0.03391732889968413,
+      "subject": "sub-02",
+      "run": "run-005",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": -4.5,
+      "beta": -30.621583554571483,
+      "r2_gain": 0.07082206400121593,
+      "subject": "sub-02",
+      "run": "run-005",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": -4.0,
+      "beta": -37.15882157508446,
+      "r2_gain": 0.10357799386994393,
+      "subject": "sub-02",
+      "run": "run-005",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": -3.5,
+      "beta": -39.26177274420302,
+      "r2_gain": 0.1156391339874927,
+      "subject": "sub-02",
+      "run": "run-005",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": -3.0,
+      "beta": -36.78902059984991,
+      "r2_gain": 0.10233386720646287,
+      "subject": "sub-02",
+      "run": "run-005",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": -2.5,
+      "beta": -29.631061730829042,
+      "r2_gain": 0.06727377542079327,
+      "subject": "sub-02",
+      "run": "run-005",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": -2.0,
+      "beta": -19.048553384458167,
+      "r2_gain": 0.02811577167140067,
+      "subject": "sub-02",
+      "run": "run-005",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": -1.5,
+      "beta": -5.880500593234064,
+      "r2_gain": 0.0026894492148878957,
+      "subject": "sub-02",
+      "run": "run-005",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": -1.0,
+      "beta": 8.35883024143258,
+      "r2_gain": 0.00538495117738047,
+      "subject": "sub-02",
+      "run": "run-005",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": -0.5,
+      "beta": 22.67477657518178,
+      "r2_gain": 0.03880783588971992,
+      "subject": "sub-02",
+      "run": "run-005",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": 0.0,
+      "beta": 35.30060853907424,
+      "r2_gain": 0.09137942972046009,
+      "subject": "sub-02",
+      "run": "run-005",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": 0.5,
+      "beta": 44.40680797783479,
+      "r2_gain": 0.1407161399655491,
+      "subject": "sub-02",
+      "run": "run-005",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": 1.0,
+      "beta": 47.9903067059044,
+      "r2_gain": 0.16154906218108267,
+      "subject": "sub-02",
+      "run": "run-005",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": 1.5,
+      "beta": 44.769546544200566,
+      "r2_gain": 0.1405906976491873,
+      "subject": "sub-02",
+      "run": "run-005",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": 2.0,
+      "beta": 35.352914065176435,
+      "r2_gain": 0.0893061509063714,
+      "subject": "sub-02",
+      "run": "run-005",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": 2.5,
+      "beta": 21.46593808886592,
+      "r2_gain": 0.03393187208357007,
+      "subject": "sub-02",
+      "run": "run-005",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": 3.0,
+      "beta": 5.643401818353467,
+      "r2_gain": 0.0024210918374796275,
+      "subject": "sub-02",
+      "run": "run-005",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": 3.5,
+      "beta": -10.502450161353718,
+      "r2_gain": 0.00858392389482776,
+      "subject": "sub-02",
+      "run": "run-005",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": 4.0,
+      "beta": -25.625658262099613,
+      "r2_gain": 0.05148294021105393,
+      "subject": "sub-02",
+      "run": "run-005",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": 4.5,
+      "beta": -39.1362639758221,
+      "r2_gain": 0.1189472140161224,
+      "subject": "sub-02",
+      "run": "run-005",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": 5.0,
+      "beta": -50.03107450805817,
+      "r2_gain": 0.19002196966392282,
+      "subject": "sub-02",
+      "run": "run-005",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": 5.5,
+      "beta": -56.729717603728794,
+      "r2_gain": 0.23816495204876442,
+      "subject": "sub-02",
+      "run": "run-005",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": 6.0,
+      "beta": -57.85095529522712,
+      "r2_gain": 0.2430799155649338,
+      "subject": "sub-02",
+      "run": "run-005",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": -6.0,
+      "beta": -6.644964274348353,
+      "r2_gain": 0.005028308821899863,
+      "subject": "sub-02",
+      "run": "run-005",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": -5.5,
+      "beta": -14.12450659048893,
+      "r2_gain": 0.022640901214422526,
+      "subject": "sub-02",
+      "run": "run-005",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": -5.0,
+      "beta": -20.053404633350688,
+      "r2_gain": 0.045231783627213584,
+      "subject": "sub-02",
+      "run": "run-005",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": -4.5,
+      "beta": -23.574993304329865,
+      "r2_gain": 0.0618359364984985,
+      "subject": "sub-02",
+      "run": "run-005",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": -4.0,
+      "beta": -24.076322848890033,
+      "r2_gain": 0.06405432297339286,
+      "subject": "sub-02",
+      "run": "run-005",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": -3.5,
+      "beta": -20.977311012601053,
+      "r2_gain": 0.04862830744762747,
+      "subject": "sub-02",
+      "run": "run-005",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": -3.0,
+      "beta": -15.010274594490225,
+      "r2_gain": 0.0250948559616746,
+      "subject": "sub-02",
+      "run": "run-005",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": -2.5,
+      "beta": -6.589650126257271,
+      "r2_gain": 0.004901179253306243,
+      "subject": "sub-02",
+      "run": "run-005",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": -2.0,
+      "beta": 2.7598529028159726,
+      "r2_gain": 0.0008694054899042181,
+      "subject": "sub-02",
+      "run": "run-005",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": -1.5,
+      "beta": 12.522293594405989,
+      "r2_gain": 0.017964991424043064,
+      "subject": "sub-02",
+      "run": "run-005",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": -1.0,
+      "beta": 21.432514894288893,
+      "r2_gain": 0.052150866257848705,
+      "subject": "sub-02",
+      "run": "run-005",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": -0.5,
+      "beta": 29.17953745526682,
+      "r2_gain": 0.09467050582191272,
+      "subject": "sub-02",
+      "run": "run-005",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": 0.0,
+      "beta": 34.392037392941646,
+      "r2_gain": 0.12776866775372986,
+      "subject": "sub-02",
+      "run": "run-005",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": 0.5,
+      "beta": 36.534909760644155,
+      "r2_gain": 0.14030895072216465,
+      "subject": "sub-02",
+      "run": "run-005",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": 1.0,
+      "beta": 34.309884483165426,
+      "r2_gain": 0.12163551565885,
+      "subject": "sub-02",
+      "run": "run-005",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": 1.5,
+      "beta": 27.942060006099425,
+      "r2_gain": 0.08067380398157464,
+      "subject": "sub-02",
+      "run": "run-005",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": 2.0,
+      "beta": 18.020896967557814,
+      "r2_gain": 0.034182847899306035,
+      "subject": "sub-02",
+      "run": "run-005",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": 2.5,
+      "beta": 6.460732028625696,
+      "r2_gain": 0.004527891707483245,
+      "subject": "sub-02",
+      "run": "run-005",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": 3.0,
+      "beta": -5.2078268535086005,
+      "r2_gain": 0.0030371545211023143,
+      "subject": "sub-02",
+      "run": "run-005",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": 3.5,
+      "beta": -15.820322519921325,
+      "r2_gain": 0.028691930130790078,
+      "subject": "sub-02",
+      "run": "run-005",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": 4.0,
+      "beta": -24.634236311891293,
+      "r2_gain": 0.0700835329044851,
+      "subject": "sub-02",
+      "run": "run-005",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": 4.5,
+      "beta": -31.342934300065227,
+      "r2_gain": 0.11238267065939256,
+      "subject": "sub-02",
+      "run": "run-005",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": 5.0,
+      "beta": -35.29852789680846,
+      "r2_gain": 0.13933551953041268,
+      "subject": "sub-02",
+      "run": "run-005",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": 5.5,
+      "beta": -35.65152517935028,
+      "r2_gain": 0.13855982774369957,
+      "subject": "sub-02",
+      "run": "run-005",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": 6.0,
+      "beta": -32.02178905399911,
+      "r2_gain": 0.10970936221187988,
+      "subject": "sub-02",
+      "run": "run-005",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": -6.0,
+      "beta": -6.548208793683191,
+      "r2_gain": 0.002039712009750727,
+      "subject": "sub-02",
+      "run": "run-006",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": -5.5,
+      "beta": -20.99629622447099,
+      "r2_gain": 0.020727001960668567,
+      "subject": "sub-02",
+      "run": "run-006",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": -5.0,
+      "beta": -33.38927106443541,
+      "r2_gain": 0.05240312917077927,
+      "subject": "sub-02",
+      "run": "run-006",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": -4.5,
+      "beta": -42.472331523179484,
+      "r2_gain": 0.08578790760018429,
+      "subject": "sub-02",
+      "run": "run-006",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": -4.0,
+      "beta": -47.037465703721004,
+      "r2_gain": 0.10715519928140227,
+      "subject": "sub-02",
+      "run": "run-006",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": -3.5,
+      "beta": -47.355100865026415,
+      "r2_gain": 0.11071583784183714,
+      "subject": "sub-02",
+      "run": "run-006",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": -3.0,
+      "beta": -43.1326225811029,
+      "r2_gain": 0.09317474564696193,
+      "subject": "sub-02",
+      "run": "run-006",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": -2.5,
+      "beta": -34.76653421704198,
+      "r2_gain": 0.0610388791998322,
+      "subject": "sub-02",
+      "run": "run-006",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": -2.0,
+      "beta": -23.000241108591887,
+      "r2_gain": 0.026775514580253845,
+      "subject": "sub-02",
+      "run": "run-006",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": -1.5,
+      "beta": -8.42945747660997,
+      "r2_gain": 0.003591147966502506,
+      "subject": "sub-02",
+      "run": "run-006",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": -1.0,
+      "beta": 7.22864709929168,
+      "r2_gain": 0.0026369321745405294,
+      "subject": "sub-02",
+      "run": "run-006",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": -0.5,
+      "beta": 22.427510863910424,
+      "r2_gain": 0.025413399881117238,
+      "subject": "sub-02",
+      "run": "run-006",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": 0.0,
+      "beta": 34.78938133238903,
+      "r2_gain": 0.06144418666668083,
+      "subject": "sub-02",
+      "run": "run-006",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": 0.5,
+      "beta": 42.92031422450244,
+      "r2_gain": 0.09419946916053978,
+      "subject": "sub-02",
+      "run": "run-006",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": 1.0,
+      "beta": 45.67740916296225,
+      "r2_gain": 0.10735778358646664,
+      "subject": "sub-02",
+      "run": "run-006",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": 1.5,
+      "beta": 43.05807614625397,
+      "r2_gain": 0.09563611456481824,
+      "subject": "sub-02",
+      "run": "run-006",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": 2.0,
+      "beta": 35.300011909506395,
+      "r2_gain": 0.0640075331203499,
+      "subject": "sub-02",
+      "run": "run-006",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": 2.5,
+      "beta": 23.465991202926414,
+      "r2_gain": 0.027955349862910372,
+      "subject": "sub-02",
+      "run": "run-006",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": 3.0,
+      "beta": 8.294899516344723,
+      "r2_gain": 0.0034319247306057177,
+      "subject": "sub-02",
+      "run": "run-006",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": 3.5,
+      "beta": -8.627237266421949,
+      "r2_gain": 0.0036408628045627722,
+      "subject": "sub-02",
+      "run": "run-006",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": 4.0,
+      "beta": -25.460149886163308,
+      "r2_gain": 0.03122391839605254,
+      "subject": "sub-02",
+      "run": "run-006",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": 4.5,
+      "beta": -39.94746048071744,
+      "r2_gain": 0.07644942531908694,
+      "subject": "sub-02",
+      "run": "run-006",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": 5.0,
+      "beta": -49.95820295690794,
+      "r2_gain": 0.12021574486191267,
+      "subject": "sub-02",
+      "run": "run-006",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": 5.5,
+      "beta": -54.36771731704873,
+      "r2_gain": 0.14423584985131055,
+      "subject": "sub-02",
+      "run": "run-006",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": 6.0,
+      "beta": -52.59944086766167,
+      "r2_gain": 0.13715799547165608,
+      "subject": "sub-02",
+      "run": "run-006",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": -6.0,
+      "beta": -20.69303512372786,
+      "r2_gain": 0.027839521193330996,
+      "subject": "sub-02",
+      "run": "run-006",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": -5.5,
+      "beta": -30.989632475861075,
+      "r2_gain": 0.061712553036922024,
+      "subject": "sub-02",
+      "run": "run-006",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": -5.0,
+      "beta": -37.86344694395067,
+      "r2_gain": 0.09210287719909727,
+      "subject": "sub-02",
+      "run": "run-006",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": -4.5,
+      "beta": -40.70643896799931,
+      "r2_gain": 0.10770345873408793,
+      "subject": "sub-02",
+      "run": "run-006",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": -4.0,
+      "beta": -38.920288563949164,
+      "r2_gain": 0.10026909112008564,
+      "subject": "sub-02",
+      "run": "run-006",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": -3.5,
+      "beta": -33.45903571099387,
+      "r2_gain": 0.07554271966056902,
+      "subject": "sub-02",
+      "run": "run-006",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": -3.0,
+      "beta": -24.850229093519832,
+      "r2_gain": 0.042270446502536196,
+      "subject": "sub-02",
+      "run": "run-006",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": -2.5,
+      "beta": -13.613987115139167,
+      "r2_gain": 0.01279216282867357,
+      "subject": "sub-02",
+      "run": "run-006",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": -2.0,
+      "beta": -1.3299255887393566,
+      "r2_gain": 0.00012235375135627446,
+      "subject": "sub-02",
+      "run": "run-006",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": -1.5,
+      "beta": 11.645459527865766,
+      "r2_gain": 0.009367784003990631,
+      "subject": "sub-02",
+      "run": "run-006",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": -1.0,
+      "beta": 23.314789592444587,
+      "r2_gain": 0.037491901746084966,
+      "subject": "sub-02",
+      "run": "run-006",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": -0.5,
+      "beta": 32.786072141134056,
+      "r2_gain": 0.07422820444703992,
+      "subject": "sub-02",
+      "run": "run-006",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": 0.0,
+      "beta": 38.396323039561985,
+      "r2_gain": 0.10229542676780112,
+      "subject": "sub-02",
+      "run": "run-006",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": 0.5,
+      "beta": 39.74521151866643,
+      "r2_gain": 0.11040324823217929,
+      "subject": "sub-02",
+      "run": "run-006",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": 1.0,
+      "beta": 36.56682252811819,
+      "r2_gain": 0.0940361014487755,
+      "subject": "sub-02",
+      "run": "run-006",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": 1.5,
+      "beta": 29.435641919674556,
+      "r2_gain": 0.06108706497220817,
+      "subject": "sub-02",
+      "run": "run-006",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": 2.0,
+      "beta": 19.115017953725175,
+      "r2_gain": 0.02565194869034626,
+      "subject": "sub-02",
+      "run": "run-006",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": 2.5,
+      "beta": 6.549854986779847,
+      "r2_gain": 0.002976734156195815,
+      "subject": "sub-02",
+      "run": "run-006",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": 3.0,
+      "beta": -7.128688629703988,
+      "r2_gain": 0.0034643705920169854,
+      "subject": "sub-02",
+      "run": "run-006",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": 3.5,
+      "beta": -20.602913171331174,
+      "r2_gain": 0.028379690214272335,
+      "subject": "sub-02",
+      "run": "run-006",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": 4.0,
+      "beta": -32.28536117571964,
+      "r2_gain": 0.068622469965687,
+      "subject": "sub-02",
+      "run": "run-006",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": 4.5,
+      "beta": -40.325330775526304,
+      "r2_gain": 0.10647344514241353,
+      "subject": "sub-02",
+      "run": "run-006",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": 5.0,
+      "beta": -43.71139325764283,
+      "r2_gain": 0.12578434446585718,
+      "subject": "sub-02",
+      "run": "run-006",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": 5.5,
+      "beta": -42.05361998550359,
+      "r2_gain": 0.11794712184467004,
+      "subject": "sub-02",
+      "run": "run-006",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": 6.0,
+      "beta": -35.85708768393767,
+      "r2_gain": 0.08711610643114409,
+      "subject": "sub-02",
+      "run": "run-006",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": -6.0,
+      "beta": 8.27694842467435,
+      "r2_gain": 0.004479582045629482,
+      "subject": "sub-04",
+      "run": "run-001",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": -5.5,
+      "beta": 8.037822189610322,
+      "r2_gain": 0.004301806588115187,
+      "subject": "sub-04",
+      "run": "run-001",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": -5.0,
+      "beta": 6.7533034822696765,
+      "r2_gain": 0.003080614778598334,
+      "subject": "sub-04",
+      "run": "run-001",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": -4.5,
+      "beta": 4.487544744609052,
+      "r2_gain": 0.0013670086649892887,
+      "subject": "sub-04",
+      "run": "run-001",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": -4.0,
+      "beta": 1.4915676321155797,
+      "r2_gain": 0.00014990047314844546,
+      "subject": "sub-04",
+      "run": "run-001",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": -3.5,
+      "beta": -2.0478085651310125,
+      "r2_gain": 0.0002773116241830964,
+      "subject": "sub-04",
+      "run": "run-001",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": -3.0,
+      "beta": -5.666576316609486,
+      "r2_gain": 0.0020741096360779032,
+      "subject": "sub-04",
+      "run": "run-001",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": -2.5,
+      "beta": -8.79923568866355,
+      "r2_gain": 0.004902352216880845,
+      "subject": "sub-04",
+      "run": "run-001",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": -2.0,
+      "beta": -10.951289243567956,
+      "r2_gain": 0.007560075595905769,
+      "subject": "sub-04",
+      "run": "run-001",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": -1.5,
+      "beta": -11.741434252558543,
+      "r2_gain": 0.008829012104458855,
+      "subject": "sub-04",
+      "run": "run-001",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": -1.0,
+      "beta": -11.44333299699791,
+      "r2_gain": 0.008664589198887573,
+      "subject": "sub-04",
+      "run": "run-001",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": -0.5,
+      "beta": -10.212087853352417,
+      "r2_gain": 0.007161939354270008,
+      "subject": "sub-04",
+      "run": "run-001",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": 0.0,
+      "beta": -8.702599736808077,
+      "r2_gain": 0.0053469372795138526,
+      "subject": "sub-04",
+      "run": "run-001",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": 0.5,
+      "beta": -6.8837584047350795,
+      "r2_gain": 0.003371048136956767,
+      "subject": "sub-04",
+      "run": "run-001",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": 1.0,
+      "beta": -5.050293855965133,
+      "r2_gain": 0.0017882169139187276,
+      "subject": "sub-04",
+      "run": "run-001",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": 1.5,
+      "beta": -3.1819690960272253,
+      "r2_gain": 0.0006879722813660782,
+      "subject": "sub-04",
+      "run": "run-001",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": 2.0,
+      "beta": -1.4798080992526002,
+      "r2_gain": 0.00014322607551253697,
+      "subject": "sub-04",
+      "run": "run-001",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": 2.5,
+      "beta": -0.005518130328781757,
+      "r2_gain": 1.928054604860563e-09,
+      "subject": "sub-04",
+      "run": "run-001",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": 3.0,
+      "beta": 1.0007959925149348,
+      "r2_gain": 6.221862784860921e-05,
+      "subject": "sub-04",
+      "run": "run-001",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": 3.5,
+      "beta": 1.6380349829118286,
+      "r2_gain": 0.00016623765420142878,
+      "subject": "sub-04",
+      "run": "run-001",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": 4.0,
+      "beta": 1.5941683333866457,
+      "r2_gain": 0.00015928658444008814,
+      "subject": "sub-04",
+      "run": "run-001",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": 4.5,
+      "beta": 1.412332270914791,
+      "r2_gain": 0.0001276631960961394,
+      "subject": "sub-04",
+      "run": "run-001",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": 5.0,
+      "beta": 0.8301309851690425,
+      "r2_gain": 4.514912367681312e-05,
+      "subject": "sub-04",
+      "run": "run-001",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": 5.5,
+      "beta": 0.25235620590060387,
+      "r2_gain": 4.244164356403957e-06,
+      "subject": "sub-04",
+      "run": "run-001",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": 6.0,
+      "beta": -0.199685744594616,
+      "r2_gain": 2.6737705250967636e-06,
+      "subject": "sub-04",
+      "run": "run-001",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": -6.0,
+      "beta": -1.496950469215597,
+      "r2_gain": 0.00019437189467752525,
+      "subject": "sub-04",
+      "run": "run-001",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": -5.5,
+      "beta": -3.291806946830332,
+      "r2_gain": 0.0009571156449750262,
+      "subject": "sub-04",
+      "run": "run-001",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": -5.0,
+      "beta": -5.1453935506451725,
+      "r2_gain": 0.0023722675391817383,
+      "subject": "sub-04",
+      "run": "run-001",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": -4.5,
+      "beta": -6.752801985961461,
+      "r2_gain": 0.004106230485359852,
+      "subject": "sub-04",
+      "run": "run-001",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": -4.0,
+      "beta": -8.198642126201262,
+      "r2_gain": 0.0060078982900722,
+      "subject": "sub-04",
+      "run": "run-001",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": -3.5,
+      "beta": -9.057044026555074,
+      "r2_gain": 0.007195880313201952,
+      "subject": "sub-04",
+      "run": "run-001",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": -3.0,
+      "beta": -9.46211975951014,
+      "r2_gain": 0.0076716488375787595,
+      "subject": "sub-04",
+      "run": "run-001",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": -2.5,
+      "beta": -8.720941728449436,
+      "r2_gain": 0.006387971769815426,
+      "subject": "sub-04",
+      "run": "run-001",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": -2.0,
+      "beta": -7.493729494532611,
+      "r2_gain": 0.0046958398000267465,
+      "subject": "sub-04",
+      "run": "run-001",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": -1.5,
+      "beta": -5.4323183059470175,
+      "r2_gain": 0.0025070433257037283,
+      "subject": "sub-04",
+      "run": "run-001",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": -1.0,
+      "beta": -3.5485521928120516,
+      "r2_gain": 0.0011052662507101685,
+      "subject": "sub-04",
+      "run": "run-001",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": -0.5,
+      "beta": -1.6434883554355124,
+      "r2_gain": 0.00024606872928012447,
+      "subject": "sub-04",
+      "run": "run-001",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": 0.0,
+      "beta": -0.21436274080281878,
+      "r2_gain": 4.303554260620679e-06,
+      "subject": "sub-04",
+      "run": "run-001",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": 0.5,
+      "beta": 1.0963006830160724,
+      "r2_gain": 0.0001134213189540878,
+      "subject": "sub-04",
+      "run": "run-001",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": 1.0,
+      "beta": 2.2026318427043976,
+      "r2_gain": 0.00045122415166676255,
+      "subject": "sub-04",
+      "run": "run-001",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": 1.5,
+      "beta": 3.1588084148417384,
+      "r2_gain": 0.0008993882467045466,
+      "subject": "sub-04",
+      "run": "run-001",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": 2.0,
+      "beta": 3.6865426916873365,
+      "r2_gain": 0.0011791564656734588,
+      "subject": "sub-04",
+      "run": "run-001",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": 2.5,
+      "beta": 3.782592797732445,
+      "r2_gain": 0.0012018111325179381,
+      "subject": "sub-04",
+      "run": "run-001",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": 3.0,
+      "beta": 3.0822877985667163,
+      "r2_gain": 0.0007828837836332259,
+      "subject": "sub-04",
+      "run": "run-001",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": 3.5,
+      "beta": 1.9514435084223787,
+      "r2_gain": 0.0003129800338548261,
+      "subject": "sub-04",
+      "run": "run-001",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": 4.0,
+      "beta": 0.17953234742624477,
+      "r2_gain": 2.6798955773399413e-06,
+      "subject": "sub-04",
+      "run": "run-001",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": 4.5,
+      "beta": -1.3767217635019577,
+      "r2_gain": 0.000160918476748928,
+      "subject": "sub-04",
+      "run": "run-001",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": 5.0,
+      "beta": -2.8455582565361883,
+      "r2_gain": 0.0007037406668163326,
+      "subject": "sub-04",
+      "run": "run-001",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": 5.5,
+      "beta": -3.7631388823010923,
+      "r2_gain": 0.0012519480782173797,
+      "subject": "sub-04",
+      "run": "run-001",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": 6.0,
+      "beta": -4.0834231828084215,
+      "r2_gain": 0.0014832023224963242,
+      "subject": "sub-04",
+      "run": "run-001",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": -6.0,
+      "beta": 23.354368687971537,
+      "r2_gain": 0.035362874188349935,
+      "subject": "sub-04",
+      "run": "run-002",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": -5.5,
+      "beta": 20.425723506907683,
+      "r2_gain": 0.02685075140468096,
+      "subject": "sub-04",
+      "run": "run-002",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": -5.0,
+      "beta": 16.244525382854402,
+      "r2_gain": 0.016806436789446155,
+      "subject": "sub-04",
+      "run": "run-002",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": -4.5,
+      "beta": 10.692061798347295,
+      "r2_gain": 0.007221057057016256,
+      "subject": "sub-04",
+      "run": "run-002",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": -4.0,
+      "beta": 4.764505921132776,
+      "r2_gain": 0.0014295479620248797,
+      "subject": "sub-04",
+      "run": "run-002",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": -3.5,
+      "beta": -1.0062093270091346,
+      "r2_gain": 6.38236762587896e-05,
+      "subject": "sub-04",
+      "run": "run-002",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": -3.0,
+      "beta": -5.660594707430071,
+      "r2_gain": 0.002027756290033489,
+      "subject": "sub-04",
+      "run": "run-002",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": -2.5,
+      "beta": -8.575350551956186,
+      "r2_gain": 0.004667508718384505,
+      "subject": "sub-04",
+      "run": "run-002",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": -2.0,
+      "beta": -9.655525369870384,
+      "r2_gain": 0.0059173593509244116,
+      "subject": "sub-04",
+      "run": "run-002",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": -1.5,
+      "beta": -8.778649589821805,
+      "r2_gain": 0.004880343884015481,
+      "subject": "sub-04",
+      "run": "run-002",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": -1.0,
+      "beta": -6.573268278057617,
+      "r2_gain": 0.0027320525805775153,
+      "subject": "sub-04",
+      "run": "run-002",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": -0.5,
+      "beta": -3.2745366490805687,
+      "r2_gain": 0.000679158376385991,
+      "subject": "sub-04",
+      "run": "run-002",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": 0.0,
+      "beta": 0.3919431357302921,
+      "r2_gain": 9.76526860951843e-06,
+      "subject": "sub-04",
+      "run": "run-002",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": 0.5,
+      "beta": 4.01486121083605,
+      "r2_gain": 0.0010265976427973333,
+      "subject": "sub-04",
+      "run": "run-002",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": 1.0,
+      "beta": 7.244584898053343,
+      "r2_gain": 0.0033436705873967076,
+      "subject": "sub-04",
+      "run": "run-002",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": 1.5,
+      "beta": 9.480918401655064,
+      "r2_gain": 0.005726984067243479,
+      "subject": "sub-04",
+      "run": "run-002",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": 2.0,
+      "beta": 10.577051497462746,
+      "r2_gain": 0.007140499603792483,
+      "subject": "sub-04",
+      "run": "run-002",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": 2.5,
+      "beta": 10.03226755884136,
+      "r2_gain": 0.006445477191445836,
+      "subject": "sub-04",
+      "run": "run-002",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": 3.0,
+      "beta": 8.314542992648907,
+      "r2_gain": 0.004432646679360497,
+      "subject": "sub-04",
+      "run": "run-002",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": 3.5,
+      "beta": 5.143126498767159,
+      "r2_gain": 0.0016930728413366847,
+      "subject": "sub-04",
+      "run": "run-002",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": 4.0,
+      "beta": 1.3453175125955166,
+      "r2_gain": 0.00011525822530522589,
+      "subject": "sub-04",
+      "run": "run-002",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": 4.5,
+      "beta": -3.1592978786887125,
+      "r2_gain": 0.0006325831882318944,
+      "subject": "sub-04",
+      "run": "run-002",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": 5.0,
+      "beta": -7.749170163468807,
+      "r2_gain": 0.003795303987923382,
+      "subject": "sub-04",
+      "run": "run-002",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": 5.5,
+      "beta": -11.978290270531852,
+      "r2_gain": 0.00906227367873802,
+      "subject": "sub-04",
+      "run": "run-002",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": 6.0,
+      "beta": -15.348863951549058,
+      "r2_gain": 0.014874593390371338,
+      "subject": "sub-04",
+      "run": "run-002",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": -6.0,
+      "beta": 11.372933449470283,
+      "r2_gain": 0.010556603797083342,
+      "subject": "sub-04",
+      "run": "run-002",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": -5.5,
+      "beta": 7.6527237399259995,
+      "r2_gain": 0.0047446212799874266,
+      "subject": "sub-04",
+      "run": "run-002",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": -5.0,
+      "beta": 3.7490151928339372,
+      "r2_gain": 0.0011268443403327222,
+      "subject": "sub-04",
+      "run": "run-002",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": -4.5,
+      "beta": -0.07265490143966155,
+      "r2_gain": 4.197354270818465e-07,
+      "subject": "sub-04",
+      "run": "run-002",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": -4.0,
+      "beta": -3.3987220547078416,
+      "r2_gain": 0.0009157189946733535,
+      "subject": "sub-04",
+      "run": "run-002",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": -3.5,
+      "beta": -5.796537166640769,
+      "r2_gain": 0.002666308044905863,
+      "subject": "sub-04",
+      "run": "run-002",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": -3.0,
+      "beta": -6.959599195343286,
+      "r2_gain": 0.003858584615673677,
+      "subject": "sub-04",
+      "run": "run-002",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": -2.5,
+      "beta": -6.6114605277460035,
+      "r2_gain": 0.0034925620134266255,
+      "subject": "sub-04",
+      "run": "run-002",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": -2.0,
+      "beta": -5.149528123856944,
+      "r2_gain": 0.0021187461619407433,
+      "subject": "sub-04",
+      "run": "run-002",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": -1.5,
+      "beta": -2.545755547673083,
+      "r2_gain": 0.0005166498756361548,
+      "subject": "sub-04",
+      "run": "run-002",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": -1.0,
+      "beta": 0.2602094436770872,
+      "r2_gain": 5.389399541200213e-06,
+      "subject": "sub-04",
+      "run": "run-002",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": -0.5,
+      "beta": 3.1452199829885616,
+      "r2_gain": 0.0007887535695448866,
+      "subject": "sub-04",
+      "run": "run-002",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": 0.0,
+      "beta": 5.460330178756776,
+      "r2_gain": 0.0023858537153074177,
+      "subject": "sub-04",
+      "run": "run-002",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": 0.5,
+      "beta": 7.125134948986306,
+      "r2_gain": 0.0040701771538673714,
+      "subject": "sub-04",
+      "run": "run-002",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": 1.0,
+      "beta": 8.004825563342472,
+      "r2_gain": 0.005138876162386952,
+      "subject": "sub-04",
+      "run": "run-002",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": 1.5,
+      "beta": 7.794983756572855,
+      "r2_gain": 0.004873304193089956,
+      "subject": "sub-04",
+      "run": "run-002",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": 2.0,
+      "beta": 6.491314930527927,
+      "r2_gain": 0.0033855766896824235,
+      "subject": "sub-04",
+      "run": "run-002",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": 2.5,
+      "beta": 3.9639907140243578,
+      "r2_gain": 0.0012667474976916226,
+      "subject": "sub-04",
+      "run": "run-002",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": 3.0,
+      "beta": 0.5763840369539226,
+      "r2_gain": 2.681502292589677e-05,
+      "subject": "sub-04",
+      "run": "run-002",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": 3.5,
+      "beta": -3.5130392830533306,
+      "r2_gain": 0.0009943864040820038,
+      "subject": "sub-04",
+      "run": "run-002",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": 4.0,
+      "beta": -7.671734882709847,
+      "r2_gain": 0.004718211926436733,
+      "subject": "sub-04",
+      "run": "run-002",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": 4.5,
+      "beta": -11.585431688384132,
+      "r2_gain": 0.01070850565328596,
+      "subject": "sub-04",
+      "run": "run-002",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": 5.0,
+      "beta": -14.969705294472176,
+      "r2_gain": 0.01782914870722563,
+      "subject": "sub-04",
+      "run": "run-002",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": 5.5,
+      "beta": -17.278869741984177,
+      "r2_gain": 0.023738108107890232,
+      "subject": "sub-04",
+      "run": "run-002",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": 6.0,
+      "beta": -18.49692384575413,
+      "r2_gain": 0.027193153937892345,
+      "subject": "sub-04",
+      "run": "run-002",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": -6.0,
+      "beta": 22.86793631610678,
+      "r2_gain": 0.03696708469507992,
+      "subject": "sub-04",
+      "run": "run-003",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": -5.5,
+      "beta": 15.745591295887449,
+      "r2_gain": 0.017380573948200584,
+      "subject": "sub-04",
+      "run": "run-003",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": -5.0,
+      "beta": 7.2631802348604495,
+      "r2_gain": 0.003665754229453033,
+      "subject": "sub-04",
+      "run": "run-003",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": -4.5,
+      "beta": -1.844195373161378,
+      "r2_gain": 0.00023435480042310886,
+      "subject": "sub-04",
+      "run": "run-003",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": -4.0,
+      "beta": -10.561971269922314,
+      "r2_gain": 0.0076572018974149225,
+      "subject": "sub-04",
+      "run": "run-003",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": -3.5,
+      "beta": -17.971677748753567,
+      "r2_gain": 0.022194806563700764,
+      "subject": "sub-04",
+      "run": "run-003",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": -3.0,
+      "beta": -23.20587334706918,
+      "r2_gain": 0.03724369598903776,
+      "subject": "sub-04",
+      "run": "run-003",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": -2.5,
+      "beta": -25.736808414507877,
+      "r2_gain": 0.046192274590886706,
+      "subject": "sub-04",
+      "run": "run-003",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": -2.0,
+      "beta": -25.637366429128566,
+      "r2_gain": 0.04612622689816903,
+      "subject": "sub-04",
+      "run": "run-003",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": -1.5,
+      "beta": -23.225498408584816,
+      "r2_gain": 0.03789562837910121,
+      "subject": "sub-04",
+      "run": "run-003",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": -1.0,
+      "beta": -18.86063060799651,
+      "r2_gain": 0.02488550297608827,
+      "subject": "sub-04",
+      "run": "run-003",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": -0.5,
+      "beta": -13.247600876621462,
+      "r2_gain": 0.012197397351088268,
+      "subject": "sub-04",
+      "run": "run-003",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": 0.0,
+      "beta": -6.730340277958666,
+      "r2_gain": 0.0031277462034317027,
+      "subject": "sub-04",
+      "run": "run-003",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": 0.5,
+      "beta": -0.3261917279977991,
+      "r2_gain": 7.3306214658508395e-06,
+      "subject": "sub-04",
+      "run": "run-003",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": 1.0,
+      "beta": 5.541751046402419,
+      "r2_gain": 0.002119855918227165,
+      "subject": "sub-04",
+      "run": "run-003",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": 1.5,
+      "beta": 9.921705651616854,
+      "r2_gain": 0.006835689210941798,
+      "subject": "sub-04",
+      "run": "run-003",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": 2.0,
+      "beta": 12.480041449696698,
+      "r2_gain": 0.010900906564561774,
+      "subject": "sub-04",
+      "run": "run-003",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": 2.5,
+      "beta": 12.97665298936473,
+      "r2_gain": 0.011853043149971931,
+      "subject": "sub-04",
+      "run": "run-003",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": 3.0,
+      "beta": 11.454991451144414,
+      "r2_gain": 0.009243824453690874,
+      "subject": "sub-04",
+      "run": "run-003",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": 3.5,
+      "beta": 8.198529621161365,
+      "r2_gain": 0.004708880448204833,
+      "subject": "sub-04",
+      "run": "run-003",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": 4.0,
+      "beta": 3.2580833591971254,
+      "r2_gain": 0.0007364518422434685,
+      "subject": "sub-04",
+      "run": "run-003",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": 4.5,
+      "beta": -2.375567999980696,
+      "r2_gain": 0.0003875653011846669,
+      "subject": "sub-04",
+      "run": "run-003",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": 5.0,
+      "beta": -8.435244235343598,
+      "r2_gain": 0.004853305424425303,
+      "subject": "sub-04",
+      "run": "run-003",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": 5.5,
+      "beta": -13.620300710148545,
+      "r2_gain": 0.01263582813303099,
+      "subject": "sub-04",
+      "run": "run-003",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": 6.0,
+      "beta": -17.507184218795242,
+      "r2_gain": 0.0209383288878916,
+      "subject": "sub-04",
+      "run": "run-003",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": -6.0,
+      "beta": 7.224195160565216,
+      "r2_gain": 0.004526279171432113,
+      "subject": "sub-04",
+      "run": "run-003",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": -5.5,
+      "beta": -1.0636007837382127,
+      "r2_gain": 9.729815500880701e-05,
+      "subject": "sub-04",
+      "run": "run-003",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": -5.0,
+      "beta": -9.088854654449507,
+      "r2_gain": 0.007042537389739034,
+      "subject": "sub-04",
+      "run": "run-003",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": -4.5,
+      "beta": -16.14981471304672,
+      "r2_gain": 0.022049372196644823,
+      "subject": "sub-04",
+      "run": "run-003",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": -4.0,
+      "beta": -21.317349995710384,
+      "r2_gain": 0.03826905241593581,
+      "subject": "sub-04",
+      "run": "run-003",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": -3.5,
+      "beta": -24.13724413340427,
+      "r2_gain": 0.04911912570658139,
+      "subject": "sub-04",
+      "run": "run-003",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": -3.0,
+      "beta": -24.391623792633276,
+      "r2_gain": 0.050482343372427185,
+      "subject": "sub-04",
+      "run": "run-003",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": -2.5,
+      "beta": -22.056208123761557,
+      "r2_gain": 0.04162198745288337,
+      "subject": "sub-04",
+      "run": "run-003",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": -2.0,
+      "beta": -17.80606601112412,
+      "r2_gain": 0.027298463948026153,
+      "subject": "sub-04",
+      "run": "run-003",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": -1.5,
+      "beta": -12.199936659038675,
+      "r2_gain": 0.012828483569926052,
+      "subject": "sub-04",
+      "run": "run-003",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": -1.0,
+      "beta": -5.916976256598233,
+      "r2_gain": 0.0030049330486826564,
+      "subject": "sub-04",
+      "run": "run-003",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": -0.5,
+      "beta": 0.3946357471835938,
+      "r2_gain": 1.327965183273161e-05,
+      "subject": "sub-04",
+      "run": "run-003",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": 0.0,
+      "beta": 6.176836651340431,
+      "r2_gain": 0.0032321450076922,
+      "subject": "sub-04",
+      "run": "run-003",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": 0.5,
+      "beta": 10.818066847902763,
+      "r2_gain": 0.009892256564288715,
+      "subject": "sub-04",
+      "run": "run-003",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": 1.0,
+      "beta": 13.884684758602717,
+      "r2_gain": 0.01632621496586495,
+      "subject": "sub-04",
+      "run": "run-003",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": 1.5,
+      "beta": 14.969068730644834,
+      "r2_gain": 0.01908975433202309,
+      "subject": "sub-04",
+      "run": "run-003",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": 2.0,
+      "beta": 13.849116762234429,
+      "r2_gain": 0.016469327207954465,
+      "subject": "sub-04",
+      "run": "run-003",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": 2.5,
+      "beta": 10.85918575383005,
+      "r2_gain": 0.010183572271364238,
+      "subject": "sub-04",
+      "run": "run-003",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": 3.0,
+      "beta": 6.118067929484177,
+      "r2_gain": 0.0032351310852435367,
+      "subject": "sub-04",
+      "run": "run-003",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": 3.5,
+      "beta": 0.4634799794073951,
+      "r2_gain": 1.8463278686042806e-05,
+      "subject": "sub-04",
+      "run": "run-003",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": 4.0,
+      "beta": -5.805900113056319,
+      "r2_gain": 0.0028691961001837685,
+      "subject": "sub-04",
+      "run": "run-003",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": 4.5,
+      "beta": -11.401370705480852,
+      "r2_gain": 0.010952801845278248,
+      "subject": "sub-04",
+      "run": "run-003",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": 5.0,
+      "beta": -15.94672199880136,
+      "r2_gain": 0.02128071857766889,
+      "subject": "sub-04",
+      "run": "run-003",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": 5.5,
+      "beta": -18.338705700050546,
+      "r2_gain": 0.02810404439410097,
+      "subject": "sub-04",
+      "run": "run-003",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": 6.0,
+      "beta": -18.445564182646763,
+      "r2_gain": 0.02851638327485606,
+      "subject": "sub-04",
+      "run": "run-003",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": -6.0,
+      "beta": 19.773017620634487,
+      "r2_gain": 0.03148492237303957,
+      "subject": "sub-04",
+      "run": "run-004",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": -5.5,
+      "beta": 14.770335673785155,
+      "r2_gain": 0.017337171138118168,
+      "subject": "sub-04",
+      "run": "run-004",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": -5.0,
+      "beta": 8.28743029003614,
+      "r2_gain": 0.005414021412813774,
+      "subject": "sub-04",
+      "run": "run-004",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": -4.5,
+      "beta": 1.252935575403405,
+      "r2_gain": 0.00012391374173126302,
+      "subject": "sub-04",
+      "run": "run-004",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": -4.0,
+      "beta": -5.240756479871214,
+      "r2_gain": 0.0021889348991993574,
+      "subject": "sub-04",
+      "run": "run-004",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": -3.5,
+      "beta": -10.713999694114884,
+      "r2_gain": 0.009227338073729219,
+      "subject": "sub-04",
+      "run": "run-004",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": -3.0,
+      "beta": -14.242133596741454,
+      "r2_gain": 0.016282774573767478,
+      "subject": "sub-04",
+      "run": "run-004",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": -2.5,
+      "beta": -15.644632183733394,
+      "r2_gain": 0.019356321007122257,
+      "subject": "sub-04",
+      "run": "run-004",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": -2.0,
+      "beta": -14.62152685335006,
+      "r2_gain": 0.016508475994320926,
+      "subject": "sub-04",
+      "run": "run-004",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": -1.5,
+      "beta": -10.98046828304199,
+      "r2_gain": 0.009126558181720146,
+      "subject": "sub-04",
+      "run": "run-004",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": -1.0,
+      "beta": -5.571017432586691,
+      "r2_gain": 0.0023387151777897186,
+      "subject": "sub-04",
+      "run": "run-004",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": -0.5,
+      "beta": 0.9407590598861633,
+      "r2_gain": 6.781499660613033e-05,
+      "subject": "sub-04",
+      "run": "run-004",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": 0.0,
+      "beta": 6.954551327157148,
+      "r2_gain": 0.0038030128193695667,
+      "subject": "sub-04",
+      "run": "run-004",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": 0.5,
+      "beta": 12.107852416169628,
+      "r2_gain": 0.011777310607797853,
+      "subject": "sub-04",
+      "run": "run-004",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": 1.0,
+      "beta": 15.965908078947024,
+      "r2_gain": 0.020605841807902592,
+      "subject": "sub-04",
+      "run": "run-004",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": 1.5,
+      "beta": 18.326065757842137,
+      "r2_gain": 0.026870477076562094,
+      "subject": "sub-04",
+      "run": "run-004",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": 2.0,
+      "beta": 18.759605913367743,
+      "r2_gain": 0.027595568712767582,
+      "subject": "sub-04",
+      "run": "run-004",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": 2.5,
+      "beta": 17.173309942293777,
+      "r2_gain": 0.022664675746403518,
+      "subject": "sub-04",
+      "run": "run-004",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": 3.0,
+      "beta": 13.351308559288137,
+      "r2_gain": 0.01349792722351617,
+      "subject": "sub-04",
+      "run": "run-004",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": 3.5,
+      "beta": 8.051565716702411,
+      "r2_gain": 0.004884484881495954,
+      "subject": "sub-04",
+      "run": "run-004",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": 4.0,
+      "beta": 1.7345891160694116,
+      "r2_gain": 0.00022789788092913987,
+      "subject": "sub-04",
+      "run": "run-004",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": 4.5,
+      "beta": -4.732046371023476,
+      "r2_gain": 0.001721655576173431,
+      "subject": "sub-04",
+      "run": "run-004",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": 5.0,
+      "beta": -10.371175694781048,
+      "r2_gain": 0.008439484979463896,
+      "subject": "sub-04",
+      "run": "run-004",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": 5.5,
+      "beta": -14.606577015726703,
+      "r2_gain": 0.017073772596153725,
+      "subject": "sub-04",
+      "run": "run-004",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": 6.0,
+      "beta": -17.282221423973645,
+      "r2_gain": 0.02415867723784748,
+      "subject": "sub-04",
+      "run": "run-004",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": -6.0,
+      "beta": 9.634402470705176,
+      "r2_gain": 0.00885950832224347,
+      "subject": "sub-04",
+      "run": "run-004",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": -5.5,
+      "beta": 5.647383531259973,
+      "r2_gain": 0.003003968695383996,
+      "subject": "sub-04",
+      "run": "run-004",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": -5.0,
+      "beta": 1.4933463881669173,
+      "r2_gain": 0.00020835533975471776,
+      "subject": "sub-04",
+      "run": "run-004",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": -4.5,
+      "beta": -2.3810271763451936,
+      "r2_gain": 0.000530388410303062,
+      "subject": "sub-04",
+      "run": "run-004",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": -4.0,
+      "beta": -5.237628146672169,
+      "r2_gain": 0.0025912990747253284,
+      "subject": "sub-04",
+      "run": "run-004",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": -3.5,
+      "beta": -7.052681710098585,
+      "r2_gain": 0.004738982153239646,
+      "subject": "sub-04",
+      "run": "run-004",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": -3.0,
+      "beta": -7.259114117906207,
+      "r2_gain": 0.005013590725550965,
+      "subject": "sub-04",
+      "run": "run-004",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": -2.5,
+      "beta": -5.95704452192665,
+      "r2_gain": 0.0033262671334762794,
+      "subject": "sub-04",
+      "run": "run-004",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": -2.0,
+      "beta": -3.1824908036672683,
+      "r2_gain": 0.0009269561192040143,
+      "subject": "sub-04",
+      "run": "run-004",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": -1.5,
+      "beta": 0.9320823755202976,
+      "r2_gain": 7.794301948571558e-05,
+      "subject": "sub-04",
+      "run": "run-004",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": -1.0,
+      "beta": 5.372730050455647,
+      "r2_gain": 0.0025781113490145335,
+      "subject": "sub-04",
+      "run": "run-004",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": -0.5,
+      "beta": 9.613690548450727,
+      "r2_gain": 0.00839368242591454,
+      "subject": "sub-04",
+      "run": "run-004",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": 0.0,
+      "beta": 12.67597413835073,
+      "r2_gain": 0.014974611907252022,
+      "subject": "sub-04",
+      "run": "run-004",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": 0.5,
+      "beta": 14.63588361095547,
+      "r2_gain": 0.0203963810502632,
+      "subject": "sub-04",
+      "run": "run-004",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": 1.0,
+      "beta": 15.504473543914173,
+      "r2_gain": 0.023031408152557775,
+      "subject": "sub-04",
+      "run": "run-004",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": 1.5,
+      "beta": 15.073392600203729,
+      "r2_gain": 0.021545781376415385,
+      "subject": "sub-04",
+      "run": "run-004",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": 2.0,
+      "beta": 13.239492355974216,
+      "r2_gain": 0.01629063166979594,
+      "subject": "sub-04",
+      "run": "run-004",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": 2.5,
+      "beta": 9.974752193590403,
+      "r2_gain": 0.009062521610057384,
+      "subject": "sub-04",
+      "run": "run-004",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": 3.0,
+      "beta": 5.445207909304103,
+      "r2_gain": 0.0026610417024651722,
+      "subject": "sub-04",
+      "run": "run-004",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": 3.5,
+      "beta": 0.35755619228160374,
+      "r2_gain": 1.1416948026865548e-05,
+      "subject": "sub-04",
+      "run": "run-004",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": 4.0,
+      "beta": -4.786380582615321,
+      "r2_gain": 0.0020566710731937388,
+      "subject": "sub-04",
+      "run": "run-004",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": 4.5,
+      "beta": -9.380306949013418,
+      "r2_gain": 0.008018363134771778,
+      "subject": "sub-04",
+      "run": "run-004",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": 5.0,
+      "beta": -12.704557550320253,
+      "r2_gain": 0.015010058403868709,
+      "subject": "sub-04",
+      "run": "run-004",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": 5.5,
+      "beta": -14.488798124179116,
+      "r2_gain": 0.01991134697688901,
+      "subject": "sub-04",
+      "run": "run-004",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": 6.0,
+      "beta": -14.81041969576384,
+      "r2_gain": 0.02102868345579223,
+      "subject": "sub-04",
+      "run": "run-004",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": -6.0,
+      "beta": 28.144796918321905,
+      "r2_gain": 0.11223067457596292,
+      "subject": "sub-04",
+      "run": "run-005",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": -5.5,
+      "beta": 21.76666517460248,
+      "r2_gain": 0.06581820615975831,
+      "subject": "sub-04",
+      "run": "run-005",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": -5.0,
+      "beta": 12.390309421619298,
+      "r2_gain": 0.02101818704327707,
+      "subject": "sub-04",
+      "run": "run-005",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": -4.5,
+      "beta": 1.1130460393752422,
+      "r2_gain": 0.00016915483462465186,
+      "subject": "sub-04",
+      "run": "run-005",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": -4.0,
+      "beta": -10.637173321042354,
+      "r2_gain": 0.01562304398225356,
+      "subject": "sub-04",
+      "run": "run-005",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": -3.5,
+      "beta": -21.03484832981097,
+      "r2_gain": 0.06212346549365155,
+      "subject": "sub-04",
+      "run": "run-005",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": -3.0,
+      "beta": -29.007605913448664,
+      "r2_gain": 0.11964399378118906,
+      "subject": "sub-04",
+      "run": "run-005",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": -2.5,
+      "beta": -33.97379852394024,
+      "r2_gain": 0.16440987309217725,
+      "subject": "sub-04",
+      "run": "run-005",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": -2.0,
+      "beta": -35.458030123209056,
+      "r2_gain": 0.17747748728327362,
+      "subject": "sub-04",
+      "run": "run-005",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": -1.5,
+      "beta": -33.01976092773388,
+      "r2_gain": 0.1517556895729667,
+      "subject": "sub-04",
+      "run": "run-005",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": -1.0,
+      "beta": -26.846106078825187,
+      "r2_gain": 0.0994211964677375,
+      "subject": "sub-04",
+      "run": "run-005",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": -0.5,
+      "beta": -17.613819074430776,
+      "r2_gain": 0.042811053378353225,
+      "subject": "sub-04",
+      "run": "run-005",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": 0.0,
+      "beta": -7.042653476765481,
+      "r2_gain": 0.006901933191163723,
+      "subject": "sub-04",
+      "run": "run-005",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": 0.5,
+      "beta": 3.5093334431279932,
+      "r2_gain": 0.0017302378809493923,
+      "subject": "sub-04",
+      "run": "run-005",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": 1.0,
+      "beta": 12.633448032527536,
+      "r2_gain": 0.022519827016154847,
+      "subject": "sub-04",
+      "run": "run-005",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": 1.5,
+      "beta": 19.757908722102936,
+      "r2_gain": 0.05503251603109072,
+      "subject": "sub-04",
+      "run": "run-005",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": 2.0,
+      "beta": 23.95258856140505,
+      "r2_gain": 0.08059546377143922,
+      "subject": "sub-04",
+      "run": "run-005",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": 2.5,
+      "beta": 25.334553579498312,
+      "r2_gain": 0.08980164090076126,
+      "subject": "sub-04",
+      "run": "run-005",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": 3.0,
+      "beta": 23.593818522207677,
+      "r2_gain": 0.07738226763304601,
+      "subject": "sub-04",
+      "run": "run-005",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": 3.5,
+      "beta": 19.277920173503755,
+      "r2_gain": 0.05113296226225128,
+      "subject": "sub-04",
+      "run": "run-005",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": 4.0,
+      "beta": 12.51218441995265,
+      "r2_gain": 0.021237984510220298,
+      "subject": "sub-04",
+      "run": "run-005",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": 4.5,
+      "beta": 3.785518745424391,
+      "r2_gain": 0.00192493794223636,
+      "subject": "sub-04",
+      "run": "run-005",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": 5.0,
+      "beta": -5.937295479684572,
+      "r2_gain": 0.004726146361836436,
+      "subject": "sub-04",
+      "run": "run-005",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": 5.5,
+      "beta": -15.50023162027842,
+      "r2_gain": 0.032534949293918536,
+      "subject": "sub-04",
+      "run": "run-005",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": 6.0,
+      "beta": -23.27349567731284,
+      "r2_gain": 0.0744676599399754,
+      "subject": "sub-04",
+      "run": "run-005",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": -6.0,
+      "beta": 12.18194011969775,
+      "r2_gain": 0.039111616488545775,
+      "subject": "sub-04",
+      "run": "run-005",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": -5.5,
+      "beta": 5.281882926336745,
+      "r2_gain": 0.007209369750038719,
+      "subject": "sub-04",
+      "run": "run-005",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": -5.0,
+      "beta": -2.696382985902151,
+      "r2_gain": 0.0018516189415591633,
+      "subject": "sub-04",
+      "run": "run-005",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": -4.5,
+      "beta": -10.710202455785598,
+      "r2_gain": 0.029134732086163018,
+      "subject": "sub-04",
+      "run": "run-005",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": -4.0,
+      "beta": -17.806797907462744,
+      "r2_gain": 0.08144086056209532,
+      "subject": "sub-04",
+      "run": "run-005",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": -3.5,
+      "beta": -22.921523387492538,
+      "r2_gain": 0.13722124984591888,
+      "subject": "sub-04",
+      "run": "run-005",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": -3.0,
+      "beta": -25.740969167351377,
+      "r2_gain": 0.17525661830174477,
+      "subject": "sub-04",
+      "run": "run-005",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": -2.5,
+      "beta": -26.00918704418372,
+      "r2_gain": 0.1792465255821153,
+      "subject": "sub-04",
+      "run": "run-005",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": -2.0,
+      "beta": -23.71279140342002,
+      "r2_gain": 0.14765118412236078,
+      "subject": "sub-04",
+      "run": "run-005",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": -1.5,
+      "beta": -18.775051893708504,
+      "r2_gain": 0.09126766419900167,
+      "subject": "sub-04",
+      "run": "run-005",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": -1.0,
+      "beta": -11.690781890918789,
+      "r2_gain": 0.03507203841004558,
+      "subject": "sub-04",
+      "run": "run-005",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": -0.5,
+      "beta": -3.336474603916167,
+      "r2_gain": 0.0028574721685881155,
+      "subject": "sub-04",
+      "run": "run-005",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": 0.0,
+      "beta": 4.956818636052444,
+      "r2_gain": 0.006360066827895694,
+      "subject": "sub-04",
+      "run": "run-005",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": 0.5,
+      "beta": 12.23840190541505,
+      "r2_gain": 0.039143844582034015,
+      "subject": "sub-04",
+      "run": "run-005",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": 1.0,
+      "beta": 17.65029499991154,
+      "r2_gain": 0.08176787302070176,
+      "subject": "sub-04",
+      "run": "run-005",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": 1.5,
+      "beta": 20.92426834210723,
+      "r2_gain": 0.11481417024497664,
+      "subject": "sub-04",
+      "run": "run-005",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": 2.0,
+      "beta": 21.68067533285714,
+      "r2_gain": 0.12283123309274835,
+      "subject": "sub-04",
+      "run": "run-005",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": 2.5,
+      "beta": 20.19139924830224,
+      "r2_gain": 0.10610799377265312,
+      "subject": "sub-04",
+      "run": "run-005",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": 3.0,
+      "beta": 16.62229672319195,
+      "r2_gain": 0.07144709158356255,
+      "subject": "sub-04",
+      "run": "run-005",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": 3.5,
+      "beta": 11.48918039371499,
+      "r2_gain": 0.033784399594597336,
+      "subject": "sub-04",
+      "run": "run-005",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": 4.0,
+      "beta": 5.132808725793698,
+      "r2_gain": 0.006648362593336787,
+      "subject": "sub-04",
+      "run": "run-005",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": 4.5,
+      "beta": -2.0050871116614055,
+      "r2_gain": 0.0010045925008452805,
+      "subject": "sub-04",
+      "run": "run-005",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": 5.0,
+      "beta": -9.181297576097956,
+      "r2_gain": 0.02102303816386486,
+      "subject": "sub-04",
+      "run": "run-005",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": 5.5,
+      "beta": -15.436766079604915,
+      "r2_gain": 0.06002662350867849,
+      "subject": "sub-04",
+      "run": "run-005",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": 6.0,
+      "beta": -19.91564610477418,
+      "r2_gain": 0.10143568808191361,
+      "subject": "sub-04",
+      "run": "run-005",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": -6.0,
+      "beta": 32.51345519475438,
+      "r2_gain": 0.08197036881140896,
+      "subject": "sub-04",
+      "run": "run-006",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": -5.5,
+      "beta": 22.813456871620858,
+      "r2_gain": 0.03944075324310525,
+      "subject": "sub-04",
+      "run": "run-006",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": -5.0,
+      "beta": 9.8055387648419,
+      "r2_gain": 0.007209954671492991,
+      "subject": "sub-04",
+      "run": "run-006",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": -4.5,
+      "beta": -4.429665022011671,
+      "r2_gain": 0.0014772404952089202,
+      "subject": "sub-04",
+      "run": "run-006",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": -4.0,
+      "beta": -18.22374990073718,
+      "r2_gain": 0.025427901531644315,
+      "subject": "sub-04",
+      "run": "run-006",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": -3.5,
+      "beta": -29.575718860238087,
+      "r2_gain": 0.0685065787852932,
+      "subject": "sub-04",
+      "run": "run-006",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": -3.0,
+      "beta": -37.61761773234863,
+      "r2_gain": 0.1129755539881434,
+      "subject": "sub-04",
+      "run": "run-006",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": -2.5,
+      "beta": -41.78120457287162,
+      "r2_gain": 0.14085172134378132,
+      "subject": "sub-04",
+      "run": "run-006",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": -2.0,
+      "beta": -41.99977988747664,
+      "r2_gain": 0.14196794327842388,
+      "subject": "sub-04",
+      "run": "run-006",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": -1.5,
+      "beta": -38.138748764599384,
+      "r2_gain": 0.11581106594578161,
+      "subject": "sub-04",
+      "run": "run-006",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": -1.0,
+      "beta": -30.432742490557555,
+      "r2_gain": 0.0726787739239545,
+      "subject": "sub-04",
+      "run": "run-006",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": -0.5,
+      "beta": -19.543601664256407,
+      "r2_gain": 0.02967389181066593,
+      "subject": "sub-04",
+      "run": "run-006",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": 0.0,
+      "beta": -6.8937261074280025,
+      "r2_gain": 0.003677134945873295,
+      "subject": "sub-04",
+      "run": "run-006",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": 0.5,
+      "beta": 5.62519857324359,
+      "r2_gain": 0.002460195781839203,
+      "subject": "sub-04",
+      "run": "run-006",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": 1.0,
+      "beta": 16.384168984354673,
+      "r2_gain": 0.021115934287014082,
+      "subject": "sub-04",
+      "run": "run-006",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": 1.5,
+      "beta": 24.019194045965364,
+      "r2_gain": 0.04613482065764629,
+      "subject": "sub-04",
+      "run": "run-006",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": 2.0,
+      "beta": 27.879379505186197,
+      "r2_gain": 0.06298446171146788,
+      "subject": "sub-04",
+      "run": "run-006",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": 2.5,
+      "beta": 28.07426828920976,
+      "r2_gain": 0.06411977317736661,
+      "subject": "sub-04",
+      "run": "run-006",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": 3.0,
+      "beta": 24.84006483797467,
+      "r2_gain": 0.04974166444986239,
+      "subject": "sub-04",
+      "run": "run-006",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": 3.5,
+      "beta": 18.560118926658713,
+      "r2_gain": 0.02727173582378639,
+      "subject": "sub-04",
+      "run": "run-006",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": 4.0,
+      "beta": 9.626423472885747,
+      "r2_gain": 0.007213598757851769,
+      "subject": "sub-04",
+      "run": "run-006",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": 4.5,
+      "beta": -1.0980504627991028,
+      "r2_gain": 9.303469587240709e-05,
+      "subject": "sub-04",
+      "run": "run-006",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": 5.0,
+      "beta": -11.977628901784533,
+      "r2_gain": 0.011099364671961931,
+      "subject": "sub-04",
+      "run": "run-006",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": 5.5,
+      "beta": -21.84556186322498,
+      "r2_gain": 0.03725993963468677,
+      "subject": "sub-04",
+      "run": "run-006",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": 6.0,
+      "beta": -29.32980769742437,
+      "r2_gain": 0.06792761364097222,
+      "subject": "sub-04",
+      "run": "run-006",
+      "roi_set": "occipital"
+    },
+    {
+      "shift_s": -6.0,
+      "beta": 13.862167391090294,
+      "r2_gain": 0.023911148485664002,
+      "subject": "sub-04",
+      "run": "run-006",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": -5.5,
+      "beta": 4.271215844852348,
+      "r2_gain": 0.0022185721696668104,
+      "subject": "sub-04",
+      "run": "run-006",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": -5.0,
+      "beta": -6.277753647670763,
+      "r2_gain": 0.004742481755086958,
+      "subject": "sub-04",
+      "run": "run-006",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": -4.5,
+      "beta": -16.170141838589746,
+      "r2_gain": 0.031589635182442954,
+      "subject": "sub-04",
+      "run": "run-006",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": -4.0,
+      "beta": -24.162061986286506,
+      "r2_gain": 0.07173160268009915,
+      "subject": "sub-04",
+      "run": "run-006",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": -3.5,
+      "beta": -29.326803220369573,
+      "r2_gain": 0.10809326355982485,
+      "subject": "sub-04",
+      "run": "run-006",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": -3.0,
+      "beta": -31.40566132984965,
+      "r2_gain": 0.12636456486605663,
+      "subject": "sub-04",
+      "run": "run-006",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": -2.5,
+      "beta": -30.509097288965194,
+      "r2_gain": 0.12052204141269207,
+      "subject": "sub-04",
+      "run": "run-006",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": -2.0,
+      "beta": -26.778224564379247,
+      "r2_gain": 0.09261201611952574,
+      "subject": "sub-04",
+      "run": "run-006",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": -1.5,
+      "beta": -20.52476174669438,
+      "r2_gain": 0.05382461653519255,
+      "subject": "sub-04",
+      "run": "run-006",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": -1.0,
+      "beta": -12.227493593403405,
+      "r2_gain": 0.01882815721190778,
+      "subject": "sub-04",
+      "run": "run-006",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": -0.5,
+      "beta": -2.741609840451115,
+      "r2_gain": 0.00093709608393866,
+      "subject": "sub-04",
+      "run": "run-006",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": 0.0,
+      "beta": 6.637946286659255,
+      "r2_gain": 0.005471123331540206,
+      "subject": "sub-04",
+      "run": "run-006",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": 0.5,
+      "beta": 14.603368033682505,
+      "r2_gain": 0.026607712097074354,
+      "subject": "sub-04",
+      "run": "run-006",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": 1.0,
+      "beta": 20.087149725796905,
+      "r2_gain": 0.050933745777174355,
+      "subject": "sub-04",
+      "run": "run-006",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": 1.5,
+      "beta": 22.515320763903468,
+      "r2_gain": 0.06505426439573814,
+      "subject": "sub-04",
+      "run": "run-006",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": 2.0,
+      "beta": 21.806511623594385,
+      "r2_gain": 0.061836817125595744,
+      "subject": "sub-04",
+      "run": "run-006",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": 2.5,
+      "beta": 18.415976255934346,
+      "r2_gain": 0.04427637901849901,
+      "subject": "sub-04",
+      "run": "run-006",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": 3.0,
+      "beta": 12.800237878955683,
+      "r2_gain": 0.021196222158651468,
+      "subject": "sub-04",
+      "run": "run-006",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": 3.5,
+      "beta": 5.515499087896221,
+      "r2_gain": 0.003864812457315625,
+      "subject": "sub-04",
+      "run": "run-006",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": 4.0,
+      "beta": -2.8364884579652427,
+      "r2_gain": 0.0010050591371156825,
+      "subject": "sub-04",
+      "run": "run-006",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": 4.5,
+      "beta": -11.310862833352635,
+      "r2_gain": 0.01584161058296296,
+      "subject": "sub-04",
+      "run": "run-006",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": 5.0,
+      "beta": -18.732777990132256,
+      "r2_gain": 0.043568068237780255,
+      "subject": "sub-04",
+      "run": "run-006",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": 5.5,
+      "beta": -24.25711343753424,
+      "r2_gain": 0.07372273953087194,
+      "subject": "sub-04",
+      "run": "run-006",
+      "roi_set": "sensorimotor"
+    },
+    {
+      "shift_s": 6.0,
+      "beta": -27.246903356588295,
+      "r2_gain": 0.09407402968159229,
+      "subject": "sub-04",
+      "run": "run-006",
+      "roi_set": "sensorimotor"
+    }
+  ]
+}

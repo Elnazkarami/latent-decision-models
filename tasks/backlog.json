@@ -33,7 +33,7 @@
     {
       "id": "LDM-004",
       "title": "fMRI derivatives audit and trial-level ROI/GLM baseline",
-      "status": "in_progress(2-subject pilot approved 2026-11-24; full set needs a further decision)",
+      "status": "blocked:decision(pilot controls failed: choose latency-robust re-plan or stop; docs/ds002158-fmri-pilot.md)",
       "deliverable": "documented feature extraction and tests",
       "notes": "Metadata audit done: docs/ds002158-fmri-audit.md. Derivative = SPM DARTEL MNI 1.5 mm, 5 mm FWHM (headers), TR missing in headers. Single-trial (whole-trial) betas feasible; pre-decision vs response not separable. Next: LSS betas + ROI extraction, needs image download approval."
     },

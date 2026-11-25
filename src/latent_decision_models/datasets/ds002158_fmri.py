@@ -163,7 +163,8 @@ def run_lss(bids_root, subject: str, run: str, trials: pd.DataFrame, atlas=None,
 
     ``trials``: this run's rows of the trial table (all trials enter the design).
     ``atlas``: ``(labels, names)`` on the derivative grid; built if None.
-    Returns ``(betas, qc)``; ``betas`` has the trial identifiers plus ``roi_*`` columns.
+    Returns ``(betas, qc, Y)``; ``betas`` has the trial identifiers plus ``roi_*``
+    columns; ``Y`` is the raw ROI time series (volumes x ROIs, atlas order).
     """
     import nibabel as nib
 
@@ -198,7 +199,33 @@ def run_lss(bids_root, subject: str, run: str, trials: pd.DataFrame, atlas=None,
           "n_rois": len(names), "n_rois_empty": int(sum(v == 0 for v in n_vox.values())),
           "voxels_per_roi_median": float(np.median(list(n_vox.values()))),
           **motion_summary(motion)}
-    return betas, qc
+    return betas, qc, Y
+
+
+def timing_scan(ts_dir, bids_root, trials: pd.DataFrame, subjects, tr: float = TR_SECONDS,
+                shifts=None) -> pd.DataFrame:
+    """Onset-shift scan (fmri_lss.onset_shift_scan) of the occipital and sensorimotor ROI
+    means in every run, from the time series saved by ``ldm ds002158 fmri-lss``."""
+    shifts = np.arange(-6.0, 6.01, 0.5) if shifts is None else shifts
+    from ..fmri_lss import onset_shift_scan, percent_signal
+
+    rows = []
+    for subject in subjects:
+        for path in sorted(Path(ts_dir).glob(f"{subject}_run-*_roi_ts.npz")):
+            run = path.name.split("_")[1]
+            z = np.load(path)
+            names = dict(enumerate((str(n) for n in z["names"]), start=1))
+            Y = percent_signal(z["Y"])
+            col = {f"roi_{n}": j for j, n in enumerate(names.values())}
+            motion = read_motion(preproc_path(bids_root, subject, run).with_name(
+                f"{subject}_ses-001_task-main_{run}_headmove.txt"))
+            g = trials[(trials["subject"] == subject) & (trials["run"] == run)]
+            for roi_set in ("occipital", "sensorimotor"):
+                y = Y[:, [col[c] for c in roi_set_columns(names, roi_set)]].mean(axis=1)
+                scan = onset_shift_scan(y, g["onset_seconds"], len(Y), tr, confounds=motion,
+                                        shifts=shifts)
+                rows.append(scan.assign(subject=subject, run=run, roi_set=roi_set))
+    return pd.concat(rows, ignore_index=True)
 
 
 def _one_sided_t(x) -> dict:

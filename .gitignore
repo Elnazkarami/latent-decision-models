@@ -27,6 +27,9 @@ outputs/
 # reviewed audit reports are versioned
 !reports/*-audit.json
 !reports/ds002158-fmri-design.json
+!reports/ds002158-fmri-lss-qc.json
+!reports/ds002158-fmri-pilot.json
+!reports/ds002158-fmri-timing.json
 !reports/ds002158-eeg-preprocess.json
 !reports/ds002158-eeg-decoding.json
 !reports/ds002158-eeg-preprocess-all.json

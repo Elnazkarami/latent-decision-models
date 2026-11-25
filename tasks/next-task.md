@@ -17,14 +17,16 @@ Done: OBS sensitivity, ECG-only control, exploratory time course, cardiac-timing
 1. Done: the planted-signal test shows OBS (4 components) removes about half of a slow response-locked signal; OBS with 1 component restores the cross-subject transfer (r = 0.11), as predicted.
 2. Done: own-vs-observed cross-condition decoding (plan committed first): no transfer in either direction. Remaining EEG questions need new data (e.g. separating movement from commitment).
 
-## Option C: LDM-004 continued, ds002158 trial-level fMRI (in progress)
-Pilot approved 2026-11-24 (sub-02, sub-04; 38 GB on external storage; ~1 MB/s, so ~10 h). Plan committed first: `configs/ds002158_fmri_pilot.yaml`. Code done (`fetch-fmri`, `fmri-lss`, `fmri-pilot`). Next: run on the pilot, report QC and positive controls; if they pass, decide whether to download more subjects (19 GB each). Steps:
-1. LSS single-trial betas with 6 realignment regressors.
-2. Atlas ROI extraction on the MNI grid.
-3. A subject-disjoint confidence benchmark using these whole-trial features.
+## Option C: LDM-004 continued, ds002158 trial-level fMRI (pilot done; needs a decision)
+Pilot on sub-02/sub-04 ([`docs/ds002158-fmri-pilot.md`](../docs/ds002158-fmri-pilot.md)): good image quality, but the pre-specified positive controls failed (each subject failed one), so no confidence analysis was run. Post hoc timing check: trials are ~9.5 s apart, so canonical stick betas depend strongly on response latency (sub-04 occipital ~3.5 s out of phase, 6/6 runs). Options, each needing a new plan first:
+1. LSS with HRF time (+ dispersion) derivatives, derivative-boosted amplitudes; re-run the controls with a movement check that does not rely on the block-level contrast (2 downloaded subjects, no new data).
+2. Subject-specific HRF latency from held-out runs (more complex; leakage care).
+3. Stop fMRI for ds002158 and free the 38 GB.
+No further download until 1 or 2 passes on the pilot.
 
 ## Open questions for the PI
 - **ds002158 fMRI:**
+  - Which pilot option (1, 2 or 3 above)?
   - Exclude sub-20 from fMRI as well? It has the highest motion, a rejected run-007 derivative and unresolved EEG labels.
   - Accept that fMRI features are whole-trial, not pre-decision?
 - **ds007474 licensing:** the OSF project and the authors' code declare no license. Ask the authors to add one before any public derived release?
