@@ -1,0 +1,106 @@
+{
+  "data_kind": "real_behavioral_openneuro_ds002158_v1.0.2",
+  "paper": "Pereira et al. (2020) PNAS 117:8382, main text",
+  "comparison_rules": "docs/VALIDATION.md",
+  "descriptives": {
+    "P1_n_subjects": 20,
+    "P2_valid_trials_per_subject": {
+      "active": {
+        "mean": 121.85,
+        "sd": 15.62479473549383,
+        "n_subjects": 20
+      },
+      "observed": {
+        "mean": 121.15,
+        "sd": 16.799984335832296,
+        "n_subjects": 20
+      }
+    },
+    "P3_accuracy_percent": {
+      "mean": 72.79370796629172,
+      "sd": 2.25593405766111,
+      "n_subjects": 20
+    },
+    "P4_dot_difference": {
+      "mean": 13.243982171405733,
+      "sd": 3.7932430464883016,
+      "n_subjects": 20
+    },
+    "P5_rt_ms_active_valid": {
+      "mean": 384.5490535334269,
+      "sd": 19.09655586279325,
+      "n_subjects": 20
+    }
+  },
+  "P6_mean_confidence": {
+    "active": {
+      "mean": 0.6286005220163008,
+      "sd": 0.0379416042744309,
+      "n_subjects": 20
+    },
+    "observed": {
+      "mean": 0.6293020158709163,
+      "sd": 0.0358737119141116,
+      "n_subjects": 20
+    },
+    "t": -0.10562454227485865,
+    "df": 19,
+    "p": 0.9169874213060348
+  },
+  "P7_logistic_slopes": {
+    "median_slope": {
+      "active": 14.01815097612118,
+      "observed": 11.609680281827686
+    },
+    "active_minus_observed": {
+      "mean": 1.9997683774264394,
+      "sd": 2.4331164579672073,
+      "n_subjects": 20
+    },
+    "n_active_steeper": 15,
+    "n": 20,
+    "V": 189.0,
+    "p": 0.000850677490234375
+  },
+  "P8_type2_auroc": {
+    "active": {
+      "mean": 0.9548765056187033,
+      "sd": 0.037639944860911344,
+      "n_subjects": 20
+    },
+    "observed": {
+      "mean": 0.9409027878156448,
+      "sd": 0.04490431875589025,
+      "n_subjects": 20
+    },
+    "n": 20,
+    "V": 163.0,
+    "p": 0.029575347900390625
+  },
+  "P9_rt_confidence": {
+    "active_correct": {
+      "mean": -0.09075029324237219,
+      "sd": 0.11069952986825769,
+      "n_subjects": 20,
+      "n": 20,
+      "V": 11.0,
+      "p": 0.0001049041748046875
+    },
+    "active_error": {
+      "mean": 0.13801650069667326,
+      "sd": 0.20469425016097548,
+      "n_subjects": 20,
+      "n": 20,
+      "V": 181.0,
+      "p": 0.0031528472900390625
+    },
+    "observed_all": {
+      "mean": 0.14047929749988786,
+      "sd": 0.09321983716595429,
+      "n_subjects": 20,
+      "n": 20,
+      "V": 206.0,
+      "p": 1.33514404296875e-05
+    }
+  }
+}

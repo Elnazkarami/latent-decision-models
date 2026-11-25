@@ -79,6 +79,10 @@ Every claim below is no stronger than its level. All neural features used for co
 - **Time windows:** neural windows are labelled pre-decision, response-locked or post-decision. Pre-decision features use causal filters.
 - **Signal downloads:** each needs an explicit size budget and keeps a disk reserve. Raw and derived participant data are not committed; the exception is a minimal CC0 test fixture.
 
+## External check
+
+Our ds002158 behavioral results agree with the original publication (Pereira et al. 2020) on every comparable inferential result, including an exact match of the type-2 AUROC test (V = 163, p = 0.03). The type-2 AUROC levels are ~0.04 higher and unexplained. EEG onsets differ by ~50–100 ms, consistent with opposite filtering directions. Details: [validation](VALIDATION.md). The ds007474 comparison is pending.
+
 ## Limitations
 
 - **ds002158** has 20 subjects (17 in the confirmatory EEG set). Effects of r ≈ 0.1 are near what this sample can resolve, and increments of about 0.01 cannot be resolved.

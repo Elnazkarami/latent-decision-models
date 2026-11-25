@@ -38,6 +38,31 @@ The comparisons and agreement rules below were committed before any new number w
 | P11 | EEG, observed: no confidence correlate before 200 ms; decoding peak ~350 ms | same | no |
 | P12 | fMRI (EEG-informed GLM; pMFC, IFG, insula, aPFC) | not comparable: trial-level fMRI was closed here ([fMRI pilot](ds002158-fmri-pilot.md)) | – |
 
+### Results (2026-11-25)
+
+Report: [`reports/ds002158-paper-comparison.json`](../reports/ds002158-paper-comparison.json) (`ldm ds002158 compare-paper`). Our ± values are SDs over subjects.
+
+| # | Paper | Ours | Verdict |
+| --- | --- | --- | --- |
+| P1 | 20 participants | 20 | **agree** |
+| P2 | 119 ± 5 / 118 ± 5 trials | 121.9 ± 15.6 / 121.2 ± 16.8 | **agree** (within ±5). The authors also removed observation-period button presses, which are not in `events.tsv`. |
+| P3 | accuracy 71.2% ± 1.0 | 72.8% ± 2.3 (all answered trials) | **differs** by 1.6 points. Post hoc explanation: on valid trials (RT 200–500 ms) ours is **71.5%**, inside the paper's interval. The paper evidently computed accuracy after its RT exclusions. |
+| P4 | dot difference 13.1 ± 1.7 | 13.2 ± 3.8 | **agree** |
+| P5 | RT 385 ± 8 ms | 384.5 ± 19.1 ms | **agree** |
+| P6 | active vs observed mean confidence: t(19) = −0.19, p = 0.85 | t(19) = −0.11, p = 0.92 (0.629 vs 0.629) | **agree** |
+| P7 | steeper confidence–accuracy relation for active decisions: z = −2.90, p = 0.004 | per-subject slopes steeper for active in 15/20, Wilcoxon V = 189, p = 0.0009; GEE −1.73, p = 0.006 | **agree** |
+| P8 | type-2 AROC 0.92 ± 0.02 vs 0.90 ± 0.03, V = 163, p = 0.03 | 0.955 ± 0.038 vs 0.941 ± 0.045, **V = 163, p = 0.030** | **test agrees exactly; levels differ.** Ours is ~0.035–0.04 higher in both conditions. The difference is unexplained: the paper's main text does not say how AROC was computed (e.g. binned confidence, or which trials). |
+| P9 | active: confidence falls with RT on correct trials, rises on errors; observed: no confidence effect | active correct r = −0.09 (p = 0.0001), active error r = +0.14 (p = 0.003); observed, pooled r = +0.14 (p < 0.001) | **active agrees; observed differs as pre-specified.** Post hoc explanation: the paper's model includes accuracy, but our pre-specified quantity pooled correct and error trials. Split by accuracy, the observed relation is null (correct −0.03, p = 0.41; error +0.04, p = 0.39), matching the paper. |
+| P10 | active EEG: correlates from 68 ms; decoding peaks ~100 and ~320 ms | earliest window with uncorrected p < 0.05 is 0.10–0.20 s (r = 0.07); strongest 0.15–0.30 s (r = 0.13) and 0.35–0.60 s (r = 0.09–0.12) | **partly agrees.** Both show an early and a later post-response component, but ours begins ~50–100 ms later. Our causal filter delays activity by up to ~0.1 s, and the paper's zero-phase filter shifts activity earlier, so onsets cannot be compared more closely. |
+| P11 | observed EEG: nothing before 200 ms; peak ~350 ms | nothing after the response before 0.30–0.40 s; strongest 0.45–0.55 s (r = 0.09, p = 0.0003) | **agree** (no early component; a later, delayed signal) |
+| P12 | fMRI | – | not comparable |
+
+**Summary:**
+- **Agreement:** every inferential result in the paper's main text that we could compare agrees in direction and significance once the paper's model is matched (P6–P9, P11). This includes an exact match of the type-2 AUROC Wilcoxon statistic. The descriptives agree within the paper's intervals once its RT exclusions are applied (P3).
+- **Unexplained:** the type-2 AUROC levels are higher in ours.
+- **EEG:** onset times are not comparable because the two pipelines filter in opposite directions in time.
+- **Pre-specified quantities:** two did not match the paper's definitions (P3, P9). They are reported as pre-specified, with the explanation labelled post hoc.
+
 ### ds007474 vs Ding, Cockburn et al. (2026), Cell Reports 45(6)
 
 The comparison is **not done** because the paper could not be read: the publisher pages refused automated access and the preprint server was rate-limited. It needs a local copy of the paper or the preprint (bioRxiv 10.1101/2025.09.17.676398).

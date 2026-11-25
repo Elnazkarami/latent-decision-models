@@ -180,6 +180,16 @@ def _ds002158_fusion(args):
         Path(args.out).write_text(json.dumps(out, indent=1, default=_json_default) + "\n")
 
 
+def _ds002158_compare_paper(args):
+    """Quantities comparable to Pereira et al. (2020), main-text behavior results."""
+    from .datasets import ds002158_paper as pp
+
+    res = pp.compare(pd.read_csv(args.trials))
+    _write_json({"data_kind": "real_behavioral_openneuro_ds002158_v1.0.2",
+                 "paper": "Pereira et al. (2020) PNAS 117:8382, main text",
+                 "comparison_rules": "docs/VALIDATION.md", **res}, args.out)
+
+
 def _ds002158_eeg_decode(args):
     from .datasets import ds002158_eeg as e
 
@@ -740,6 +750,10 @@ def main():
                     help="refuse to download if less than this would stay free on the "
                          "destination disk (default 20)")
     ff.add_argument("--dry-run", action="store_true", help="only report what would be fetched")
+    cp = dsub.add_parser("compare-paper", help="Behavioral quantities comparable to the "
+                         "original publication (Pereira et al. 2020); see docs/VALIDATION.md")
+    cp.add_argument("--trials", required=True)
+    cp.add_argument("--out", help="JSON report path (default: print)")
     fu = dsub.add_parser("fusion", help="Behavior + post-decision EEG fusion for "
                          "confidence: participant-disjoint and within-subject ablation "
                          "(configs/ds002158_fusion.yaml)")
@@ -882,6 +896,7 @@ def main():
         {"fetch-metadata": _ds002158_fetch, "trials": _ds002158_trials,
          "align-eeg": _ds002158_align, "fetch-eeg": _ds002158_fetch_eeg,
          "fetch-fmri": _ds002158_fetch_fmri, "fusion": _ds002158_fusion,
+         "compare-paper": _ds002158_compare_paper,
          "eeg-preprocess": _ds002158_eeg_preprocess, "eeg-decode": _ds002158_eeg_decode,
          "eeg-cardiac": _ds002158_eeg_cardiac, "eeg-bcg-retention": _ds002158_eeg_bcg_retention, "fmri-audit": _ds002158_fmri_audit,
          "fmri-design": _ds002158_fmri_design,

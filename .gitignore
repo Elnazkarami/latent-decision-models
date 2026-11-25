@@ -33,6 +33,7 @@ outputs/
 !reports/ds002158-fmri-derivative-lss-qc.json
 !reports/ds002158-fmri-derivative-pilot.json
 !reports/ds002158-fusion.json
+!reports/ds002158-paper-comparison.json
 !reports/ds002158-eeg-preprocess.json
 !reports/ds002158-eeg-decoding.json
 !reports/ds002158-eeg-preprocess-all.json
