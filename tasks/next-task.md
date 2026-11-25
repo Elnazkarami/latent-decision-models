@@ -1,6 +1,7 @@
 # Next task
 
 **Done:**
+- LDM-005: EEG + behavior fusion (no measurable gain over behavior).
 - LDM-001 / LDM-002: ds002158 audit, behavioral baselines, computational confidence model.
 - LDM-006: ds007474 audit ([`docs/ds007474-audit.md`](../docs/ds007474-audit.md)).
 - LDM-007: ds007474 two-step RL benchmark, behavior only ([`docs/ds007474-two-step-model.md`](../docs/ds007474-two-step-model.md)).
@@ -20,8 +21,11 @@ Done: OBS sensitivity, ECG-only control, exploratory time course, cardiac-timing
 ## LDM-004 (ds002158 trial-level fMRI): closed 2026-11-25
 Two pre-specified pilot attempts failed the positive controls in sub-04 ([`docs/ds002158-fmri-pilot.md`](../docs/ds002158-fmri-pilot.md)). No further download. The 38 GB of pilot images remain on external storage (deletion not requested).
 
-## LDM-005 (current): EEG + behavior fusion for confidence (ds002158)
-Re-scoped from multimodal fMRI fusion. Plan committed first: [`configs/ds002158_fusion.yaml`](../configs/ds002158_fusion.yaml). Primary: does post-decision EEG add to behavior in held-out participants (Delta r, own decisions)? Secondary: within subject, observed decisions, a small PyTorch fusion vs linear, EEG alone.
+## LDM-005: done 2026-11-25
+EEG + behavior fusion ([`docs/ds002158-fusion.md`](../docs/ds002158-fusion.md)): EEG alone predicts confidence in new participants (r = 0.08) but adds nothing measurable beyond behavior (gain +0.006 [−0.004, 0.018]); the PyTorch network is not better than linear stacking.
+
+## Next: LDM-008, research report and tagged release
+Now unblocked (LDM-005 and LDM-007 done; LDM-004 closed). A consolidated report of all findings with their evidence level (pre-specified vs exploratory) and a tagged release. Creating a tag or GitHub release is a public action: confirm before publishing.
 
 ## Open questions for the PI
 - **ds002158 fMRI:**

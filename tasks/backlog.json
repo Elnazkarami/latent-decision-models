@@ -40,7 +40,7 @@
     {
       "id": "LDM-005",
       "title": "EEG + behavior fusion baseline and small PyTorch fusion (ds002158; re-scoped 2026-11-25, no fMRI)",
-      "status": "in_progress(plan configs/ds002158_fusion.yaml)",
+      "status": "done(2026-11-25; docs/ds002158-fusion.md)",
       "deliverable": "ablation, CI, participant-disjoint metrics"
     },
     {
@@ -60,7 +60,7 @@
     {
       "id": "LDM-008",
       "title": "Research report and reproducible tagged release",
-      "status": "blocked:LDM-005,LDM-007",
+      "status": "ready(LDM-005 and LDM-007 done; LDM-004 closed)",
       "deliverable": "release and evidence-based methods report"
     }
   ]
