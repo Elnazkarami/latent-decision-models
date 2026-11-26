@@ -2,7 +2,9 @@
 
 User-facing changes by release: what you can do with the package, and any correction to a published result. Day-to-day development is in the git history.
 
-## Unreleased
+## 0.1.1 (2026-11-26)
+
+**Citation:** author name and ORCID added to `CITATION.cff` and the package metadata.
 
 **Fixes:**
 - The ds007474 loader ignores hidden files. Before, macOS `._*` metadata files on exFAT/FAT drives were read as behavior files and loading failed.

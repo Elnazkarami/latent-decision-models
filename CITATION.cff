@@ -7,9 +7,12 @@ abstract: >-
   subject-disjoint evaluation. Research software in active development.
 type: software
 authors:
-  - alias: Elnazkarami
-version: 0.1.0
-date-released: "2026-11-25"
+  - given-names: Elnaz
+    family-names: Alikarami
+    orcid: "https://orcid.org/0009-0009-0333-4528"
+    alias: Elnazkarami
+version: 0.1.1
+date-released: "2026-11-26"
 license: MIT
 repository-code: "https://github.com/Elnazkarami/latent-decision-models"
 keywords:

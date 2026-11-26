@@ -1,7 +1,7 @@
-# Research report: latent-decision-models v0.1.0
+# Research report: latent-decision-models v0.1.1
 
 - **Date:** 2026-11-25
-- **Software:** `latent-decision-models` 0.1.0 (Python ≥ 3.10; tested on 3.11 in CI and 3.12 locally)
+- **Software:** `latent-decision-models` 0.1.1 (Python ≥ 3.10; tested on 3.11 in CI and 3.12 locally)
 - **Scope:** confidence after committed vs observed decisions (OpenNeuro ds002158: behavior, EEG and fMRI from the same session) and belief updating in a two-step task (OpenNeuro ds007474, behavior).
 
 This page brings together every result in the repository, each with its evidence level and the file that holds the numbers. The detailed pages in `docs/` hold the full methods, the caveats and the commands.
