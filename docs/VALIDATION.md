@@ -94,7 +94,7 @@ Computed with `ldm ds007474 compare-paper`. The output is not committed because 
 | D2 | common transition 70% | 71.9% of valid trials | **agree** (the designed probability vs the realised fraction) |
 | D3 | 47.19% vs null 43.08%, p < 0.001 | null **43.09%**; planet reached 45.06% (t = 14.1, p < 10⁻³⁰) | **null agrees; achieved value differs as pre-specified** (−2.1 points). Post hoc explanation: under stimulus contingency the reward follows the chosen ship, not the planet. Using the option the reward depends on gives **47.12%** (t = 20.5), matching the preprint. |
 | D4 | previous outcome β = 0.657; outcome × transition β = −0.676; both p < 0.001 | reward 0.49, reward × rare −0.53 (±1 coding, population-averaged GEE); both p < 10⁻²⁹ | **agree** (direction and significance). Population-averaged coefficients are expected to be somewhat smaller than mixed-model ones. |
-| D5 | mixture beats MF and MB | hybrid beats MF (+1,084 [718, 1,451]) and MB (+1,116 [680, 1,605]) on held-out runs | **agree** |
+| D5 | mixture beats MF and MB | hybrid beats MF (+1,083 [718, 1,451]) and MB (+1,116 [680, 1,605]) on held-out runs | **agree** |
 
 **Summary:**
 - Every comparable verbatim result of the preprint is reproduced from our independent adapter once the reward-relevant option is used (D3, post hoc). This includes the null reward probability to 0.01 percentage points.

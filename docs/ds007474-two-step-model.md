@@ -10,7 +10,7 @@
 ## Summary
 
 - **The task design is now fully verified.** Every shown outcome is reproduced from the trial schedule stored in the CSV (0 mismatches on 28,512 responded trials). Any agent can therefore be replayed on each subject's real task sequence.
-- **Hybrid beats pure model-free and pure model-based learning on held-out data.** On held-out runs, hybrid beats MF by 1,084 log-likelihood units [718, 1,451] and MB by 1,116 [680, 1,605], summed over 181 subjects. The ranking is the same on held-out subjects, with learning from points instead of wins, and with no exclusions. Recovery over the fitted parameter range shows this group-level comparison is not biased toward the hybrid.
+- **Hybrid beats pure model-free and pure model-based learning on held-out data.** On held-out runs, hybrid beats MF by 1,083 log-likelihood units [718, 1,451] and MB by 1,116 [680, 1,605], summed over 181 subjects. The ranking is the same on held-out subjects, with learning from points instead of wins, and with no exclusions. Recovery over the fitted parameter range shows this group-level comparison is not biased toward the hybrid.
 - **No reliable evidence that people weight model-based control more when it pays off.** The design switches between reward contingencies where model-based control is correct (state) or useless (stimulus).
   - The order-balanced difference w_state − w_stimulus is −0.012 [−0.047, 0.023] in the scanner session.
   - It is +0.032 [−0.006, 0.072] in the separate structural session.
@@ -117,9 +117,11 @@ The prior shrinks the estimate by about 25%, but it detects the effect, and the 
 | Model | Leave-one-run-out | Δ vs hybrid, summed [95% subject-bootstrap CI] | Subject-held-out (5-fold, pooled parameters) |
 | --- | --- | --- | --- |
 | hybrid | **−0.537** | — | **−0.595** |
-| mf | −0.577 | −1,084 [−1,451, −718] | −0.613 |
+| mf | −0.577 | −1,083 [−1,451, −718] | −0.613 |
 | mb | −0.578 | −1,116 [−1,605, −680] | −0.623 |
 | hybrid_contingency | −0.609 (not interpretable, see above) | −1,943 | −0.595 (= hybrid) |
+
+![Held-out log-likelihood relative to the hybrid](figures/ds007474-models.svg)
 
 **Robustness of the comparison:**
 - Per-subject parameters predict held-out runs better than pooled parameters predict held-out subjects (−0.537 vs −0.595). This reflects large individual differences.
@@ -201,7 +203,7 @@ The result is the same with points (+0.001 [−0.039, 0.039]) and with no exclus
 | hybrid_2lr_wsls | −0.525 | +313 [−47, 636] | −0.580 | −0.485 | +303 [175, 434] |
 | hybrid_2lr | −0.541 | −111 [−167, −60] | −0.595 | −0.503 | −12 [−25, +1] |
 | hybrid_contingency | (not interpretable) | | −0.595 | −0.507 | −90 [−141, −46] |
-| mf | −0.577 | −1,084 | −0.613 | −0.546 | −779 [−1,020, −563] |
+| mf | −0.577 | −1,083 | −0.613 | −0.546 | −779 [−1,020, −563] |
 | mb | −0.578 | −1,116 | −0.623 | −0.556 | −949 [−1,210, −717] |
 
 The structural session scores 17,808 trials. Per-trial values there are higher than for held-out runs, because its sequences are 105 trials long and its schedule differs; compare models within a column only.

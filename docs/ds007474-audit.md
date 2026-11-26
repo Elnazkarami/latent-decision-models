@@ -13,7 +13,7 @@
 | Behavioral RL modeling | **GO** | 189 subjects, each with 259 trials (105 structural-session + 154 in the scanner). Codes verified against the task constants and checked for internal consistency. |
 | Trial-level fMRI timing | **CONDITIONAL GO** | The BIDS `events.tsv` files are **empty**. Use the OSF timing via `ldm ds007474 trials --timing`. Onsets are relative to the first scanner pulse of each run (assumed to be the first saved volume; see the unknowns). sub-MBMF025002 run-1 is truncated. |
 | Published fMRI derivatives | **NOT USABLE for trial-level work** | Only 66 group-level (second-level) T maps; no preprocessed or subject-level data. Any fMRI analysis needs preprocessing of the raw BOLD (259 GB). |
-| Licensing | **⚠ needs a decision** | OpenNeuro data are CC0, but the **OSF project and the authors' code repository declare no license**. Analysis for research is reasonable; redistributing the OSF files or reusing the code is not. Nothing from either is committed here. |
+| Licensing | **⚠ needs a decision** | OpenNeuro data are CC0, but the **OSF project and the authors' code repository declare no license**. Analysis for research is reasonable; redistributing the OSF files or reusing the code is not. Nothing from either is committed here. **Decided 2026-11-26:** group summary statistics may be published (in the docs and one figure); OSF files and per-participant outputs are not. |
 
 ## How this audit was done
 

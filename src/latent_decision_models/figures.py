@@ -255,9 +255,10 @@ def two_step_models(report: dict):
     """Held-out log-likelihood of each model relative to the hybrid (group summary only)."""
     plt = _plt()
     rh = report["run_heldout"]
-    names = {"mf": "model-free", "mb": "model-based",
-             "hybrid_contingency": "hybrid + contingency"}
-    fig, ax = plt.subplots(figsize=(6, 2.6))
+    # hybrid_contingency is left out: its run-held-out score is not interpretable (each run
+    # has one contingency, so the held-out weight is set by the prior).
+    names = {"mf": "model-free", "mb": "model-based"}
+    fig, ax = plt.subplots(figsize=(6.4, 2.3))
     for y, (k, label) in enumerate(names.items()):
         r = rh[k]
         lo, hi = r["delta_ci95"]
@@ -268,13 +269,13 @@ def two_step_models(report: dict):
     ax.axvline(0, color=INK2, lw=0.8)
     ax.set_yticks(range(len(names)), list(names.values()))
     ax.set_ylim(-0.7, len(names) - 0.3)
-    ax.set_xlim(right=900)
+    ax.set_xlim(right=700)
     ax.set_xlabel("held-out log-likelihood vs hybrid (summed over subjects)")
-    ax.set_title("Every alternative predicts held-out runs worse than the hybrid", loc="left",
+    ax.set_title("The hybrid predicts held-out runs better than either pure model", loc="left",
                  fontsize=9)
-    _note(fig, f"{report['n_subjects']} subjects; pre-specified; 95% bootstrap CI over subjects. "
-               "Group summary only (the OSF source has no license).")
-    fig.tight_layout(rect=(0, 0.1, 1, 1))
+    _note(fig, f"{report['n_subjects']} subjects; leave one run out; pre-specified; 95% bootstrap "
+               "CI over subjects.\nGroup summary only: the OSF source has no license.")
+    fig.tight_layout(rect=(0, 0.16, 1, 1))
     return fig
 
 

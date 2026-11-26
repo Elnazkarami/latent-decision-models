@@ -6,6 +6,10 @@ User-facing changes by release: what you can do with the package, and any correc
 
 **Figures:**
 - `ldm figures` draws the result figures as SVG, only from the reports and the trial table (optional `[plots]` extra): EEG time course, EEG + behavior fusion, confidence by accuracy, fMRI pilot, and the comparison with the original publication. They are embedded in the [research report](docs/REPORT.md) and the detailed pages, and a test checks that the committed figures match a fresh build.
+- A ds007474 figure shows the group-level model comparison (summary statistics only; the OSF source has no license).
+
+**Corrections to reported results:**
+- ds007474: the hybrid's held-out advantage over model-free learning is 1,083 log-likelihood units (1,083.5), not 1,084 as previously printed. This was a rounding error; the interval and the conclusion are unchanged.
 
 ## 0.1.1 (2026-11-26)
 

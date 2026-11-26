@@ -71,15 +71,19 @@ Every claim below is no stronger than its level. All neural features used for co
 **Data checks** ([audit](ds007474-audit.md)):
 - All 378 BIDS `events.tsv` files are header-only. Behavior and timing come from OSF and map one-to-one onto the BIDS subjects.
 - Every shown outcome is reproduced from the stored schedule: 0 mismatches in 28,512 trials.
-- The OSF project declares **no license**, so no derived real-data outputs are stored in this repository. The numbers below are documented in [RL models](ds007474-two-step-model.md) and can be regenerated with the commands there.
+- The OSF project declares **no license**, so no derived real-data outputs are stored in this repository. The exceptions are group summary statistics: the numbers below and one figure of them. The numbers are documented in [RL models](ds007474-two-step-model.md) and can be regenerated with the commands there.
 
 | Finding (181 subjects) | Estimate | Level |
 | --- | --- | --- |
-| A model-free/model-based hybrid predicts held-out runs better than either alone | Δ log-likelihood vs MF +1,084 [718, 1,451]; vs MB +1,116 [680, 1,605] | Pre-specified, with recovery |
+| A model-free/model-based hybrid predicts held-out runs better than either alone | Δ log-likelihood vs MF +1,083 [718, 1,451]; vs MB +1,116 [680, 1,605] | Pre-specified, with recovery |
 | The model-based weight does not reliably depend on which strategy is rewarded | Order-balanced Δw −0.012 [−0.047, 0.023] (scanner); +0.032 [−0.006, 0.072] (separate session); a planted 0.15 effect is recovered | Pre-specified |
 | Win-stay/lose-shift terms fix the hybrid's misfit and predict a separate session better | +318 [194, 454] (separate session) | Exploratory, replicated out of session |
 | No evidence for trial-wise arbitration: the sign of the "stakes" effect depends on the assumed learning signal | −0.27 (win/no-win learning) vs +0.56 (points), both calibrated Holm p < 0.05 | Pre-specified exploratory; no claim |
 | Hierarchical (empirical-Bayes) fitting improves recovery and prediction of a separate session; ranking unchanged | +97 [56, 141] | Pre-specified |
+
+![Held-out log-likelihood of model-free and model-based learning relative to the hybrid](figures/ds007474-models.svg)
+
+*Group summary only (181 subjects; leave one run out). The hybrid + contingency model is not shown, because its run-held-out score cannot be interpreted (see [RL models](ds007474-two-step-model.md)).*
 
 ## Null and negative results (reported, not hidden)
 

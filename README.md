@@ -154,7 +154,7 @@ ldm ds002158 align-eeg --events <..._events.tsv> --vmrk <..._eeg.vmrk>
 
 - **Primary: [OpenNeuro ds002158](https://openneuro.org/datasets/ds002158) v1.0.2** (CC0): simultaneous EEG/fMRI with confidence after committed vs observed decisions, 20 subjects. Pereira et al. (2020) *PNAS* 117:8382, [doi:10.1073/pnas.1918335117](https://doi.org/10.1073/pnas.1918335117). *This data was obtained from the OpenNeuro database.*
 - **Secondary: [OpenNeuro ds007474](https://openneuro.org/datasets/ds007474) v1.0.5** (CC0): two-step task fMRI, 189 subjects. Ding, Cockburn et al. (2026) *Cell Reports* 45(6), [doi:10.1016/j.celrep.2026.117454](https://doi.org/10.1016/j.celrep.2026.117454).
-  - Behavior and timing live on the linked [OSF project](https://osf.io/ctfzd), which **declares no license**. This repo therefore stores none of its files, and the tests are synthetic.
+  - Behavior and timing live on the linked [OSF project](https://osf.io/ctfzd), which **declares no license**. This repo therefore stores none of its files or per-participant results; only group summaries are published (in the docs and one figure), and the tests are synthetic.
 
 No participant data are redistributed apart from a minimal CC0 test fixture (one 48-trial events file and marker text; see [`tests/fixtures/ds002158/PROVENANCE.md`](tests/fixtures/ds002158/PROVENANCE.md)). `data/` is git-ignored.
 
@@ -207,7 +207,7 @@ Details: [audit](docs/ds007474-audit.md) · [JSON](reports/ds007474-audit.json) 
 - **Sanity check:** stay probabilities show the standard reward × transition pattern. This checks the coding; it is not a finding.
 - **Task design fully verified:** every shown outcome is reproduced from the trial schedule stored in the behavior files (0 mismatches in 28,512 trials). Under stimulus contingency the reward follows the chosen ship; under state contingency it follows the planet reached.
 - **RL models (behavior, 181 subjects):**
-  - On held-out runs, a hybrid of model-free and model-based learning predicts choices better than either alone. Δ log-likelihood vs MF is +1,084 [718, 1,451]; vs MB +1,116 [680, 1,605].
+  - On held-out runs, a hybrid of model-free and model-based learning predicts choices better than either alone. Δ log-likelihood vs MF is +1,083 [718, 1,451]; vs MB +1,116 [680, 1,605].
   - The ranking holds on held-out subjects and with no exclusions; learning from points instead of wins leaves the hybrid vs MB difference inconclusive.
   - Recovery over the fitted parameter range shows the group comparison is not biased toward the hybrid.
 - **No reliable contingency effect on the MB weight:** it does not reliably increase when model-based control is the rewarded strategy. Order-balanced Δw is −0.012 [−0.047, 0.023] in the scanner session and +0.032 [−0.006, 0.072] in a separate session. A planted effect of 0.15 is recovered in both.
