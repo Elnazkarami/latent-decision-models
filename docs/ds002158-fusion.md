@@ -53,6 +53,8 @@ Group tests:
 | secondary | own, new participants: MLP − B+E (two-sided) | −0.052 [−0.088, −0.014] | 4/17 | 0.020 | 0.081 |
 | secondary | own, new participants: E > 0 | 0.083 [0.034, 0.131] | 14/17 | 0.0023 | **0.012** |
 
+![Behavior alone vs behavior + EEG in new participants](figures/fusion.svg)
+
 ## Interpretation
 
 - **Consistency with the EEG results.** The earlier within-subject decoder of confidence *residualised* on behavior reached r = 0.08 ([EEG](ds002158-eeg.md), uncorrected p = 0.013), about 0.7% of the residual variance. (The plan's comment and the first version of this page wrongly quoted r = 0.16, the plain confidence decoder; corrected 2026-11-25.) Behavior already explains about 35% of the variance here (r ≈ 0.59), so at best EEG could lift the total correlation by roughly +0.004. The observed gains (+0.006 in new participants, −0.004 within subject) are of that order. The null result is therefore informative about size: post-decision EEG adds **at most a very small** increment to behavior in this dataset. It does not show that there is none.

@@ -32,7 +32,7 @@ Python package `latent_decision_models` · CLI `ldm` · repository `latent-decis
 
 ```bash
 python -m pip install -e '.[dev]'      # core + tests/lint
-# optional extras: '.[eeg]' (MNE), '.[fmri]' (Nilearn/PyBIDS), '.[deep]' (PyTorch)
+# optional extras: '.[eeg]' (MNE), '.[fmri]' (Nilearn/PyBIDS), '.[deep]' (PyTorch), '.[plots]' (figures)
 pytest -q
 ```
 
@@ -147,7 +147,8 @@ ldm ds002158 align-eeg --events <..._events.tsv> --vmrk <..._eeg.vmrk>
 | `two_step_model` | Model-free / model-based / hybrid RL for the two-step task. Includes schedule replay of simulated agents, MAP fitting, leave-one-run-out and subject-k-fold held-out comparison, parameter and group-level model recovery, an order-balanced contingency contrast and stay-probability checks |
 | `metacognition` | Group metacognitive sensitivity: GEE logistic of accuracy on confidence × condition |
 | `benchmark`, `synthetic` | Synthetic pipeline smoke test |
-| `provenance` | SHA-256 and git-blob checksums |
+| `figures` | Result figures (SVG) drawn only from the reports and the trial table (optional `[plots]` extra; `ldm figures`) |
+| `provenance` | SHA-256 and git-blob checksums; numeric comparison of regenerated reports |
 
 ## Datasets (not bundled)
 
@@ -160,6 +161,10 @@ No participant data are redistributed apart from a minimal CC0 test fixture (one
 ## Findings on ds002158
 
 Details and evidence: [audit](docs/ds002158-audit.md) · [EEG](docs/ds002158-eeg.md) · [fMRI audit](docs/ds002158-fmri-audit.md) · [fMRI pilot](docs/ds002158-fmri-pilot.md) · [EEG + behavior fusion](docs/ds002158-fusion.md) · [behavioral baselines](docs/ds002158-behavioral-baseline.md) · [computational model](docs/ds002158-confidence-model.md).
+
+![EEG decoding around the response, own vs observed decisions](docs/figures/eeg-timecourse.svg)
+
+*Within-subject EEG decoding around the response (exploratory time course, 17 subjects). More figures are in the [research report](docs/REPORT.md); `ldm figures` redraws them from the reports.*
 
 - **Behavior → fMRI timing:** events `onset` = stimulus marker − first scanner-volume trigger, with 0.0 ms residual. Trigger count equals the BOLD volume count.
 - **Behavior → EEG:** 22/25 sampled runs are fully verified.

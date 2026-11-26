@@ -2,6 +2,11 @@
 
 User-facing changes by release: what you can do with the package, and any correction to a published result. Day-to-day development is in the git history.
 
+## Unreleased
+
+**Figures:**
+- `ldm figures` draws the result figures as SVG, only from the reports and the trial table (optional `[plots]` extra): EEG time course, EEG + behavior fusion, confidence by accuracy, fMRI pilot, and the comparison with the original publication. They are embedded in the [research report](docs/REPORT.md) and the detailed pages, and a test checks that the committed figures match a fresh build.
+
 ## 0.1.1 (2026-11-26)
 
 **Citation:** author name and ORCID added to `CITATION.cff` and the package metadata.

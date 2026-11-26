@@ -42,6 +42,13 @@ def _verify_files(args):
         raise SystemExit(1)
 
 
+def _figures(args):
+    from .figures import build
+
+    _write_json(build(args.reports, args.out_dir, trials=args.trials,
+                      ds007474_report=args.ds007474_report))
+
+
 def _compare_reports(args):
     """Compare regenerated JSON reports with reference ones (same file names)."""
     from .provenance import json_differences
@@ -791,6 +798,13 @@ def main():
     cr.add_argument("--allow-new-keys", action="store_true",
                     help="accept keys present only in the regenerated reports")
     cr.add_argument("--out", help="JSON summary path (default: print)")
+    fg = sub.add_parser("figures", help="Draw the result figures (SVG) from the reports; "
+                        "needs the [plots] extra")
+    fg.add_argument("--reports", default="reports")
+    fg.add_argument("--out-dir", default="docs/figures")
+    fg.add_argument("--trials", help="ds002158 trial table (for the behavior figure)")
+    fg.add_argument("--ds007474-report", help="local ds007474_two_step_model.json; the "
+                    "figure shows group summaries only")
     ds = sub.add_parser("ds002158", help="OpenNeuro ds002158 adapter (experimental)")
     dsub = ds.add_subparsers(dest="ds_cmd", required=True)
     f = dsub.add_parser("fetch-metadata",
@@ -971,6 +985,8 @@ def main():
         _verify_files(args)
     elif args.cmd == "compare-reports":
         _compare_reports(args)
+    elif args.cmd == "figures":
+        _figures(args)
     elif args.cmd == "ds002158":
         {"fetch-metadata": _ds002158_fetch, "trials": _ds002158_trials,
          "align-eeg": _ds002158_align, "fetch-eeg": _ds002158_fetch_eeg,

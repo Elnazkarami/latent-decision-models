@@ -47,6 +47,8 @@ Decision (plan, item 2): stop and investigate; no confidence decoding.
 
 The FIR (finite impulse response) estimate of the evoked response is not informative here: with trials every ~7.4 volumes, lags beyond one period are nearly aliased.
 
+![fMRI pilot positive controls and timing scan](figures/fmri-pilot.svg)
+
 ## What this means
 
 - The published derivative is usable: good tSNR, consistent volumes and motion.

@@ -48,6 +48,24 @@ Every claim below is no stronger than its level. All neural features used for co
 - It does not carry over to decisions the participant only observed. With these data, movement-related activity cannot be separated from evaluation of one's own commitment.
 - No fMRI confidence result exists. In this near-periodic design (trials ~9.5 s apart), single-trial fMRI amplitudes were dominated by response latency.
 
+### Figures
+
+![EEG decoding around the response, own vs observed decisions](figures/eeg-timecourse.svg)
+
+*Within-subject EEG decoding in 100 ms windows around the response (exploratory time course). Response side, the positive control, rises at the response. Confidence appears about 0.2–0.6 s after one's own response, and later and more weakly for observed decisions. No window before the response survives correction.*
+
+![Behavior alone vs behavior + EEG in new participants](figures/fusion.svg)
+
+*Adding post-decision EEG to behavior barely changes the prediction of confidence in any new participant (pre-specified primary test).*
+
+![Confidence on error and correct trials](figures/confidence-by-accuracy.svg)
+
+*Mean confidence is alike for own and observed decisions. The difference between them lies in how well confidence separates correct from error trials, one trial at a time.*
+
+![fMRI pilot positive controls and timing scan](figures/fmri-pilot.svg)
+
+*The trial-level fMRI pilot. A gating control fails in each version, so no fMRI confidence analysis was run.*
+
 ## ds007474: model-based and model-free learning in a two-step task (behavior)
 
 **Data checks** ([audit](ds007474-audit.md)):
@@ -83,6 +101,8 @@ Every claim below is no stronger than its level. All neural features used for co
 
 Our ds002158 behavioral results agree with the original publication (Pereira et al. 2020) on every comparable inferential result, including an exact match of the type-2 AUROC test (V = 163, p = 0.03). The type-2 AUROC levels are ~0.04 higher and unexplained. EEG onsets differ by ~50–100 ms, consistent with opposite filtering directions. For ds007474, every comparable verbatim result of the study's preprint is reproduced: transition rate, reward-probability check (47.12% vs 47.19%; null 43.09% vs 43.08%), the reward and model-based stay effects, and the hybrid beating pure MF and MB. **Clean-room reproduction:** every committed ds002158 report regenerates within 1e-6 from a fresh clone and environment, using hash-checked data. The ds007474 primary model comparison regenerates within optimizer tolerance (about 1e-5). The drift is traced to one floating-point rewrite of the prior term, and no published number changes. Details: [validation](VALIDATION.md).
 
+![Our descriptives and type-2 AUROC next to the original publication](figures/paper-comparison.svg)
+
 ## Limitations
 
 - **ds002158** has 20 subjects (17 in the confirmatory EEG set). Effects of r ≈ 0.1 are near what this sample can resolve, and increments of about 0.01 cannot be resolved.
@@ -95,5 +115,6 @@ Our ds002158 behavioral results agree with the original publication (Pereira et 
 
 - **Environment:** `pip install -e '.[dev,eeg,fmri,deep]'`. Exact versions used for the reported runs are in [`requirements-lock.txt`](../requirements-lock.txt) (Python 3.12, macOS, CPU).
 - **Data:** OpenNeuro ds002158 v1.0.2 and ds007474 v1.0.5 (CC0); ds007474 behavior from OSF `ctfzd` (no license; fetched by allow-listed, hash-checked download). Signal downloads are explicit (`fetch-eeg`, `fetch-fmri`).
+- **Figures:** `ldm figures --trials data/ds002158_trials.csv` (needs `[plots]`) redraws `docs/figures/` from the reports. A test checks that the committed figures match a fresh build.
 - **Commands:** in the README and on each detailed page. Every committed JSON report records the config that produced it.
-- **Tests:** 205 automated tests. They use synthetic data and the CC0 fixture, and run without neuroimaging data. CI runs the base suite plus separate jobs for the `[eeg]`, `[fmri]` and `[deep]` extras. `tests/test_report.py` checks that the ds002158 headline numbers on this page match the committed reports.
+- **Tests:** 210 automated tests. They use synthetic data and the CC0 fixture, and run without neuroimaging data. CI runs the base suite plus separate jobs for the `[eeg]`, `[fmri]` and `[deep]` extras. `tests/test_report.py` checks that the ds002158 headline numbers on this page match the committed reports.

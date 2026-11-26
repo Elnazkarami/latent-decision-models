@@ -57,6 +57,8 @@ Report: [`reports/ds002158-paper-comparison.json`](../reports/ds002158-paper-com
 | P11 | observed EEG: nothing before 200 ms; peak ~350 ms | nothing after the response before 0.30–0.40 s; strongest 0.45–0.55 s (r = 0.09, p = 0.0003) | **agree** (no early component; a later, delayed signal) |
 | P12 | fMRI | – | not comparable |
 
+![Our descriptives and type-2 AUROC next to the paper](figures/paper-comparison.svg)
+
 **Summary:**
 - **Agreement:** every inferential result in the paper's main text that we could compare agrees in direction and significance once the paper's model is matched (P6–P9, P11). This includes an exact match of the type-2 AUROC Wilcoxon statistic. The descriptives agree within the paper's intervals once its RT exclusions are applied (P3).
 - **Unexplained:** the type-2 AUROC levels are higher in ours.

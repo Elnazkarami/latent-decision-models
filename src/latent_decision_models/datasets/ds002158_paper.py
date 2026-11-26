@@ -14,6 +14,14 @@ from sklearn.linear_model import LogisticRegression
 
 from ..confidence_baseline import type2_auroc
 
+#: Pereira et al. (2020) main-text values as (value, reported ± interval); see
+#: docs/VALIDATION.md (P2-P5, P8). The paper does not state whether ± is an SD or an SEM.
+PAPER_VALUES = {
+    "valid trials, own": (119, 5), "valid trials, observed": (118, 5),
+    "accuracy, %": (71.2, 1.0), "dot difference": (13.1, 1.7), "RT, ms": (385, 8),
+    "type-2 AUROC, own": (0.92, 0.02), "type-2 AUROC, observed": (0.90, 0.03),
+}
+
 
 def _wilcoxon(x, alternative: str = "two-sided") -> dict:
     x = np.asarray(x, float)
